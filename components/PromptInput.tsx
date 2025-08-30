@@ -18,7 +18,7 @@ const PromptInput: React.FC<PromptInputProps> = ({ value, onChange, disabled = f
         disabled={disabled}
         maxLength={maxLength}
         placeholder="Describe what you want (e.g., warm sunset lighting, cinematic mood, pastel palette, add soft depth of field, etc.)"
-        className="w-full min-h-[96px] max-h-64 p-3 rounded-lg bg-gray-800/70 text-gray-100 placeholder-gray-400 border border-white/10 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full min-h-[96px] max-h-64 p-3 glass-input text-gray-100 placeholder-gray-400 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
       />
       <div className="flex items-center justify-between text-xs text-gray-300">
         <span>These instructions will be combined with the selected style.</span>

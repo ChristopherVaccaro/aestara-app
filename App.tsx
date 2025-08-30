@@ -21,6 +21,7 @@ const FILTER_CATEGORIES: FilterCategory[] = [
       { id: 'anime', name: 'Anime', prompt: 'Transform this image into a clean, polished anime-style illustration. The style should feature sharp black line art around the main subjects. Use bright, cel-shaded coloring with smooth gradient transitions for a modern look. Apply balanced highlights and subtle shadows to create depth. Maintain realistic body proportions while stylizing features like the face and simplifying anatomical details to match a contemporary anime art style.' },
       { id: 'cartoon', name: '3D Cartoon', prompt: 'Transform this image into the style of a modern 3D animated film. It should have smooth digital painting, soft lighting, and slightly exaggerated, expressive features.' },
       { id: 'pixar', name: 'Pixar Style', prompt: 'Transform this entire image into the distinctive Pixar 3D animation style. Convert all people into Pixar-style characters with large, expressive eyes, rounded soft facial features, and slightly exaggerated proportions. Apply the signature Pixar body style with softer, more rounded forms and gentle curves. Transform clothing into the clean, simplified Pixar aesthetic with smooth textures and vibrant colors. Convert the entire background and environment into a Pixar-style scene with warm, cinematic lighting, rich saturated colors, and that polished 3D rendered look. Everything should have the characteristic Pixar charm - from character design to environmental details, creating a cohesive animated world that feels warm, inviting, and emotionally engaging.' },
+      { id: 'western', name: 'Western Theme', prompt: 'Transform this image into a classic American Old West scene with authentic western atmosphere. Convert people into rugged cowboys, outlaws, or frontier folk with weathered faces, cowboy hats, boots, spurs, and period-appropriate clothing like leather chaps, vests, bandanas, and duster coats. Transform the setting into a dusty frontier town, saloon, ranch, or desert landscape with wooden buildings, hitching posts, tumbleweeds, and vast open skies. Apply warm, golden hour lighting with dramatic shadows and dust particles in the air. Use a sepia-toned or desaturated color palette with browns, oranges, and muted earth tones. Add authentic western details like revolvers, horses, cattle, cacti, and weathered wood textures to create an immersive Wild West atmosphere.' },
       { id: 'oil', name: 'Oil Painting', prompt: 'Transform this image into a vibrant, textured oil painting with visible brushstrokes.' },
       { id: 'watercolor', name: 'Watercolor', prompt: 'Turn this image into a soft and dreamy watercolor painting with blended colors and delicate washes.' },
       { id: 'sketch', name: 'Pencil Sketch', prompt: 'Convert this image into a detailed, realistic pencil sketch on textured paper.' },
@@ -86,6 +87,12 @@ const App: React.FC = () => {
     setIsLoading(true);
     setError(null);
     setActiveFilter(filter);
+    
+    // Scroll to top on mobile when filter is applied
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
     
     try {
       const extra = userPrompt.trim();
@@ -199,7 +206,7 @@ const App: React.FC = () => {
 
         {/* Right Column: Controls */}
         <div className="w-full lg:w-1/3 mt-8 lg:mt-0">
-           <div className="sticky top-8 flex flex-col space-y-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-2xl">
+           <div className="sticky top-8 flex flex-col space-y-6 glass-panel p-6">
               <FilterSelector
                 categories={FILTER_CATEGORIES}
                 onSelectFilter={handleApplyFilter}
@@ -211,11 +218,11 @@ const App: React.FC = () => {
                 onChange={setUserPrompt}
                 disabled={isLoading}
               />
-              <div className="flex flex-col space-y-3 pt-4 border-t border-white/20">
+              <div className="flex flex-col space-y-3 pt-4 border-t border-white/[0.12]">
                  <button
                   onClick={handleDownload}
                   disabled={!generatedImageUrl || isLoading}
-                  className="w-full px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed flex items-center justify-center shadow-lg gap-2"
+                  className="w-full px-6 py-3 bg-green-500/20 backdrop-blur-xl border border-green-400/30 text-green-100 font-semibold rounded-2xl hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-300 disabled:bg-gray-500/20 disabled:border-gray-400/20 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center shadow-lg gap-2"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -224,13 +231,13 @@ const App: React.FC = () => {
                 </button>
                 <button
                   onClick={handleReset}
-                  className="w-full px-6 py-2 bg-gray-600/50 text-white font-semibold rounded-lg hover:bg-gray-600/80 transition-colors"
+                  className="w-full px-6 py-2 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white font-medium rounded-2xl hover:bg-white/[0.12] hover:border-white/20 transition-all duration-300"
                 >
                   Upload New Image
                 </button>
               </div>
                {error && (
-                <div className="text-center p-4 bg-red-900/50 border border-red-600 rounded-lg">
+                <div className="text-center p-4 bg-red-500/[0.08] backdrop-blur-xl border border-red-400/30 rounded-2xl">
                   <p className="font-semibold text-red-200">Styling Failed</p>
                   <p className="mt-1 text-sm text-red-300">{error}</p>
                 </div>
@@ -243,7 +250,7 @@ const App: React.FC = () => {
 
   return (
     <div 
-      className={`min-h-screen flex flex-col items-center justify-between p-4 md:p-8 font-sans text-gray-200 relative ${
+      className={`min-h-screen flex flex-col items-center justify-between p-4 md:p-8 font-sans text-gray-200 relative subtle-bg ${
         isDragOver ? 'bg-blue-900/20' : ''
       }`}
       onDragEnter={handleDragEnter}
@@ -251,10 +258,12 @@ const App: React.FC = () => {
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
+      {/* Subtle mesh overlay */}
+      <div className="absolute inset-0 mesh-overlay pointer-events-none" />
       {/* Drag overlay */}
       {isDragOver && (
         <div className="fixed inset-0 bg-blue-600/30 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white/10 backdrop-blur-xl border-2 border-dashed border-blue-400 rounded-2xl p-12 text-center">
+          <div className="bg-white/[0.08] backdrop-blur-2xl border-2 border-dashed border-blue-400/60 rounded-3xl p-12 text-center shadow-2xl shadow-black/30">
             <div className="text-6xl mb-4">📸</div>
             <h3 className="text-2xl font-bold text-blue-200 mb-2">Drop your image here</h3>
             <p className="text-blue-300">Release to upload and start styling</p>

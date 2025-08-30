@@ -1,39 +1,35 @@
 import React from 'react';
 
-const Logo: React.FC<{ className?: string }>= ({ className = 'h-12 w-12' }) => {
+const Logo: React.FC<{ className?: string }>= ({ className = 'h-12 w-auto' }) => {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 64 64"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label="AI Image Stylizer logo"
-    >
-      <defs>
-        <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#8b5cf6" />
-          <stop offset="100%" stopColor="#ec4899" />
-        </linearGradient>
-        <linearGradient id="shine" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {/* Friendly rounded square */}
-      <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#grad)" />
-      {/* Camera lens circle */}
-      <circle cx="32" cy="32" r="12" fill="#111827" opacity="0.9" />
-      <circle cx="32" cy="32" r="8" fill="#1f2937" />
-      <circle cx="30" cy="28" r="3" fill="url(#shine)" />
-      {/* Sparkles to suggest AI magic */}
-      <g fill="#fff" opacity="0.9">
-        <path d="M48 18l1.5 3.5L53 23l-3.5 1.5L48 28l-1.5-3.5L43 23l3.5-1.5L48 18z" />
-        <path d="M16 42l1 2.4L19.5 45l-2.5 1L16 48l-1-2.5L12.5 45l2.5-.6L16 42z" opacity="0.85" />
-      </g>
-      {/* Subtle highlight */}
-      <path d="M10 16c10-6 34-6 44 0" stroke="#fff" strokeOpacity="0.15" strokeWidth="3" strokeLinecap="round" />
-    </svg>
+    <div className={`${className} flex items-center`}>
+      <div className="text-logo relative">
+        {/* Glow layer */}
+        <span
+          className="absolute inset-0 blur-sm opacity-40 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-500 to-pink-500 select-none pointer-events-none font-black text-2xl md:text-3xl tracking-tight"
+          aria-hidden
+        >
+          AI
+        </span>
+        {/* Main gradient text */}
+        <span className="relative text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-fuchsia-400 to-pink-400 font-black text-2xl md:text-3xl tracking-tight">
+          AI
+        </span>
+      </div>
+      <div className="ml-1 text-logo-secondary relative">
+        {/* Glow layer */}
+        <span
+          className="absolute inset-0 blur-sm opacity-30 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 select-none pointer-events-none font-bold text-lg md:text-xl tracking-wide"
+          aria-hidden
+        >
+          Stylizer
+        </span>
+        {/* Main gradient text */}
+        <span className="relative text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-cyan-300 font-bold text-lg md:text-xl tracking-wide">
+          Stylizer
+        </span>
+      </div>
+    </div>
   );
 };
 
