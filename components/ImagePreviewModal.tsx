@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface ImagePreviewModalProps {
   imageUrl: string;
@@ -6,6 +6,8 @@ interface ImagePreviewModalProps {
 }
 
 const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose }) => {
+  const touchStartY = useRef<number>(0);
+  const touchEndY = useRef<number>(0);
   useEffect(() => {
     const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -31,6 +33,21 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose
     };
   }, []);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    touchEndY.current = e.changedTouches[0].clientY;
+    const swipeDistance = touchEndY.current - touchStartY.current;
+    const minSwipeDistance = 100; // Minimum pixels to trigger close
+    
+    // Close modal if swiped down significantly
+    if (swipeDistance > minSwipeDistance) {
+      onClose();
+    }
+  };
+
   const handleDownload = () => {
     const link = document.createElement('a');
     link.href = imageUrl;
@@ -42,15 +59,19 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black bg-opacity-80"
+      className="fixed inset-0 z-50 glass-modal"
       onClick={onClose}
       aria-modal="true"
       role="dialog"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       <div className="h-full overflow-y-auto overscroll-contain flex items-start justify-center py-8">
         <div
           className="relative max-w-4xl p-4"
           onClick={(e) => e.stopPropagation()} // Prevent closing when clicking on the image
+          onTouchStart={(e) => e.stopPropagation()} // Prevent swipe detection on image
+          onTouchEnd={(e) => e.stopPropagation()}
         >
           <img 
             src={imageUrl} 
@@ -60,7 +81,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose
           <div className="absolute top-2 right-2 flex gap-2">
             <button
               onClick={handleDownload}
-              className="text-white bg-blue-600/80 rounded-full p-2 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-white"
+              className="text-white glass-button rounded-full p-2 focus:outline-none"
               aria-label="Download image"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
@@ -69,7 +90,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose
             </button>
             <button
               onClick={onClose}
-              className="text-white bg-gray-800 bg-opacity-70 rounded-full p-2 hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-white"
+              className="text-white glass-button rounded-full p-2 focus:outline-none"
               aria-label="Close preview"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
