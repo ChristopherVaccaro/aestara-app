@@ -1,0 +1,66 @@
+import React from 'react';
+import { Filter } from '../types';
+
+interface FilterCategory {
+  name: string;
+  filters: Filter[];
+}
+
+interface FilterSelectorProps {
+  categories: FilterCategory[];
+  onSelectFilter: (filter: Filter) => void;
+  isLoading: boolean;
+  activeFilterId: string | null;
+}
+
+const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFilter, isLoading, activeFilterId }) => {
+  return (
+    <div className="w-full flex flex-col space-y-5">
+      {categories.map((category) => (
+        <div key={category.name}>
+          <h3 className="text-lg font-semibold text-gray-200 mb-3 px-1">{category.name}</h3>
+          
+          {/* Desktop: Grid View */}
+          <div className="hidden md:grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-2">
+            {category.filters.map((filter) => (
+              <button
+                key={filter.id}
+                onClick={() => onSelectFilter(filter)}
+                disabled={isLoading}
+                className={`px-3 py-2 text-sm text-left font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed
+                ${activeFilterId === filter.id 
+                    ? 'bg-purple-600 text-white shadow-md' 
+                    : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+                }`}
+              >
+                {filter.name}
+              </button>
+            ))}
+          </div>
+
+          {/* Mobile: Horizontal Scroll View */}
+          <div className="md:hidden">
+            <div className="flex space-x-2 overflow-x-auto pb-2 -mx-6 px-6">
+              {category.filters.map((filter) => (
+                <button
+                  key={filter.id}
+                  onClick={() => onSelectFilter(filter)}
+                  disabled={isLoading}
+                  className={`flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed
+                  ${activeFilterId === filter.id 
+                      ? 'bg-purple-600 text-white shadow-md' 
+                      : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+                  }`}
+                >
+                  {filter.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default FilterSelector;

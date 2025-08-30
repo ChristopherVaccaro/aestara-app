@@ -1,0 +1,5 @@
+{
+  "name": "AI Image Stylizer",
+  "description": "Upload a photo and apply a variety of artistic filters in real-time using generative AI. Transform your images into styles like oil paintings, anime, cyberpunk, and more.",
+  "requestFramePermissions": []
+}
