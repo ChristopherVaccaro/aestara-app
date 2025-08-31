@@ -34,13 +34,26 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose
   }, []);
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
     touchStartY.current = e.touches[0].clientY;
   };
 
+  const handleTouchMove = (e: React.TouchEvent) => {
+    // Prevent default scrolling behavior during swipe
+    const currentY = e.touches[0].clientY;
+    const swipeDistance = currentY - touchStartY.current;
+    
+    // Only prevent default if swiping down
+    if (swipeDistance > 0) {
+      e.preventDefault();
+    }
+  };
+
   const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
     touchEndY.current = e.changedTouches[0].clientY;
     const swipeDistance = touchEndY.current - touchStartY.current;
-    const minSwipeDistance = 100; // Minimum pixels to trigger close
+    const minSwipeDistance = 80; // Reduced threshold for easier triggering
     
     // Close modal if swiped down significantly
     if (swipeDistance > minSwipeDistance) {
@@ -64,6 +77,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose
       aria-modal="true"
       role="dialog"
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       <div className="h-full overflow-y-auto overscroll-contain flex items-start justify-center py-8">
@@ -71,6 +85,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose
           className="relative max-w-4xl p-4"
           onClick={(e) => e.stopPropagation()} // Prevent closing when clicking on the image
           onTouchStart={(e) => e.stopPropagation()} // Prevent swipe detection on image
+          onTouchMove={(e) => e.stopPropagation()}
           onTouchEnd={(e) => e.stopPropagation()}
         >
           <img 
