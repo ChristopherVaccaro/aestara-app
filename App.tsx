@@ -5,7 +5,7 @@ import ImageUploader from './components/ImageUploader';
 import ImageDisplay from './components/ImageDisplay';
 import FilterSelector from './components/FilterSelector';
 import ImagePreviewModal from './components/ImagePreviewModal';
-import PromptInput from './components/PromptInput';
+import ShareButton from './components/ShareButton';
 import { Filter } from './types';
 import { applyImageFilter } from './services/geminiService';
 
@@ -18,16 +18,19 @@ const FILTER_CATEGORIES: FilterCategory[] = [
   {
     name: 'Artistic & Stylized',
     filters: [
-      { id: 'anime', name: 'Anime', prompt: 'Transform this image into a clean, polished anime-style illustration. The style should feature sharp black line art around the main subjects. Use bright, cel-shaded coloring with smooth gradient transitions for a modern look. Apply balanced highlights and subtle shadows to create depth. Maintain realistic body proportions while stylizing features like the face and simplifying anatomical details to match a contemporary anime art style.' },
+      { id: 'anime', name: 'Anime', prompt: 'Transform this image into a clean, polished Japanese animation-style illustration. The style should feature sharp black line art around the main subjects. Use bright, cel-shaded coloring with smooth gradient transitions for a modern look. Apply balanced highlights and subtle shadows to create depth. Maintain proportional accuracy while stylizing features to match contemporary animated art style.' },
       { id: 'cartoon', name: '3D Cartoon', prompt: 'Transform this image into the style of a modern 3D animated film. It should have smooth digital painting, soft lighting, and slightly exaggerated, expressive features.' },
       { id: 'pixar', name: 'Pixar Style', prompt: 'Transform this entire image into the distinctive Pixar 3D animation style. Convert all people into Pixar-style characters with large, expressive eyes, rounded soft facial features, and slightly exaggerated proportions. Apply the signature Pixar body style with softer, more rounded forms and gentle curves. Transform clothing into the clean, simplified Pixar aesthetic with smooth textures and vibrant colors. Convert the entire background and environment into a Pixar-style scene with warm, cinematic lighting, rich saturated colors, and that polished 3D rendered look. Everything should have the characteristic Pixar charm - from character design to environmental details, creating a cohesive animated world that feels warm, inviting, and emotionally engaging.' },
-      { id: 'western', name: 'Western Theme', prompt: 'Transform this image into a classic American Old West scene with authentic western atmosphere. Convert people into rugged cowboys, outlaws, or frontier folk with weathered faces, cowboy hats, boots, spurs, and period-appropriate clothing like leather chaps, vests, bandanas, and duster coats. Transform the setting into a dusty frontier town, saloon, ranch, or desert landscape with wooden buildings, hitching posts, tumbleweeds, and vast open skies. Apply warm, golden hour lighting with dramatic shadows and dust particles in the air. Use a sepia-toned or desaturated color palette with browns, oranges, and muted earth tones. Add authentic western details like revolvers, horses, cattle, cacti, and weathered wood textures to create an immersive Wild West atmosphere.' },
+      { id: 'western', name: 'Western Theme', prompt: 'Transform this image into a classic American Old West scene with authentic frontier atmosphere. Convert people into rugged cowboys or frontier folk with weathered faces, cowboy hats, boots, spurs, and period-appropriate clothing like leather chaps, vests, bandanas, and duster coats. Transform the setting into a dusty frontier town, ranch, or desert landscape with wooden buildings, hitching posts, tumbleweeds, and vast open skies. Apply warm, golden hour lighting with dramatic shadows and dust particles in the air. Use a sepia-toned or desaturated color palette with browns, oranges, and muted earth tones. Add authentic western details like horses, cattle, cacti, and weathered wood textures to create an immersive Wild West atmosphere.' },
       { id: 'oil', name: 'Oil Painting', prompt: 'Transform this image into a vibrant, textured oil painting with visible brushstrokes.' },
       { id: 'watercolor', name: 'Watercolor', prompt: 'Turn this image into a soft and dreamy watercolor painting with blended colors and delicate washes.' },
       { id: 'sketch', name: 'Pencil Sketch', prompt: 'Convert this image into a detailed, realistic pencil sketch on textured paper.' },
       { id: 'comic', name: 'Comic Book', prompt: 'Recreate this image in a bold comic book art style. Use heavy black outlines, vibrant primary colors, and Ben-Day dot patterns for shading.' },
       { id: 'lowpoly', name: 'Low Poly', prompt: 'Convert this image into a low-poly geometric art style, using simple polygons and flat shading.' },
       { id: 'ukiyo', name: 'Ukiyo-e', prompt: 'Transform this image into a Japanese Ukiyo-e woodblock print. Use a limited color palette, elegant lines, and a sense of traditional Japanese artistry.' },
+      { id: 'impressionist', name: 'Impressionism', prompt: 'Transform this image into an Impressionist painting with loose, visible brushstrokes and emphasis on light and color. Use soft edges, vibrant colors, and capture the fleeting effects of natural light with a painterly quality reminiscent of Monet or Renoir.' },
+      { id: 'popart', name: 'Pop Art', prompt: 'Transform this image into a bold Pop Art style with bright, saturated colors and high contrast. Use a limited color palette with flat, graphic areas of color. Apply a screen-printing aesthetic with clean edges and commercial art influence.' },
+      { id: 'artdeco', name: 'Art Deco', prompt: 'Transform this image into an Art Deco style with geometric patterns, metallic accents, and luxury aesthetic. Use bold lines, symmetrical designs, and a sophisticated color palette with gold, black, and rich jewel tones.' },
     ],
   },
   {
@@ -38,15 +41,19 @@ const FILTER_CATEGORIES: FilterCategory[] = [
       { id: 'hdr', name: 'HDR Look', prompt: 'Enhance this image with an HDR effect. Sharpen the details, boost the color saturation, and increase the dynamic range for a vibrant and dramatic look.' },
       { id: 'cinematic', name: 'Cinematic', prompt: 'Apply a cinematic color grade to this image. Use a teal and orange palette, add subtle letterboxing, and create a moody, atmospheric feel.' },
       { id: 'softglow', name: 'Soft Glow', prompt: 'Give this image a soft, ethereal glow. Smooth out skin textures gently, enhance highlights, and create a dreamy, flattering look.' },
+      { id: 'filmnoir', name: 'Film Noir', prompt: 'Transform this image into a classic film noir style with high contrast black and white, dramatic shadows, and moody lighting. Emphasize deep blacks and bright whites with strong directional lighting.' },
+      { id: 'doubleexposure', name: 'Double Exposure', prompt: 'Create a double exposure effect by blending this image with ghostly, translucent overlapping elements. Use soft, dreamy transparency effects and ethereal blending.' },
     ],
   },
   {
     name: 'Trendy & Social',
     filters: [
-      { id: 'cyber', name: 'Cyberpunk', prompt: 'Transform this image with a cyberpunk aesthetic, featuring neon lights, futuristic elements, and a dark, moody atmosphere.' },
+      { id: 'cyber', name: 'Cyberpunk', prompt: 'Transform this image with a cyberpunk aesthetic, featuring bright neon lights, futuristic elements, and a vibrant technological atmosphere with glowing accents.' },
       { id: 'vaporwave', name: 'Vaporwave', prompt: 'Submerge this image in a vaporwave aesthetic. Use a palette of pinks and cyans, incorporate classic motifs like Roman busts or 90s computer graphics, and give it a nostalgic, dreamy, and slightly surreal vibe.' },
       { id: 'pixel', name: 'Pixel Art', prompt: 'Convert this image into 8-bit pixel art. Simplify the shapes and use a limited color palette, reminiscent of a classic video game.' },
       { id: 'vhs', name: 'Retro VHS', prompt: 'Give this image a retro VHS aesthetic. Add screen distortion, a timestamp overlay in a digital font, and a color palette shifted towards pinks and cyans.' },
+      { id: 'graffiti', name: 'Street Art', prompt: 'Transform this image into vibrant street art with spray paint textures, bold colors, and urban aesthetic. Use layered effects and energetic, expressive brushwork.' },
+      { id: 'isometric', name: 'Isometric Art', prompt: 'Convert this image into an isometric 3D perspective with clean geometric forms, game-like aesthetic, and technical precision. Use flat colors and sharp edges.' },
     ],
   },
   {
@@ -55,8 +62,11 @@ const FILTER_CATEGORIES: FilterCategory[] = [
       { id: 'fantasy', name: 'Fantasy World', prompt: 'Turn this image into a scene from a fantasy world. Add glowing magical elements, an enchanted forest background, and a whimsical, fairy-tale atmosphere.' },
       { id: 'galaxy_bg', name: 'Galaxy BG', prompt: 'Keep the main subject in the foreground and replace the background with a beautiful, sprawling galaxy filled with nebulae and stars.' },
       { id: '1890s', name: '1890s Photo', prompt: 'Make this look like an authentic, aged photograph from the 1890s. Convert it to sepia, add textures of cracked emulsion and faded paper.' },
-      { id: 'halloween', name: 'Halloween', prompt: 'Give this image a spooky Halloween vibe. Add a low-lying fog, a dark and moody color grade with hints of orange, and maybe a subtle jack-o\'-lantern glow.' },
+      { id: 'halloween', name: 'Halloween', prompt: 'Give this image a festive Halloween atmosphere. Add a low-lying fog, an autumn color grade with warm orange tones, and subtle pumpkin-themed lighting effects.' },
       { id: 'steampunk', name: 'Steampunk', prompt: 'Reimagine this image in a steampunk style, incorporating gears, brass, and Victorian-era technology.' },
+      { id: 'stainedglass', name: 'Stained Glass', prompt: 'Transform this image into a beautiful stained glass window with colorful glass segments separated by dark lead lines. Use vibrant, translucent colors and geometric divisions.' },
+      { id: 'mosaic', name: 'Mosaic', prompt: 'Convert this image into a mosaic artwork made of small colored tiles or stones. Create texture and depth through individual tile placement with visible grout lines.' },
+      { id: 'chineseink', name: 'Chinese Ink', prompt: 'Transform this image into a traditional Chinese ink painting with flowing brushwork, minimalist composition, and emphasis on negative space. Use black ink with subtle washes.' },
     ],
   },
 ];
@@ -72,7 +82,6 @@ const App: React.FC = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [dragCounter, setDragCounter] = useState<number>(0);
-  const [userPrompt, setUserPrompt] = useState<string>('');
 
   const handleImageUpload = (file: File) => {
     setImageFile(file);
@@ -95,11 +104,7 @@ const App: React.FC = () => {
     }
     
     try {
-      const extra = userPrompt.trim();
-      const combinedPrompt = extra
-        ? `${filter.prompt}\n\nAdditional user guidance to apply consistently: ${extra}`
-        : filter.prompt;
-      const base64Data = await applyImageFilter(imageFile, combinedPrompt);
+      const base64Data = await applyImageFilter(imageFile, filter.prompt);
       setGeneratedImageUrl(`data:image/png;base64,${base64Data}`);
     } catch (err) {
       if (err instanceof Error) {
@@ -205,20 +210,22 @@ const App: React.FC = () => {
         </div>
 
         {/* Right Column: Controls */}
-        <div className="w-full lg:w-1/3 mt-8 lg:mt-0">
-           <div className="sticky top-8 flex flex-col space-y-6 glass-panel p-6">
-              <FilterSelector
-                categories={FILTER_CATEGORIES}
-                onSelectFilter={handleApplyFilter}
-                isLoading={isLoading}
-                activeFilterId={activeFilter?.id || null}
-              />
-              <PromptInput
-                value={userPrompt}
-                onChange={setUserPrompt}
-                disabled={isLoading}
-              />
-              <div className="flex flex-col space-y-3 pt-4 border-t border-white/[0.12]">
+        <div className="w-full lg:w-1/3 mt-8 lg:mt-0 flex flex-col">
+           {/* Scrollable Filters Section */}
+           <div className="flex-1 glass-panel p-3 lg:p-6 mb-6 overflow-hidden flex flex-col">
+              <div className="flex-1 overflow-y-auto scrollable-filters">
+                <FilterSelector
+                  categories={FILTER_CATEGORIES}
+                  onSelectFilter={handleApplyFilter}
+                  isLoading={isLoading}
+                  activeFilterId={activeFilter?.id || null}
+                />
+              </div>
+           </div>
+
+           {/* Fixed Action Buttons */}
+           <div className="glass-panel p-6">
+              <div className="flex flex-col space-y-3">
                  <button
                   onClick={handleDownload}
                   disabled={!generatedImageUrl || isLoading}
@@ -229,6 +236,10 @@ const App: React.FC = () => {
                   </svg>
                   Download Image
                 </button>
+                <ShareButton 
+                  imageUrl={generatedImageUrl}
+                  styleName={activeFilter?.name}
+                />
                 <button
                   onClick={handleReset}
                   className="w-full px-6 py-2 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white font-medium rounded-2xl hover:bg-white/[0.12] hover:border-white/20 transition-all duration-300"
@@ -236,8 +247,10 @@ const App: React.FC = () => {
                   Upload New Image
                 </button>
               </div>
-               {error && (
-                <div className="text-center p-4 bg-red-500/[0.08] backdrop-blur-xl border border-red-400/30 rounded-2xl">
+              
+              {/* Error Display */}
+              {error && (
+                <div className="mt-4 text-center p-4 bg-red-500/[0.08] backdrop-blur-xl border border-red-400/30 rounded-2xl">
                   <p className="font-semibold text-red-200">Styling Failed</p>
                   <p className="mt-1 text-sm text-red-300">{error}</p>
                 </div>

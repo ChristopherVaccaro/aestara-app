@@ -50,9 +50,18 @@ export const applyImageFilter = async (imageFile: File, prompt: string): Promise
     }
 
     // If no image is returned, throw an informative error
-    let errorMessage = "API did not return an image. The content may have been blocked.";
+    let errorMessage = "API did not return an image.";
     if (candidate?.finishReason) {
-        errorMessage += ` Reason: ${candidate.finishReason}.`;
+        const reason = candidate.finishReason;
+        if (reason === 'SAFETY' || reason === 'PROHIBITED_CONTENT') {
+            errorMessage = "Content was blocked by safety filters. Try a different style or image, or use simpler prompts.";
+        } else if (reason === 'RECITATION') {
+            errorMessage = "Content flagged for copyright concerns. Try a different style.";
+        } else {
+            errorMessage += ` The content may have been blocked. Reason: ${reason}.`;
+        }
+    } else {
+        errorMessage += " The content may have been blocked by safety filters.";
     }
     
     throw new Error(errorMessage);

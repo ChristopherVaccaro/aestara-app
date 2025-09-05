@@ -8,9 +8,6 @@ const Header: React.FC = () => {
         <Logo className="h-12 w-auto" />
         <div className="flex flex-col">
           <div className="mt-2 h-1 w-36 rounded-full bg-gradient-to-r from-purple-400 via-fuchsia-500 to-pink-500" />
-          <p className="text-lg text-gray-300 mt-2">
-            Transform your photos with the power of AI.
-          </p>
         </div>
       </div>
     </header>

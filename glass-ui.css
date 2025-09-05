@@ -69,6 +69,72 @@
   transition: all 0.3s ease;
 }
 
+/* Scrollable filters container */
+.scrollable-filters {
+  max-height: 60vh;
+  min-height: 300px;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-right: -8px;
+}
+
+/* Mobile adjustments for scrollable filters */
+@media (max-width: 768px) {
+  .scrollable-filters {
+    max-height: 50vh;
+    min-height: 250px;
+    padding-right: 4px;
+    margin-right: -4px;
+  }
+}
+
+/* Custom scrollbar for WebKit browsers (Chrome, Safari, Edge) */
+.scrollable-filters::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollable-filters::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.scrollable-filters::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.scrollable-filters::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Custom scrollbar for Firefox */
+.scrollable-filters {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+}
+
+/* Mobile horizontal scroll improvements */
+@media (max-width: 768px) {
+  .scrollable-filters .flex.space-x-2.overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-left: 0;
+    margin-left: 0;
+  }
+  
+  .scrollable-filters .flex.space-x-2.overflow-x-auto::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Ensure buttons don't get cut off on small screens */
+  .scrollable-filters .flex.space-x-2.overflow-x-auto button {
+    max-width: calc(50vw - 2rem);
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}
+
 .glass-input:focus {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(147, 51, 234, 0.3);
