@@ -72,9 +72,21 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
             onMouseDown={onPeekStart}
             onMouseUp={onPeekEnd}
             onMouseLeave={onPeekEnd}
-            onTouchStart={onPeekStart}
-            onTouchEnd={onPeekEnd}
-            className="px-8 py-3 glass-button-active text-purple-100 font-semibold shadow-lg select-none focus:outline-none"
+            onTouchStart={(e) => {
+              e.preventDefault();
+              onPeekStart();
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              onPeekEnd();
+            }}
+            onTouchCancel={(e) => {
+              e.preventDefault();
+              onPeekEnd();
+            }}
+            onContextMenu={(e) => e.preventDefault()}
+            className="px-8 py-3 glass-button-active text-purple-100 font-semibold shadow-lg select-none focus:outline-none touch-manipulation"
+            style={{ touchAction: 'manipulation', userSelect: 'none', WebkitUserSelect: 'none' }}
           >
             Hold to see Original
           </button>
