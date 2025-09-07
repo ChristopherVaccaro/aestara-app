@@ -15,6 +15,15 @@ interface FilterCategory {
   filters: Filter[];
 }
 
+// Global guidance to improve multi-subject results across all filters
+const STYLE_TRANSFER_CONSTRAINTS = (
+  'Multi-subject guidance: Apply the requested style consistently to every person and object in the image. ' +
+  'Preserve the number of distinct subjects and their relative positions; do not merge, duplicate, or remove subjects. ' +
+  'Keep faces, hands, and identities coherent and readable. ' +
+  'Respect original clothing and accessories unless the style explicitly restyles them. ' +
+  'Avoid heavy warping or occluding key features; ensure clean separation between overlapping subjects.'
+);
+
 const FILTER_CATEGORIES: FilterCategory[] = [
   {
     name: 'Artistic & Stylized',
@@ -107,7 +116,8 @@ const App: React.FC = () => {
     }
     
     try {
-      const base64Data = await applyImageFilter(imageFile, filter.prompt);
+      const composedPrompt = `${STYLE_TRANSFER_CONSTRAINTS}\n\n${filter.prompt}`;
+      const base64Data = await applyImageFilter(imageFile, composedPrompt);
       setGeneratedImageUrl(`data:image/png;base64,${base64Data}`);
     } catch (err) {
       if (err instanceof Error) {
