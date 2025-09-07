@@ -14,8 +14,16 @@ const fileToGenerativePart = async (file: File) => {
     reader.onerror = () => reject(new Error("Error reading file."));
     reader.readAsDataURL(file);
   });
+
+  // Ensure we have a valid MIME type for the API
+  let mimeType = file.type;
+  if (!mimeType || !mimeType.startsWith('image/')) {
+    // Default to JPEG if MIME type is missing or invalid
+    mimeType = 'image/jpeg';
+  }
+
   return {
-    inlineData: { data: await base64EncodedDataPromise, mimeType: file.type },
+    inlineData: { data: await base64EncodedDataPromise, mimeType },
   };
 };
 

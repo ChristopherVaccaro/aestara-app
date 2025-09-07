@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { ImageProcessor } from '../utils/imageProcessor';
 
 interface ImageUploaderProps {
   onImageUpload: (file: File) => void;
@@ -6,10 +7,40 @@ interface ImageUploaderProps {
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const processAndUploadFile = async (file: File) => {
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      // Validate file first
+      if (!ImageProcessor.isValidImageFile(file)) {
+        throw new Error('Please select a valid image file (JPEG, PNG, WebP, or HEIC).');
+      }
+
+      // Process the image (handles Android compatibility issues)
+      const processed = await ImageProcessor.processImage(file);
+      
+      // Show conversion message if format was changed
+      if (processed.originalFormat && processed.originalFormat !== processed.mimeType) {
+        console.log(`Converted ${processed.originalFormat} to ${processed.mimeType} for compatibility`);
+      }
+
+      onImageUpload(processed.file);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to process image';
+      setError(errorMessage);
+      console.error('Image processing error:', err);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      onImageUpload(e.target.files[0]);
+      processAndUploadFile(e.target.files[0]);
     }
   };
 
@@ -18,9 +49,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
     e.stopPropagation();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      onImageUpload(e.dataTransfer.files[0]);
+      processAndUploadFile(e.dataTransfer.files[0]);
     }
-  }, [onImageUpload]);
+  }, []);
 
   const handleDragOver = useCallback(<T,>(e: React.DragEvent<T>) => {
     e.preventDefault();
@@ -46,15 +77,49 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
           onDragOver={handleDragOver}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
-          className={`w-full h-80 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center cursor-pointer transition-all duration-300 ${isDragging ? 'border-purple-500 bg-purple-500/10' : 'border-gray-600 hover:border-purple-400 hover:bg-gray-800/50'}`}
+          className={`w-full h-80 border-2 border-dashed rounded-2xl flex flex-col justify-center items-center cursor-pointer transition-all duration-300 ${
+            isProcessing 
+              ? 'border-blue-500 bg-blue-500/10' 
+              : isDragging 
+                ? 'border-purple-500 bg-purple-500/10' 
+                : 'border-gray-600 hover:border-purple-400 hover:bg-gray-800/50'
+          }`}
         >
-          <input type="file" className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg, image/webp" />
-          <svg className="w-16 h-16 text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-          <p className="text-gray-400 text-lg">
-            <span className="font-semibold text-purple-400">Click to upload</span> or drag and drop
-          </p>
-          <p className="text-sm text-gray-500 mt-2">PNG, JPG, or WEBP</p>
+          <input 
+            type="file" 
+            className="hidden" 
+            onChange={handleFileChange} 
+            accept="image/png, image/jpeg, image/jpg, image/webp, image/heic, image/heif, image/avif, .png, .jpg, .jpeg, .webp, .heic, .heif, .avif"
+            disabled={isProcessing}
+          />
+          
+          {isProcessing ? (
+            <>
+              <div className="w-16 h-16 mb-4 relative">
+                <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+              </div>
+              <p className="text-blue-400 text-lg font-semibold">Processing image...</p>
+              <p className="text-sm text-blue-300 mt-2">Optimizing for compatibility</p>
+            </>
+          ) : (
+            <>
+              <svg className="w-16 h-16 text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <p className="text-gray-400 text-lg">
+                <span className="font-semibold text-purple-400">Click to upload</span> or drag and drop
+              </p>
+              <p className="text-sm text-gray-500 mt-2">PNG, JPG, WebP, or HEIC</p>
+            </>
+          )}
         </label>
+        
+        {error && (
+          <div className="mt-4 p-4 bg-red-500/[0.08] backdrop-blur-xl border border-red-400/30 rounded-2xl">
+            <p className="font-semibold text-red-200 text-sm">Upload Error</p>
+            <div className="mt-2 text-xs text-red-300 whitespace-pre-line">{error}</div>
+          </div>
+        )}
     </div>
   );
 };
