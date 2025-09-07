@@ -205,6 +205,7 @@ const App: React.FC = () => {
             onPeekStart={handlePeekStart}
             onPeekEnd={handlePeekEnd}
             onOpenPreview={handleOpenPreview}
+            onDownload={handleDownload}
             error={error}
           />
         </div>

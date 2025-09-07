@@ -9,6 +9,7 @@ interface ImageDisplayProps {
   onPeekStart: () => void;
   onPeekEnd: () => void;
   onOpenPreview: () => void;
+  onDownload: () => void;
   error?: string | null;
 }
 
@@ -20,6 +21,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   onPeekStart,
   onPeekEnd,
   onOpenPreview,
+  onDownload,
   error,
 }) => {
   const imageUrlToShow = isPeeking
@@ -58,6 +60,21 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
             )}
             {isClickable && !isPeeking && (
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                {/* Download Button - Top Right */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDownload();
+                  }}
+                  className="absolute top-4 right-4 p-3 bg-green-500/20 backdrop-blur-xl border border-green-400/30 text-green-100 rounded-full hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-200 shadow-lg z-10"
+                  title="Download Image"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+                
+                {/* Zoom Icon - Center */}
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
                 </svg>
