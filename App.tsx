@@ -8,6 +8,7 @@ import ImagePreviewModal from './components/ImagePreviewModal';
 import ShareButton from './components/ShareButton';
 import { Filter } from './types';
 import { applyImageFilter } from './services/geminiService';
+import { ImageProcessor } from './utils/imageProcessor';
 
 interface FilterCategory {
   name: string;
@@ -18,7 +19,9 @@ const FILTER_CATEGORIES: FilterCategory[] = [
   {
     name: 'Artistic & Stylized',
     filters: [
-      { id: 'anime', name: 'Anime', prompt: 'Transform this image into a clean, polished Japanese animation-style illustration. The style should feature sharp black line art around the main subjects. Use bright, cel-shaded coloring with smooth gradient transitions for a modern look. Apply balanced highlights and subtle shadows to create depth. Maintain proportional accuracy while stylizing features to match contemporary animated art style.' },
+      { id: 'anime', name: 'Anime', prompt: 'Transform into Japanese animation style with professional quality. Use precise linework and cel-shading techniques. Apply vibrant colors with smooth gradients. Create stylized hair with flowing texture and highlights. Render in polished animation format with clean details.' },
+      { id: 'anime_v2', name: 'Anime Enhanced', prompt: 'Convert to premium Japanese animation style with studio-grade quality. Apply refined linework with consistent outlines. Use sophisticated cel-shading with layered colors and smooth transitions. Create detailed hair rendering with natural flow. Maintain professional animation standards throughout.' },
+      { id: 'anime_v3', name: 'Anime Cinematic', prompt: 'Transform into cinematic Japanese animation style with film-grade quality. Use dynamic linework with varied weights for depth. Apply advanced cel-shading with dramatic lighting effects. Create flowing hair with detailed texture and movement. Render with theatrical animation polish and rich color palettes.' },
       { id: 'cartoon', name: '3D Cartoon', prompt: 'Transform this image into the style of a modern 3D animated film. It should have smooth digital painting, soft lighting, and slightly exaggerated, expressive features.' },
       { id: 'pixar', name: 'Pixar Style', prompt: 'Transform this entire image into the distinctive Pixar 3D animation style. Convert all people into Pixar-style characters with large, expressive eyes, rounded soft facial features, and slightly exaggerated proportions. Apply the signature Pixar body style with softer, more rounded forms and gentle curves. Transform clothing into the clean, simplified Pixar aesthetic with smooth textures and vibrant colors. Convert the entire background and environment into a Pixar-style scene with warm, cinematic lighting, rich saturated colors, and that polished 3D rendered look. Everything should have the characteristic Pixar charm - from character design to environmental details, creating a cohesive animated world that feels warm, inviting, and emotionally engaging.' },
       { id: 'western', name: 'Western Theme', prompt: 'Transform this image into a classic American Old West scene with authentic frontier atmosphere. Convert people into rugged cowboys or frontier folk with weathered faces, cowboy hats, boots, spurs, and period-appropriate clothing like leather chaps, vests, bandanas, and duster coats. Transform the setting into a dusty frontier town, ranch, or desert landscape with wooden buildings, hitching posts, tumbleweeds, and vast open skies. Apply warm, golden hour lighting with dramatic shadows and dust particles in the air. Use a sepia-toned or desaturated color palette with browns, oranges, and muted earth tones. Add authentic western details like horses, cattle, cacti, and weathered wood textures to create an immersive Wild West atmosphere.' },
@@ -174,17 +177,32 @@ const App: React.FC = () => {
     });
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragCounter(0);
     setIsDragOver(false);
 
     const files = Array.from(e.dataTransfer.files) as File[];
-    const imageFile = files.find(file => file.type.startsWith('image/'));
+    const imageFile = files.find(file => {
+      // Check MIME type first
+      if (file.type.startsWith('image/')) return true;
+      
+      // Check file extension for files without proper MIME type (common with HEIC)
+      const validExtensions = /\.(jpg|jpeg|png|webp|heic|heif|avif)$/i;
+      return validExtensions.test(file.name);
+    });
     
     if (imageFile) {
-      handleImageUpload(imageFile);
+      try {
+        // Process the image for Android compatibility
+        const processed = await ImageProcessor.processImage(imageFile);
+        handleImageUpload(processed.file);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to process image';
+        setError(errorMessage);
+        console.error('Image processing error:', err);
+      }
     }
   };
 
