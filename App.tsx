@@ -132,12 +132,65 @@ const App: React.FC = () => {
 
   const handleDownload = () => {
     if (!generatedImageUrl) return;
-    const link = document.createElement('a');
-    link.href = generatedImageUrl;
-    link.download = `stylized-${activeFilter?.id || 'image'}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    
+    // Detect iOS Safari
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    if (isIOS && isSafari) {
+      // For iOS Safari, open image in new tab for manual save
+      const newWindow = window.open();
+      if (newWindow) {
+        newWindow.document.write(`
+          <html>
+            <head>
+              <title>Save Image to Photos</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <style>
+                body { 
+                  margin: 0; 
+                  padding: 20px; 
+                  background: #000; 
+                  color: #fff; 
+                  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                  text-align: center;
+                }
+                img { 
+                  max-width: 100%; 
+                  height: auto; 
+                  border-radius: 8px;
+                  margin: 20px 0;
+                }
+                .instructions {
+                  background: rgba(255,255,255,0.1);
+                  padding: 15px;
+                  border-radius: 8px;
+                  margin: 20px 0;
+                }
+              </style>
+            </head>
+            <body>
+              <h2>Save to Photos</h2>
+              <div class="instructions">
+                <p>📱 <strong>To save to Photos:</strong></p>
+                <p>1. Tap and hold the image below</p>
+                <p>2. Select "Save to Photos"</p>
+              </div>
+              <img src="${generatedImageUrl}" alt="Stylized Image" />
+            </body>
+          </html>
+        `);
+        newWindow.document.close();
+      }
+    } else {
+      // Standard download for other browsers
+      const link = document.createElement('a');
+      link.href = generatedImageUrl;
+      link.download = `stylized-${activeFilter?.id || 'image'}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const handlePeekStart = () => setIsPeeking(true);
