@@ -20,19 +20,20 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
         <div key={category.name}>
           <h3 className="text-lg font-semibold text-gray-200 mb-3 px-1">{category.name}</h3>
           
-          {/* Desktop: Grid View */}
-          <div className="hidden md:block glass-panel p-4">
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+          {/* Desktop: Stacked View */}
+          <div className="hidden md:block">
+            <div className="flex flex-col gap-2">
               {category.filters.map((filter) => (
                 <button
                   key={filter.id}
                   onClick={() => onSelectFilter(filter)}
                   disabled={isLoading}
-                  className={`px-4 py-2 font-medium ${
+                  className={`px-4 py-2 font-medium text-left whitespace-nowrap overflow-hidden text-ellipsis ${
                     filter.id === activeFilterId
                       ? 'glass-button-active text-purple-100'
                       : 'glass-button text-gray-300 hover:text-white'
                   } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                  title={filter.name}
                 >
                   {filter.name}
                 </button>
