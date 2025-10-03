@@ -6,6 +6,7 @@ import ImageDisplay from './components/ImageDisplay';
 import FilterSelector from './components/FilterSelector';
 import ImagePreviewModal from './components/ImagePreviewModal';
 import ShareButton from './components/ShareButton';
+import ParticleBackground from './components/ParticleBackground';
 import { Filter } from './types';
 import { applyImageFilter } from './services/geminiService';
 import { ImageProcessor } from './utils/imageProcessor';
@@ -303,6 +304,9 @@ const App: React.FC = () => {
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
+      {/* Particle Background */}
+      <ParticleBackground />
+      
       {/* Subtle mesh overlay */}
       <div className="absolute inset-0 mesh-overlay pointer-events-none" />
       {/* Drag overlay */}
