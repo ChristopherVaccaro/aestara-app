@@ -11,6 +11,7 @@ interface ImageDisplayProps {
   onOpenPreview: () => void;
   onDownload: () => void;
   error?: string | null;
+  activeFilterName?: string | null;
 }
 
 const ImageDisplay: React.FC<ImageDisplayProps> = ({
@@ -23,6 +24,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   onOpenPreview,
   onDownload,
   error,
+  activeFilterName,
 }) => {
   const imageUrlToShow = isPeeking
     ? originalImageUrl
@@ -39,7 +41,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
         onClick={isClickable && !hasError ? onOpenPreview : undefined}
       >
         {isLoading ? (
-          <Spinner message="Applying style..." />
+          <Spinner message={activeFilterName ? `Applying ${activeFilterName} style...` : "Applying style..."} />
         ) : (
           <>
             <img
@@ -47,6 +49,14 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
               alt={isPeeking ? 'Original' : 'Stylized'}
               className="w-full h-full object-cover transition-all duration-300 rounded-3xl"
             />
+            
+            {/* Style Badge - Bottom Right */}
+            {generatedImageUrl && activeFilterName && !isPeeking && (
+              <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full border border-white/20">
+                {activeFilterName}
+              </div>
+            )}
+            
             {hasError && (
               <div className="absolute inset-0 bg-red-500/[0.08] backdrop-blur-2xl flex flex-col items-center justify-center gap-2 p-4 text-center border border-red-400/20">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-red-300" viewBox="0 0 20 20" fill="currentColor">
@@ -102,7 +112,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
               onPeekEnd();
             }}
             onContextMenu={(e) => e.preventDefault()}
-            className="px-8 py-3 glass-button-active text-purple-100 font-semibold shadow-lg select-none focus:outline-none touch-manipulation"
+            className="px-8 py-3 glass-button-active text-purple-100 font-semibold shadow-lg select-none focus:outline-none touch-manipulation rounded-2xl"
             style={{ touchAction: 'manipulation', userSelect: 'none', WebkitUserSelect: 'none' }}
           >
             Hold to see Original

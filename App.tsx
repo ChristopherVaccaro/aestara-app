@@ -131,6 +131,12 @@ const App: React.FC = () => {
     }
   };
 
+  const handleClearFilter = () => {
+    setActiveFilter(null);
+    setGeneratedImageUrl(null);
+    setError(null);
+  };
+
   const handleReset = () => {
     setImageFile(null);
     setOriginalImageUrl(null);
@@ -235,6 +241,7 @@ const App: React.FC = () => {
             onOpenPreview={handleOpenPreview}
             onDownload={handleDownload}
             error={error}
+            activeFilterName={activeFilter?.name || null}
           />
         </div>
 
@@ -246,6 +253,7 @@ const App: React.FC = () => {
                 <FilterSelector
                   categories={FILTER_CATEGORIES}
                   onSelectFilter={handleApplyFilter}
+                  onClearFilter={handleClearFilter}
                   isLoading={isLoading}
                   activeFilterId={activeFilter?.id || null}
                 />
@@ -271,19 +279,14 @@ const App: React.FC = () => {
                 />
                 <button
                   onClick={handleReset}
-                  className="w-full px-6 py-2 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white font-medium rounded-2xl hover:bg-white/[0.12] hover:border-white/20 transition-all duration-300"
+                  className="w-full px-6 py-3 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white font-medium rounded-2xl hover:bg-white/[0.12] hover:border-white/20 transition-all duration-300 flex items-center justify-center gap-2"
                 >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
                   Upload New Image
                 </button>
               </div>
-              
-              {/* Error Display */}
-              {error && (
-                <div className="mt-4 text-center p-4 bg-red-500/[0.08] backdrop-blur-xl border border-red-400/30 rounded-2xl">
-                  <p className="font-semibold text-red-200">Styling Failed</p>
-                  <p className="mt-1 text-sm text-red-300">{error}</p>
-                </div>
-              )}
            </div>
         </div>
       </div>
