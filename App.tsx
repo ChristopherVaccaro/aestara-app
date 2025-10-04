@@ -7,6 +7,10 @@ import FilterSelector from './components/FilterSelector';
 import ImagePreviewModal from './components/ImagePreviewModal';
 import ShareButton from './components/ShareButton';
 import ParticleBackground from './components/ParticleBackground';
+import ImageComparison from './components/ImageComparison';
+import StyleHistory, { HistoryItem } from './components/StyleHistory';
+import LoadingProgress from './components/LoadingProgress';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Filter } from './types';
 import { applyImageFilter } from './services/geminiService';
 import { ImageProcessor } from './utils/imageProcessor';
@@ -16,13 +20,13 @@ interface FilterCategory {
   filters: Filter[];
 }
 
-// Global guidance to improve multi-subject results across all filters
+// Global guidance to improve style consistency across all filters
 const STYLE_TRANSFER_CONSTRAINTS = (
-  'Multi-subject guidance: Apply the requested style consistently to every person and object in the image. ' +
-  'Preserve the number of distinct subjects and their relative positions; do not merge, duplicate, or remove subjects. ' +
-  'Keep faces, hands, and identities coherent and readable. ' +
-  'Respect original clothing and accessories unless the style explicitly restyles them. ' +
-  'Avoid heavy warping or occluding key features; ensure clean separation between overlapping subjects.'
+  'Apply the artistic style uniformly across the entire composition. ' +
+  'Maintain the original spatial arrangement and proportions. ' +
+  'Preserve all visual elements and their relationships. ' +
+  'Keep details coherent and clearly defined within the chosen aesthetic. ' +
+  'Ensure consistent treatment of all components without distortion or omission.'
 );
 
 const FILTER_CATEGORIES: FilterCategory[] = [
@@ -33,8 +37,8 @@ const FILTER_CATEGORIES: FilterCategory[] = [
       { id: 'anime_v2', name: 'Anime Enhanced', prompt: 'Convert to premium Japanese animation style with studio-grade quality. Apply refined linework with consistent outlines. Use sophisticated cel-shading with layered colors and smooth transitions. Create detailed hair rendering with natural flow. Maintain professional animation standards throughout.' },
       { id: 'anime_v3', name: 'Anime Cinematic', prompt: 'Transform into cinematic Japanese animation style with film-grade quality. Use dynamic linework with varied weights for depth. Apply advanced cel-shading with dramatic lighting effects. Create flowing hair with detailed texture and movement. Render with theatrical animation polish and rich color palettes.' },
       { id: 'cartoon', name: '3D Cartoon', prompt: 'Transform this image into the style of a modern 3D animated film. It should have smooth digital painting, soft lighting, and slightly exaggerated, expressive features.' },
-      { id: 'pixar', name: 'Pixar Style', prompt: 'Transform this entire image into the distinctive Pixar 3D animation style. Convert all people into Pixar-style characters with large, expressive eyes, rounded soft facial features, and slightly exaggerated proportions. Apply the signature Pixar body style with softer, more rounded forms and gentle curves. Transform clothing into the clean, simplified Pixar aesthetic with smooth textures and vibrant colors. Convert the entire background and environment into a Pixar-style scene with warm, cinematic lighting, rich saturated colors, and that polished 3D rendered look. Everything should have the characteristic Pixar charm - from character design to environmental details, creating a cohesive animated world that feels warm, inviting, and emotionally engaging.' },
-      { id: 'western', name: 'Western Theme', prompt: 'Transform this image into a classic American Old West scene with authentic frontier atmosphere. Convert people into rugged cowboys or frontier folk with weathered faces, cowboy hats, boots, spurs, and period-appropriate clothing like leather chaps, vests, bandanas, and duster coats. Transform the setting into a dusty frontier town, ranch, or desert landscape with wooden buildings, hitching posts, tumbleweeds, and vast open skies. Apply warm, golden hour lighting with dramatic shadows and dust particles in the air. Use a sepia-toned or desaturated color palette with browns, oranges, and muted earth tones. Add authentic western details like horses, cattle, cacti, and weathered wood textures to create an immersive Wild West atmosphere.' },
+      { id: 'pixar', name: 'Pixar Style', prompt: 'Render in the distinctive Pixar 3D animation aesthetic with characteristic large expressive eyes, rounded soft features, and gentle exaggerated proportions. Apply the signature Pixar visual style with softer forms and smooth curves throughout. Use clean, simplified design with smooth textures and vibrant colors. Create a cohesive scene with warm cinematic lighting, rich saturated colors, and polished 3D rendered appearance. Infuse the characteristic Pixar charm with inviting warmth and emotional depth across all elements.' },
+      { id: 'western', name: 'Western Theme', prompt: 'Reimagine in classic American Old West aesthetic with authentic frontier atmosphere. Apply rugged cowboy styling with weathered textures, cowboy hats, boots, leather elements, vests, bandanas, and duster coats. Create a dusty frontier setting with wooden buildings, hitching posts, tumbleweeds, and vast open skies. Use warm golden hour lighting with dramatic shadows and atmospheric dust. Apply sepia-toned or desaturated color palette with browns, oranges, and muted earth tones. Include authentic western details like horses, cattle, cacti, and weathered wood textures for immersive Wild West atmosphere.' },
       { id: 'oil', name: 'Oil Painting', prompt: 'Transform this image into a vibrant, textured oil painting with visible brushstrokes.' },
       { id: 'watercolor', name: 'Watercolor', prompt: 'Turn this image into a soft and dreamy watercolor painting with blended colors and delicate washes.' },
       { id: 'sketch', name: 'Pencil Sketch', prompt: 'Convert this image into a detailed, realistic pencil sketch on textured paper.' },
@@ -61,7 +65,7 @@ const FILTER_CATEGORIES: FilterCategory[] = [
   {
     name: 'Trendy & Social',
     filters: [
-      { id: 'cyber', name: 'Cyberpunk', prompt: 'Transform this image with a cyberpunk aesthetic, featuring bright neon lights, futuristic elements, and a vibrant technological atmosphere with glowing accents.' },
+      { id: 'cyber', name: 'Cyberpunk', prompt: 'Apply a cyberpunk aesthetic with bright neon lights in pink, cyan, and purple. Add futuristic technological elements, holographic effects, and vibrant glowing accents. Use high-contrast lighting with deep shadows and luminous highlights for a dystopian urban atmosphere.' },
       { id: 'vaporwave', name: 'Vaporwave', prompt: 'Submerge this image in a vaporwave aesthetic. Use a palette of pinks and cyans, incorporate classic motifs like Roman busts or 90s computer graphics, and give it a nostalgic, dreamy, and slightly surreal vibe.' },
       { id: 'pixel', name: 'Pixel Art', prompt: 'Convert this image into 8-bit pixel art. Simplify the shapes and use a limited color palette, reminiscent of a classic video game.' },
       { id: 'vhs', name: 'Retro VHS', prompt: 'Give this image a retro VHS aesthetic. Add screen distortion, a timestamp overlay in a digital font, and a color palette shifted towards pinks and cyans.' },
@@ -75,7 +79,7 @@ const FILTER_CATEGORIES: FilterCategory[] = [
       { id: 'fantasy', name: 'Fantasy World', prompt: 'Turn this image into a scene from a fantasy world. Add glowing magical elements, an enchanted forest background, and a whimsical, fairy-tale atmosphere.' },
       { id: 'galaxy_bg', name: 'Galaxy BG', prompt: 'Keep the main subject in the foreground and replace the background with a beautiful, sprawling galaxy filled with nebulae and stars.' },
       { id: '1890s', name: '1890s Photo', prompt: 'Make this look like an authentic, aged photograph from the 1890s. Convert it to sepia, add textures of cracked emulsion and faded paper.' },
-      { id: 'halloween', name: 'Halloween', prompt: 'Give this image a festive Halloween atmosphere. Add a low-lying fog, an autumn color grade with warm orange tones, and subtle pumpkin-themed lighting effects.' },
+      { id: 'halloween', name: 'Halloween', prompt: 'Create a festive autumn evening atmosphere with mysterious ambiance. Add atmospheric mist, warm orange and purple color grading, and soft glowing lighting effects reminiscent of carved decorations.' },
       { id: 'steampunk', name: 'Steampunk', prompt: 'Reimagine this image in a steampunk style, incorporating gears, brass, and Victorian-era technology.' },
       { id: 'stainedglass', name: 'Stained Glass', prompt: 'Transform this image into a beautiful stained glass window with colorful glass segments separated by dark lead lines. Use vibrant, translucent colors and geometric divisions.' },
       { id: 'mosaic', name: 'Mosaic', prompt: 'Convert this image into a mosaic artwork made of small colored tiles or stones. Create texture and depth through individual tile placement with visible grout lines.' },
@@ -95,6 +99,13 @@ const App: React.FC = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [dragCounter, setDragCounter] = useState<number>(0);
+  
+  // New UX improvements
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
+  const [useComparisonSlider, setUseComparisonSlider] = useState<boolean>(false);
+  
+  const MAX_HISTORY = 15; // Limit history to prevent memory issues
 
   const handleImageUpload = (file: File) => {
     setImageFile(file);
@@ -102,6 +113,9 @@ const App: React.FC = () => {
     setGeneratedImageUrl(null);
     setActiveFilter(null);
     setError(null);
+    // Clear history when new image is uploaded
+    setHistory([]);
+    setCurrentHistoryIndex(-1);
   };
 
   const handleApplyFilter = async (filter: Filter) => {
@@ -119,7 +133,23 @@ const App: React.FC = () => {
     try {
       const composedPrompt = `${STYLE_TRANSFER_CONSTRAINTS}\n\n${filter.prompt}`;
       const base64Data = await applyImageFilter(imageFile, composedPrompt);
-      setGeneratedImageUrl(`data:image/png;base64,${base64Data}`);
+      const newImageUrl = `data:image/png;base64,${base64Data}`;
+      setGeneratedImageUrl(newImageUrl);
+      
+      // Add to history
+      const newHistoryItem: HistoryItem = {
+        id: Date.now().toString(),
+        imageUrl: newImageUrl,
+        filterName: filter.name,
+        filterId: filter.id,
+        timestamp: Date.now(),
+      };
+      
+      // Remove any future history if we're not at the end
+      const newHistory = history.slice(0, currentHistoryIndex + 1);
+      const updatedHistory = [...newHistory, newHistoryItem].slice(-MAX_HISTORY);
+      setHistory(updatedHistory);
+      setCurrentHistoryIndex(updatedHistory.length - 1);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -145,6 +175,8 @@ const App: React.FC = () => {
     setActiveFilter(null);
     setError(null);
     setIsLoading(false);
+    setHistory([]);
+    setCurrentHistoryIndex(-1);
   };
 
   const handleDownload = () => {
@@ -166,6 +198,43 @@ const App: React.FC = () => {
     }
   };
   const handleClosePreview = () => setIsPreviewOpen(false);
+  
+  // History navigation handlers
+  const handleSelectHistory = (index: number) => {
+    if (history[index]) {
+      setGeneratedImageUrl(history[index].imageUrl);
+      setCurrentHistoryIndex(index);
+      const filter = FILTER_CATEGORIES
+        .flatMap(cat => cat.filters)
+        .find(f => f.id === history[index].filterId);
+      setActiveFilter(filter || null);
+    }
+  };
+  
+  const handleClearHistory = () => {
+    setHistory([]);
+    setCurrentHistoryIndex(-1);
+  };
+  
+  const handleUndo = () => {
+    if (currentHistoryIndex > 0) {
+      handleSelectHistory(currentHistoryIndex - 1);
+    }
+  };
+  
+  const handleRedo = () => {
+    if (currentHistoryIndex < history.length - 1) {
+      handleSelectHistory(currentHistoryIndex + 1);
+    }
+  };
+  
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onUndo: handleUndo,
+    onRedo: handleRedo,
+    onDownload: handleDownload,
+    onReset: handleReset,
+  });
 
   // Drag and drop handlers
   const handleDragEnter = (e: React.DragEvent) => {
@@ -232,22 +301,89 @@ const App: React.FC = () => {
       <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row lg:space-x-8 items-start">
         {/* Left Column: Image Display */}
         <div className="w-full lg:w-2/3">
-          <ImageDisplay
-            originalImageUrl={originalImageUrl}
-            generatedImageUrl={generatedImageUrl}
-            isLoading={isLoading}
-            isPeeking={isPeeking}
-            onPeekStart={handlePeekStart}
-            onPeekEnd={handlePeekEnd}
-            onOpenPreview={handleOpenPreview}
-            onDownload={handleDownload}
-            error={error}
-            activeFilterName={activeFilter?.name || null}
-          />
+          {isLoading ? (
+            <div className="w-full aspect-square glass-image-container overflow-hidden ring-1 ring-white/[0.08] flex items-center justify-center rounded-3xl">
+              <LoadingProgress 
+                message={activeFilter ? `Applying ${activeFilter.name}...` : 'Processing image...'}
+                estimatedTimeMs={10000}
+              />
+            </div>
+          ) : generatedImageUrl && useComparisonSlider ? (
+            <>
+              <ImageComparison
+                originalImageUrl={originalImageUrl}
+                generatedImageUrl={generatedImageUrl}
+                activeFilterName={activeFilter?.name || 'Styled'}
+              />
+              {/* Toggle back to hold-to-peek */}
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() => setUseComparisonSlider(false)}
+                  className="text-sm text-gray-400 hover:text-purple-400 transition-colors"
+                >
+                  Switch to Hold-to-Peek mode
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <ImageDisplay
+                originalImageUrl={originalImageUrl}
+                generatedImageUrl={generatedImageUrl}
+                isLoading={isLoading}
+                isPeeking={isPeeking}
+                onPeekStart={handlePeekStart}
+                onPeekEnd={handlePeekEnd}
+                onOpenPreview={handleOpenPreview}
+                onDownload={handleDownload}
+                error={error}
+                activeFilterName={activeFilter?.name || null}
+              />
+              {/* Toggle to comparison slider */}
+              {generatedImageUrl && (
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={() => setUseComparisonSlider(true)}
+                    className="text-sm text-gray-400 hover:text-purple-400 transition-colors flex items-center justify-center gap-2 mx-auto"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                    Switch to Comparison Slider
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+          
+          {/* Error Display */}
+          {error && !isLoading && (
+            <div className="mt-4 p-4 bg-red-500/[0.08] backdrop-blur-xl border border-red-400/30 rounded-2xl">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <div>
+                  <p className="font-semibold text-red-200 text-sm">Error</p>
+                  <p className="mt-1 text-xs text-red-300">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Column: Controls */}
         <div className="w-full lg:w-1/3 mt-8 lg:mt-0 flex flex-col">
+           {/* Style History */}
+           {history.length > 0 && (
+             <StyleHistory
+               history={history}
+               currentIndex={currentHistoryIndex}
+               onSelectHistory={handleSelectHistory}
+               onClearHistory={handleClearHistory}
+             />
+           )}
+           
            {/* Scrollable Filters Section */}
            <div className="flex-1 glass-panel p-3 lg:p-6 mb-6 overflow-hidden flex flex-col">
               <div className="flex-1 overflow-y-auto scrollable-filters">
@@ -326,7 +462,11 @@ const App: React.FC = () => {
       </main>
       <Footer />
       {isPreviewOpen && generatedImageUrl && (
-        <ImagePreviewModal imageUrl={generatedImageUrl} onClose={handleClosePreview} />
+        <ImagePreviewModal 
+          imageUrl={generatedImageUrl} 
+          onClose={handleClosePreview}
+          filterName={activeFilter?.name}
+        />
       )}
     </div>
   );

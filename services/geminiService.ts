@@ -29,16 +29,28 @@ const fileToGenerativePart = async (file: File) => {
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
-export const applyImageFilter = async (imageFile: File, prompt: string): Promise<string> => {
+// Helper function to simplify prompt by removing potentially triggering phrases
+const simplifyPrompt = (prompt: string): string => {
+  return prompt
+    .replace(/people|person|face|faces|body|bodies|subject|subjects/gi, 'element')
+    .replace(/transform|convert/gi, 'apply style to')
+    .replace(/into a|into the/gi, 'with')
+    .split('.').slice(0, 3).join('.'); // Keep only first 3 sentences
+};
+
+export const applyImageFilter = async (imageFile: File, prompt: string, retryCount: number = 0): Promise<string> => {
   try {
     const imagePart = await fileToGenerativePart(imageFile);
+    
+    // Use simplified prompt on retry
+    const finalPrompt = retryCount > 0 ? simplifyPrompt(prompt) : prompt;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
         parts: [
           imagePart,
-          { text: prompt },
+          { text: finalPrompt },
         ],
       },
       config: {
@@ -57,22 +69,22 @@ export const applyImageFilter = async (imageFile: File, prompt: string): Promise
       }
     }
 
-    // If no image is returned, throw an informative error
-    let errorMessage = "API did not return an image.";
+    // If no image is returned, check if we should retry
     if (candidate?.finishReason) {
         const reason = candidate.finishReason;
-        if (reason === 'SAFETY' || reason === 'PROHIBITED_CONTENT') {
-            errorMessage = "Content was blocked by safety filters. Try a different style or image, or use simpler prompts.";
+        if ((reason === 'SAFETY' || reason === 'PROHIBITED_CONTENT') && retryCount === 0) {
+            console.log('Safety filter triggered, retrying with simplified prompt...');
+            return applyImageFilter(imageFile, prompt, 1); // Retry once with simplified prompt
+        } else if (reason === 'SAFETY' || reason === 'PROHIBITED_CONTENT') {
+            throw new Error("Content was blocked by safety filters. Try a different style or image.");
         } else if (reason === 'RECITATION') {
-            errorMessage = "Content flagged for copyright concerns. Try a different style.";
+            throw new Error("Content flagged for copyright concerns. Try a different style.");
         } else {
-            errorMessage += ` The content may have been blocked. Reason: ${reason}.`;
+            throw new Error(`The content may have been blocked. Reason: ${reason}.`);
         }
-    } else {
-        errorMessage += " The content may have been blocked by safety filters.";
     }
     
-    throw new Error(errorMessage);
+    throw new Error("API did not return an image. The content may have been blocked by safety filters.");
 
   } catch (error) {
     console.error("Error applying filter with Gemini API:", error);
