@@ -10,6 +10,10 @@ import ParticleBackground from './components/ParticleBackground';
 import ImageComparison from './components/ImageComparison';
 import StyleHistory, { HistoryItem } from './components/StyleHistory';
 import LoadingProgress from './components/LoadingProgress';
+import ComparisonModeToggle from './components/ComparisonModeToggle';
+import TermsOfService from './components/TermsOfService';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import FeedbackForm from './components/FeedbackForm';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Filter } from './types';
 import { applyImageFilter } from './services/geminiService';
@@ -104,6 +108,11 @@ const App: React.FC = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
   const [useComparisonSlider, setUseComparisonSlider] = useState<boolean>(false);
+  
+  // Modal states
+  const [showTerms, setShowTerms] = useState<boolean>(false);
+  const [showPrivacy, setShowPrivacy] = useState<boolean>(false);
+  const [showFeedback, setShowFeedback] = useState<boolean>(false);
   
   const MAX_HISTORY = 15; // Limit history to prevent memory issues
 
@@ -315,14 +324,12 @@ const App: React.FC = () => {
                 generatedImageUrl={generatedImageUrl}
                 activeFilterName={activeFilter?.name || 'Styled'}
               />
-              {/* Toggle back to hold-to-peek */}
-              <div className="mt-4 text-center">
-                <button
-                  onClick={() => setUseComparisonSlider(false)}
-                  className="text-sm text-gray-400 hover:text-purple-400 transition-colors"
-                >
-                  Switch to Hold-to-Peek mode
-                </button>
+              {/* Comparison Mode Toggle */}
+              <div className="mt-6 flex justify-center">
+                <ComparisonModeToggle
+                  useSlider={useComparisonSlider}
+                  onToggle={setUseComparisonSlider}
+                />
               </div>
             </>
           ) : (
@@ -339,18 +346,13 @@ const App: React.FC = () => {
                 error={error}
                 activeFilterName={activeFilter?.name || null}
               />
-              {/* Toggle to comparison slider */}
+              {/* Comparison Mode Toggle */}
               {generatedImageUrl && (
-                <div className="mt-4 text-center">
-                  <button
-                    onClick={() => setUseComparisonSlider(true)}
-                    className="text-sm text-gray-400 hover:text-purple-400 transition-colors flex items-center justify-center gap-2 mx-auto"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                    </svg>
-                    Switch to Comparison Slider
-                  </button>
+                <div className="mt-6 flex justify-center">
+                  <ComparisonModeToggle
+                    useSlider={useComparisonSlider}
+                    onToggle={setUseComparisonSlider}
+                  />
                 </div>
               )}
             </>
@@ -460,7 +462,11 @@ const App: React.FC = () => {
       <main className="w-full flex-grow flex items-center justify-center px-4 my-8">
         {renderContent()}
       </main>
-      <Footer />
+      <Footer 
+        onOpenTerms={() => setShowTerms(true)}
+        onOpenPrivacy={() => setShowPrivacy(true)}
+        onOpenFeedback={() => setShowFeedback(true)}
+      />
       {isPreviewOpen && generatedImageUrl && (
         <ImagePreviewModal 
           imageUrl={generatedImageUrl} 
@@ -468,6 +474,11 @@ const App: React.FC = () => {
           filterName={activeFilter?.name}
         />
       )}
+      
+      {/* Legal and Feedback Modals */}
+      {showTerms && <TermsOfService onClose={() => setShowTerms(false)} />}
+      {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
+      {showFeedback && <FeedbackForm onClose={() => setShowFeedback(false)} />}
     </div>
   );
 };
