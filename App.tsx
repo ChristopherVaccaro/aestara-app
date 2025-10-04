@@ -11,6 +11,9 @@ import ImageComparison from './components/ImageComparison';
 import StyleHistory, { HistoryItem } from './components/StyleHistory';
 import LoadingProgress from './components/LoadingProgress';
 import ComparisonModeToggle from './components/ComparisonModeToggle';
+import TermsOfService from './components/TermsOfService';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import FeedbackForm from './components/FeedbackForm';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Filter } from './types';
 import { applyImageFilter } from './services/geminiService';
@@ -105,6 +108,11 @@ const App: React.FC = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
   const [useComparisonSlider, setUseComparisonSlider] = useState<boolean>(false);
+  
+  // Modal states
+  const [showTerms, setShowTerms] = useState<boolean>(false);
+  const [showPrivacy, setShowPrivacy] = useState<boolean>(false);
+  const [showFeedback, setShowFeedback] = useState<boolean>(false);
   
   const MAX_HISTORY = 15; // Limit history to prevent memory issues
 
@@ -454,7 +462,11 @@ const App: React.FC = () => {
       <main className="w-full flex-grow flex items-center justify-center px-4 my-8">
         {renderContent()}
       </main>
-      <Footer />
+      <Footer 
+        onOpenTerms={() => setShowTerms(true)}
+        onOpenPrivacy={() => setShowPrivacy(true)}
+        onOpenFeedback={() => setShowFeedback(true)}
+      />
       {isPreviewOpen && generatedImageUrl && (
         <ImagePreviewModal 
           imageUrl={generatedImageUrl} 
@@ -462,6 +474,11 @@ const App: React.FC = () => {
           filterName={activeFilter?.name}
         />
       )}
+      
+      {/* Legal and Feedback Modals */}
+      {showTerms && <TermsOfService onClose={() => setShowTerms(false)} />}
+      {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
+      {showFeedback && <FeedbackForm onClose={() => setShowFeedback(false)} />}
     </div>
   );
 };

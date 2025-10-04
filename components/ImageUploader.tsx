@@ -71,7 +71,20 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
   }, []);
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
+    <div className="w-full max-w-5xl mx-auto flex flex-col items-center">
+        {/* Hero Section */}
+        <div className="text-center mb-8 max-w-3xl">
+          <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 mb-4">
+            Transform Your Images with AI
+          </h1>
+          <p className="text-lg md:text-xl text-gray-300 mb-2">
+            Turn any photo into stunning artwork with 30+ artistic styles
+          </p>
+          <p className="text-sm text-gray-400">
+            Powered by advanced AI • No signup required • Free to use
+          </p>
+        </div>
+
         {/* Main Upload Area */}
         <label
           onDrop={handleDrop}
@@ -133,38 +146,50 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
           </div>
         )}
 
-        {/* Use Cases Section */}
-        <div className="mt-12 w-full">
-          <h3 className="text-lg font-semibold text-gray-300 text-center mb-6">Perfect for</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="glass-panel p-4 text-center">
-              <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                <svg className="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        {/* Features Grid */}
+        <div className="mt-16 w-full">
+          <h3 className="text-2xl font-bold text-white text-center mb-8">
+            Why Choose Our AI Stylizer?
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="glass-panel p-6 text-center hover:bg-white/[0.12] transition-all duration-300">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500/30 to-purple-600/30 flex items-center justify-center border border-purple-400/40">
+                <svg className="w-7 h-7 text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                 </svg>
               </div>
-              <p className="text-sm font-medium text-gray-300 mb-1">Portraits</p>
-              <p className="text-xs text-gray-500">Transform into anime, cartoon, or artistic styles</p>
+              <p className="text-base font-semibold text-gray-200 mb-2">30+ Art Styles</p>
+              <p className="text-sm text-gray-400">From anime to oil painting, explore diverse artistic transformations</p>
             </div>
 
-            <div className="glass-panel p-4 text-center">
-              <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-pink-500/20 flex items-center justify-center">
-                <svg className="w-6 h-6 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            <div className="glass-panel p-6 text-center hover:bg-white/[0.12] transition-all duration-300">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-pink-500/30 to-pink-600/30 flex items-center justify-center border border-pink-400/40">
+                <svg className="w-7 h-7 text-pink-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <p className="text-sm font-medium text-gray-300 mb-1">Group Photos</p>
-              <p className="text-xs text-gray-500">Style entire groups consistently</p>
+              <p className="text-base font-semibold text-gray-200 mb-2">Lightning Fast</p>
+              <p className="text-sm text-gray-400">Get your styled images in seconds with powerful AI processing</p>
             </div>
 
-            <div className="glass-panel p-4 text-center">
-              <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <div className="glass-panel p-6 text-center hover:bg-white/[0.12] transition-all duration-300">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-500/30 to-blue-600/30 flex items-center justify-center border border-blue-400/40">
+                <svg className="w-7 h-7 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <p className="text-sm font-medium text-gray-300 mb-1">Landscapes</p>
-              <p className="text-xs text-gray-500">Apply artistic filters to any scene</p>
+              <p className="text-base font-semibold text-gray-200 mb-2">Privacy First</p>
+              <p className="text-sm text-gray-400">Your images are processed securely and never stored permanently</p>
+            </div>
+
+            <div className="glass-panel p-6 text-center hover:bg-white/[0.12] transition-all duration-300">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-green-500/30 to-green-600/30 flex items-center justify-center border border-green-400/40">
+                <svg className="w-7 h-7 text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-base font-semibold text-gray-200 mb-2">100% Free</p>
+              <p className="text-sm text-gray-400">No hidden costs, no subscriptions, no watermarks on your images</p>
             </div>
           </div>
         </div>
