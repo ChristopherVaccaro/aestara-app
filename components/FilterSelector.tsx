@@ -28,7 +28,10 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
     }));
   };
 
-  const getVisibleFilters = (filters: Filter[], categoryName: string) => {
+  const getVisibleFilters = (filters: Filter[], categoryName: string, isMobile: boolean = false) => {
+    if (isMobile) {
+      return filters; // Show all filters on mobile
+    }
     const shouldShowAll = showAll[categoryName];
     return shouldShowAll ? filters : filters.slice(0, 6);
   };
@@ -118,15 +121,16 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
       {categories
         .filter(category => category.name === activeCategory)
         .map((category) => {
-          const visibleFilters = getVisibleFilters(category.filters, category.name);
+          const mobileFilters = getVisibleFilters(category.filters, category.name, true);
+          const desktopFilters = getVisibleFilters(category.filters, category.name, false);
           const hasMore = category.filters.length > 6;
           
           return (
-            <div key={category.name} className="space-y-4">
-              {/* Horizontal Scroll for Mobile, Grid for Desktop */}
+            <div key={category.name} className="md:space-y-4">
+              {/* Horizontal Scroll for Mobile - Show All Filters */}
               <div className="block md:hidden">
-                <div className="flex gap-3 overflow-x-auto pb-3" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
-                  {visibleFilters.map((filter) => (
+                <div className="flex gap-3 overflow-x-auto" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                  {mobileFilters.map((filter) => (
                     <button
                       key={filter.id}
                       onClick={() => onSelectFilter(filter)}
@@ -148,7 +152,7 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
 
               {/* Desktop Grid */}
               <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-3">
-                {visibleFilters.map((filter) => (
+                {desktopFilters.map((filter) => (
                   <button
                     key={filter.id}
                     onClick={() => onSelectFilter(filter)}
@@ -167,9 +171,9 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
                 ))}
               </div>
 
-              {/* Show More/Less Button */}
+              {/* Show More/Less Button - Desktop Only */}
               {hasMore && (
-                <div className="flex justify-center">
+                <div className="hidden md:flex justify-center">
                   <button
                     onClick={() => toggleShowAll(category.name)}
                     className="px-6 py-2 text-sm font-medium text-purple-300 hover:text-purple-200 transition-colors flex items-center space-x-2"

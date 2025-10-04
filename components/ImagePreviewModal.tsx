@@ -3,9 +3,10 @@ import React, { useEffect, useRef } from 'react';
 interface ImagePreviewModalProps {
   imageUrl: string;
   onClose: () => void;
+  filterName?: string;
 }
 
-const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose }) => {
+const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose, filterName }) => {
   const touchStartY = useRef<number>(0);
   const touchEndY = useRef<number>(0);
   useEffect(() => {
@@ -61,10 +62,10 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose
     }
   };
 
-  const handleDownload = () => {
+  const handleDownloadClick = () => {
     const link = document.createElement('a');
     link.href = imageUrl;
-    link.download = 'stylized-image.png';
+    link.download = filterName ? `stylized-${filterName.toLowerCase().replace(/\s+/g, '-')}.png` : 'stylized-image.png';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -95,7 +96,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose
           />
           <div className="absolute top-2 right-2 flex gap-2">
             <button
-              onClick={handleDownload}
+              onClick={handleDownloadClick}
               className="text-white glass-button rounded-full p-2 focus:outline-none"
               aria-label="Download image"
             >
