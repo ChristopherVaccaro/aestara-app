@@ -3,7 +3,7 @@ import Logo from './Logo';
 
 const Header: React.FC = () => {
   return (
-    <header className="w-full py-6">
+    <header className="w-full pt-6">
       <div className="flex items-center gap-4">
         <Logo className="h-12 w-auto" />
         <div className="flex flex-col">

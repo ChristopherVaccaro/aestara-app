@@ -93,8 +93,9 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
           </>
         )}
       </div>
-      {showPeekButton && (
-        <div className="mt-6 text-center">
+      {/* Fixed height container for controls to prevent layout shift */}
+      <div className="mt-6 text-center h-12 flex items-center justify-center">
+        {showPeekButton && (
           <button
             onMouseDown={onPeekStart}
             onMouseUp={onPeekEnd}
@@ -117,8 +118,8 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
           >
             Hold to see Original
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
