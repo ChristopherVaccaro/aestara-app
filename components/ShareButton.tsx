@@ -67,7 +67,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ imageUrl, styleName, onShare 
         <h3 class="text-lg font-semibold text-white mb-4">Share Your Creation</h3>
         <div class="space-y-3">
           <a href="mailto:?subject=${emailSubject}&body=${emailBody}" 
-             class="w-full px-4 py-3 bg-blue-500/20 border border-blue-400/30 text-blue-100 rounded-xl hover:bg-blue-500/30 transition-all duration-300 flex items-center gap-3 text-decoration-none">
+             class="w-full px-4 py-3 bg-blue-500/20 border border-blue-400/30 text-blue-100 rounded-lg hover:bg-blue-500/30 transition-all duration-300 flex items-center gap-3 text-decoration-none">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
               <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
@@ -75,14 +75,14 @@ const ShareButton: React.FC<ShareButtonProps> = ({ imageUrl, styleName, onShare 
             Share via Email
           </a>
           <a href="sms:?body=${smsBody}" 
-             class="w-full px-4 py-3 bg-green-500/20 border border-green-400/30 text-green-100 rounded-xl hover:bg-green-500/30 transition-all duration-300 flex items-center gap-3 text-decoration-none">
+             class="w-full px-4 py-3 bg-green-500/20 border border-green-400/30 text-green-100 rounded-lg hover:bg-green-500/30 transition-all duration-300 flex items-center gap-3 text-decoration-none">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
             </svg>
             Share via Text
           </a>
           <button onclick="navigator.clipboard.writeText('${shareData.text}'); this.textContent='Copied!'" 
-                  class="w-full px-4 py-3 bg-purple-500/20 border border-purple-400/30 text-purple-100 rounded-xl hover:bg-purple-500/30 transition-all duration-300 flex items-center gap-3">
+                  class="w-full px-4 py-3 bg-blue-500/20 border border-blue-400/30 text-blue-100 rounded-lg hover:bg-blue-500/30 transition-all duration-300 flex items-center gap-3">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z"/>
               <path d="M3 5a2 2 0 012-2 3 3 0 003 3h6a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 10-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L14.586 13H19v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11.586V9a1 1 0 10-2 0v2.586l.293-.293a1 1 0 011.414 0l.293.293z"/>
@@ -90,7 +90,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ imageUrl, styleName, onShare 
             Copy Link
           </button>
           <button onclick="this.parentElement.parentElement.parentElement.remove()" 
-                  class="w-full px-4 py-2 bg-gray-500/20 border border-gray-400/30 text-gray-300 rounded-xl hover:bg-gray-500/30 transition-all duration-300">
+                  class="w-full px-4 py-2 bg-gray-500/20 border border-gray-400/30 text-gray-300 rounded-lg hover:bg-gray-500/30 transition-all duration-300">
             Cancel
           </button>
         </div>
@@ -115,7 +115,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ imageUrl, styleName, onShare 
     <button
       onClick={handleNativeShare}
       disabled={isSharing}
-      className="w-full px-6 py-3 bg-blue-500/20 backdrop-blur-xl border border-blue-400/30 text-blue-100 font-semibold rounded-2xl hover:bg-blue-500/30 hover:border-blue-400/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      className="w-full px-6 py-3 bg-blue-500/20 backdrop-blur-xl border border-blue-400/30 text-blue-100 font-semibold rounded-lg hover:bg-blue-500/30 hover:border-blue-400/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
     >
       {isSharing ? (
         <>

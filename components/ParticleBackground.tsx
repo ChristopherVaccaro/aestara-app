@@ -33,11 +33,11 @@ const ParticleBackground: React.FC = () => {
 
     // Particle colors that match the gradient theme
     const colors = [
-      'rgba(139, 92, 246, 0.3)', // Purple
       'rgba(59, 130, 246, 0.3)',  // Blue
-      'rgba(16, 185, 129, 0.3)',  // Emerald
-      'rgba(236, 72, 153, 0.3)',  // Pink
-      'rgba(251, 191, 36, 0.3)',  // Amber
+      'rgba(96, 165, 250, 0.3)',  // Light Blue
+      'rgba(14, 165, 233, 0.3)',  // Sky Blue
+      'rgba(34, 211, 238, 0.3)',  // Cyan
+      'rgba(56, 189, 248, 0.3)',  // Bright Blue
     ];
 
     // Initialize particles

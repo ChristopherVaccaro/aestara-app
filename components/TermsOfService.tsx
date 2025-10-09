@@ -143,7 +143,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onClose }) => {
         <div className="mt-8 pt-6 border-t border-gray-600">
           <button
             onClick={onClose}
-            className="w-full px-6 py-3 glass-button-active text-purple-100 font-semibold rounded-2xl hover:bg-purple-500/40 transition-all duration-300"
+            className="w-full px-6 py-3 glass-button-active text-blue-100 font-semibold rounded-lg hover:bg-blue-500/40 transition-all duration-300"
           >
             I Understand
           </button>

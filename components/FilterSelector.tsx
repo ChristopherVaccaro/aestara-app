@@ -17,24 +17,8 @@ interface FilterSelectorProps {
 
 const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFilter, onClearFilter, isLoading, activeFilterId }) => {
   const [activeCategory, setActiveCategory] = useState<string>(categories[0]?.name || '');
-  const [showAll, setShowAll] = useState<{ [key: string]: boolean }>({});
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
-
-  const toggleShowAll = (categoryName: string) => {
-    setShowAll(prev => ({
-      ...prev,
-      [categoryName]: !prev[categoryName]
-    }));
-  };
-
-  const getVisibleFilters = (filters: Filter[], categoryName: string, isMobile: boolean = false) => {
-    if (isMobile) {
-      return filters; // Show all filters on mobile
-    }
-    const shouldShowAll = showAll[categoryName];
-    return shouldShowAll ? filters : filters.slice(0, 6);
-  };
 
   // Close dropdown when clicking outside
   React.useEffect(() => {
@@ -60,7 +44,7 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
             {/* Dropdown Trigger */}
             <button 
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-full px-4 py-3 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white hover:bg-white/[0.12] hover:border-white/20 rounded-xl transition-all duration-300 flex items-center justify-between"
+              className="w-full px-4 py-3 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white hover:bg-white/[0.12] hover:border-white/20 rounded-lg transition-all duration-300 flex items-center justify-between"
             >
               <span className="font-medium">{activeCategory}</span>
               <svg 
@@ -75,7 +59,7 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
             
             {/* Dropdown Menu */}
             {isDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800/95 backdrop-blur-xl border border-gray-600/50 rounded-xl shadow-2xl z-50 overflow-hidden">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800/95 backdrop-blur-xl border border-gray-600/50 rounded-lg shadow-2xl z-50 overflow-hidden">
                 {categories.map((category) => (
                   <button
                     key={category.name}
@@ -85,7 +69,7 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
                     }}
                     className={`w-full px-4 py-3 text-left transition-all duration-200 ${
                       activeCategory === category.name
-                        ? 'bg-purple-600/80 text-purple-100'
+                        ? 'bg-blue-600/80 text-blue-100'
                         : 'text-gray-300 hover:bg-gray-700/50 hover:text-white'
                     }`}
                   >
@@ -104,9 +88,9 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
               <button
                 key={category.name}
                 onClick={() => setActiveCategory(category.name)}
-                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                   activeCategory === category.name
-                    ? 'bg-purple-600 text-white shadow-lg'
+                    ? 'bg-blue-600 text-white shadow-lg'
                     : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 hover:text-white'
                 }`}
               >
@@ -121,23 +105,19 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
       {categories
         .filter(category => category.name === activeCategory)
         .map((category) => {
-          const mobileFilters = getVisibleFilters(category.filters, category.name, true);
-          const desktopFilters = getVisibleFilters(category.filters, category.name, false);
-          const hasMore = category.filters.length > 6;
-          
           return (
-            <div key={category.name} className="md:space-y-4">
+            <div key={category.name}>
               {/* Horizontal Scroll for Mobile - Show All Filters */}
               <div className="block md:hidden">
                 <div className="flex gap-3 overflow-x-auto" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
-                  {mobileFilters.map((filter) => (
+                  {category.filters.map((filter) => (
                     <button
                       key={filter.id}
                       onClick={() => onSelectFilter(filter)}
                       disabled={isLoading}
-                      className={`flex-shrink-0 min-w-[120px] h-[80px] rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
+                      className={`flex-shrink-0 min-w-[120px] h-[80px] rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
                         filter.id === activeFilterId
-                          ? 'glass-button-active text-purple-100 shadow-lg border-purple-400/50'
+                          ? 'glass-button-active text-blue-100 shadow-lg border-blue-400/50'
                           : 'glass-button text-gray-300 hover:text-white hover:bg-white/[0.08] hover:backdrop-blur-xl hover:border-white/20'
                       }`}
                       title={filter.name}
@@ -150,16 +130,16 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
                 </div>
               </div>
 
-              {/* Desktop Grid */}
+              {/* Desktop Grid - Show All Filters */}
               <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-3">
-                {desktopFilters.map((filter) => (
+                {category.filters.map((filter) => (
                   <button
                     key={filter.id}
                     onClick={() => onSelectFilter(filter)}
                     disabled={isLoading}
-                    className={`h-[60px] rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center px-4 ${
+                    className={`h-[60px] rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center px-4 ${
                       filter.id === activeFilterId
-                        ? 'glass-button-active text-purple-100 shadow-lg border-purple-400/50'
+                        ? 'glass-button-active text-blue-100 shadow-lg border-blue-400/50'
                         : 'glass-button text-gray-300 hover:text-white hover:bg-white/[0.08] hover:backdrop-blur-xl hover:border-white/20'
                     }`}
                     title={filter.name}
@@ -170,28 +150,6 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
                   </button>
                 ))}
               </div>
-
-              {/* Show More/Less Button - Desktop Only */}
-              {hasMore && (
-                <div className="hidden md:flex justify-center">
-                  <button
-                    onClick={() => toggleShowAll(category.name)}
-                    className="px-6 py-2 text-sm font-medium text-purple-300 hover:text-purple-200 transition-colors flex items-center space-x-2"
-                  >
-                    <span>
-                      {showAll[category.name] ? 'Show Less' : `Show ${category.filters.length - 6} More`}
-                    </span>
-                    <svg 
-                      className={`w-4 h-4 transition-transform ${showAll[category.name] ? 'rotate-180' : ''}`}
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                </div>
-              )}
             </div>
           );
         })}

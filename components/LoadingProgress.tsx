@@ -13,10 +13,10 @@ const LoadingProgress: React.FC<LoadingProgressProps> = ({
   const [currentTip, setCurrentTip] = useState(0);
 
   const tips = [
-    '✨ AI is analyzing your image...',
-    '🎨 Applying artistic transformations...',
-    '🖼️ Rendering final details...',
-    '✅ Almost ready!',
+    'AI is analyzing your image...',
+    'Applying artistic transformations...',
+    'Rendering final details...',
+    'Almost ready!',
   ];
 
   useEffect(() => {
@@ -39,36 +39,9 @@ const LoadingProgress: React.FC<LoadingProgressProps> = ({
 
   return (
     <div className="flex flex-col items-center justify-center p-8 space-y-6">
-      {/* Animated Icon */}
-      <div className="relative">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 animate-pulse flex items-center justify-center">
-          <svg
-            className="w-10 h-10 text-white animate-spin"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            />
-          </svg>
-        </div>
-        {/* Orbiting sparkles */}
-        <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full animate-bounce"></div>
-      </div>
-
       {/* Status Message */}
       <div className="text-center space-y-2 w-full max-w-md">
-        <p className="text-lg font-semibold text-purple-300">{message}</p>
+        <p className="text-lg font-semibold text-blue-300">{message}</p>
         <p className="text-sm text-gray-400 animate-fade-in min-h-[20px]">{tips[currentTip]}</p>
       </div>
 
@@ -76,7 +49,7 @@ const LoadingProgress: React.FC<LoadingProgressProps> = ({
       <div className="w-80">
         <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 transition-all duration-300 ease-out animate-gradient"
+            className="h-full bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-500 transition-all duration-300 ease-out animate-gradient"
             style={{ width: `${progress}%` }}
           />
         </div>
