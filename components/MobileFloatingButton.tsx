@@ -8,7 +8,7 @@ const MobileFloatingButton: React.FC<MobileFloatingButtonProps> = ({ onClick }) 
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-6 right-6 z-40 md:hidden w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200"
+      className="fixed bottom-6 right-6 z-40 lg:hidden w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200"
       aria-label="Open styles menu"
     >
       <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">

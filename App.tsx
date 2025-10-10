@@ -146,6 +146,14 @@ const App: React.FC = () => {
   const MAX_HISTORY = 15; // Limit history to prevent memory issues
 
   const handleImageUpload = (file: File) => {
+    // Clean up old image URL to prevent memory leaks
+    if (originalImageUrl) {
+      URL.revokeObjectURL(originalImageUrl);
+    }
+    if (generatedImageUrl) {
+      URL.revokeObjectURL(generatedImageUrl);
+    }
+    
     setImageFile(file);
     setOriginalImageUrl(URL.createObjectURL(file));
     setGeneratedImageUrl(null);
@@ -155,9 +163,9 @@ const App: React.FC = () => {
     setHistory([]);
     setCurrentHistoryIndex(-1);
     
-    // Open bottom sheet on mobile when image is uploaded
-    const isMobile = window.innerWidth < 768;
-    if (isMobile) {
+    // Open bottom sheet on mobile/tablet when image is uploaded
+    const isMobileOrTablet = window.innerWidth < 1024;
+    if (isMobileOrTablet) {
       setIsMobileSheetOpen(true);
     }
   };
@@ -225,9 +233,9 @@ const App: React.FC = () => {
     setError(null);
     setActiveFilter(filter);
     
-    // Close bottom sheet and scroll to top on mobile when filter is applied
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile) {
+    // Close bottom sheet and scroll to top on mobile/tablet when filter is applied
+    const isMobileOrTablet = window.innerWidth < 1024;
+    if (isMobileOrTablet) {
       setIsMobileSheetOpen(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }

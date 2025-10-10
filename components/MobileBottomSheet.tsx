@@ -87,7 +87,7 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ${
+      className={`fixed inset-0 z-50 lg:hidden transition-opacity duration-300 ${
         isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       onClick={handleBackdropClick}
@@ -113,8 +113,8 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
         onTouchEnd={handleTouchEnd}
       >
         {/* Drag Handle */}
-        <div className="flex justify-center pt-3 pb-2">
-          <div className="w-12 h-1.5 bg-white/30 rounded-full" />
+        <div className="flex justify-center pt-3 pb-2 md:pt-4">
+          <div className="w-12 h-1.5 bg-white/30 rounded-full md:w-16 md:h-2" />
         </div>
 
         {/* Header */}
