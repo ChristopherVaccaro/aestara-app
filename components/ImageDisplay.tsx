@@ -12,6 +12,7 @@ interface ImageDisplayProps {
   onDownload: () => void;
   error?: string | null;
   activeFilterName?: string | null;
+  isDevMode?: boolean;
 }
 
 const ImageDisplay: React.FC<ImageDisplayProps> = ({
@@ -25,6 +26,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   onDownload,
   error,
   activeFilterName,
+  isDevMode = false,
 }) => {
   const imageUrlToShow = isPeeking
     ? originalImageUrl
@@ -52,8 +54,18 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
             
             {/* Style Badge - Bottom Right */}
             {generatedImageUrl && activeFilterName && !isPeeking && (
-              <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full border border-white/20">
-                {activeFilterName}
+              <div className="absolute bottom-3 right-3 flex gap-2">
+                <div className="bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full border border-white/20">
+                  {activeFilterName}
+                </div>
+                {isDevMode && (
+                  <div className="bg-yellow-500/80 backdrop-blur-sm text-black text-xs px-2 py-1 rounded-full border border-yellow-400 font-semibold flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    MOCK
+                  </div>
+                )}
               </div>
             )}
             
@@ -113,10 +125,14 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
               onPeekEnd();
             }}
             onContextMenu={(e) => e.preventDefault()}
-            className="px-8 py-3 glass-button-active text-blue-100 font-semibold shadow-lg select-none focus:outline-none touch-manipulation rounded-lg"
+            className="px-8 py-3 glass-button-active text-blue-100 font-semibold shadow-lg select-none focus:outline-none touch-manipulation rounded-lg flex items-center justify-center gap-2"
             style={{ touchAction: 'manipulation', userSelect: 'none', WebkitUserSelect: 'none' }}
           >
-            Hold to see Original
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            Compare
           </button>
         )}
       </div>
@@ -125,3 +141,4 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
 };
 
 export default ImageDisplay;
+

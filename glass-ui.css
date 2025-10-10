@@ -20,6 +20,10 @@
   100% { background-position: 0% 50%; }
 }
 
+45% { transform: translate3d(-4%, 5%, 0) rotate(2deg) scale(0.97); }
+  80% { transform: translate3d(6%, 4%, 0) rotate(-3deg) scale(1.02); }
+  100% { transform: translate3d(-5%, -5%, 0) rotate(1deg) scale(1.05); }
+}
 /* Subtle mesh overlay - More natural and less tiled */
 .mesh-overlay {
   background-image: 
@@ -316,3 +320,5 @@ button, a, [role="button"] {
   -ms-user-select: none;
   user-select: none;
 }
+
+

@@ -14,6 +14,7 @@ import ComparisonModeToggle from './components/ComparisonModeToggle';
 import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import FeedbackForm from './components/FeedbackForm';
+import DevModeToggle from './components/DevModeToggle';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Filter } from './types';
 import { applyImageFilter } from './services/geminiService';
@@ -40,9 +41,9 @@ const FILTER_CATEGORIES: FilterCategory[] = [
   {
     name: 'Artistic & Stylized',
     filters: [
-      { id: 'anime', name: 'Anime', prompt: 'Render the photo in a semi-realistic digital portrait style — soft cinematic lighting, warm tones, and smooth, painterly skin shading.Preserve the person’s natural likeness and facial structure while adding gentle highlights, subtle brush-stroke texture, and a slightly glossy, artistic finish.The result should look like a hand-painted digital illustration — lifelike yet clearly artistic.' },
-      { id: 'anime_v2', name: 'Anime Enhanced', prompt: 'Transform into high-quality semi-realistic anime illustration with enhanced realism (similar to premium webtoon art or realistic anime adaptations). PROPORTIONS - Realistic human anatomy with accurate body structure, muscle definition, and natural form. Proper skeletal structure visible through form. FACE - Semi-realistic facial features with anime aesthetic appeal. Defined nose with bridge and nostrils, realistic lip structure, natural eye sockets, defined cheekbones. Beautiful but realistic. EYES - Realistically sized and positioned eyes with anime charm. Detailed iris with complex patterns, natural eye whites, realistic eyelids and lashes. Depth and dimension. LINEWORK - Minimal, nearly invisible outlines. Ultra-thin lines only where necessary. Edge definition through shading and color rather than lines. Painterly edge quality. SHADING - Highly realistic soft shading with complex gradients. Multiple light sources, reflected light, ambient occlusion, subsurface scattering on skin. Photographic lighting quality. Form-defining shadows. SKIN - Photorealistic skin rendering with subtle pores, natural texture, color variation (redness, warmth, coolness). Realistic highlights and shadows showing underlying anatomy. Natural imperfections. HAIR - Highly detailed realistic hair with individual strands, natural shine, complex highlights and shadows. Hair physics and natural flow. Realistic hair texture and volume. LIGHTING - Complex, realistic lighting setup. Soft key light, fill light, rim lighting. Natural light behavior with realistic shadow casting and light bounce. Atmospheric effects. COLORS - Realistic, photographic color palette with natural saturation. Color temperature variation. Harmonious but true-to-life colors. DETAILS - Exceptional detail in fabric textures, wrinkles, accessories, environmental elements. Near-photographic detail level. BACKGROUND - Realistic backgrounds with proper perspective, atmospheric depth, and photographic quality. STYLE - Premium semi-realistic illustration like high-end webtoon art, realistic game character art, or photorealistic anime adaptations. AVOID - Visible outlines, cel-shading, oversimplified features, cartoonish proportions, flat colors. AIM FOR - Near-photorealistic illustration with anime aesthetic appeal, minimal linework, complex realistic shading, and natural proportions.' },
-      { id: 'anime_v3', name: 'Anime Cinematic', prompt: 'Transform into cinematic semi-realistic anime style with dramatic presentation (high-end webtoon/manhwa cinematic quality or realistic anime film aesthetic). PROPORTIONS - Realistic human anatomy with cinematic appeal. Natural body structure with elegant, attractive proportions. Proper form and dimension. FACE - Semi-realistic facial features with dramatic beauty. Defined facial structure with realistic nose, lips, and eye sockets. Cinematic lighting on face showing dimension. Photogenic angles. EYES - Realistically proportioned eyes with intense detail and emotional depth. Complex iris patterns, realistic reflections, natural eye structure. Eyes convey emotion and story. LINEWORK - Virtually invisible outlines. No visible line art - forms defined entirely through shading, lighting, and color. Painterly, photographic edge quality. SHADING - Cinematic realistic shading with dramatic lighting. Strong directional light creating form-defining shadows. Soft gradients with rich tonal range. Chiaroscuro lighting effects. Realistic shadow casting. SKIN - Photorealistic skin with cinematic lighting. Natural texture, pores, color variation. Dramatic highlights and shadows revealing facial structure. Subsurface scattering. Realistic skin behavior under dramatic lighting. HAIR - Highly detailed realistic hair with dramatic lighting. Individual strands catching light, complex shadows, natural flow with sense of movement. Volumetric hair rendering. LIGHTING - Dramatic cinematic lighting setup. Strong key light, atmospheric rim lighting, colored light sources. Golden hour or blue hour lighting. Lens flares, light bloom, atmospheric haze. Photographic lighting quality. COLORS - Cinematic color grading with realistic base. Warm/cool color contrast, atmospheric perspective, color temperature shifts. Rich but natural saturation. Film-like color palette. ATMOSPHERE - Strong atmospheric effects: volumetric lighting, depth haze, light rays, particle effects, depth of field blur. Cinematic depth and mood. BACKGROUND - Photorealistic backgrounds with cinematic composition. Proper perspective, atmospheric depth, dramatic lighting. Film-quality environments. COMPOSITION - Dramatic camera angles and framing. Sense of motion and energy. Theatrical presentation with visual impact. STYLE - High-end cinematic illustration like premium webtoon dramatic scenes, realistic game cinematics, or photorealistic anime films. AVOID - Visible outlines, cel-shading, simplified anatomy, flat lighting, cartoonish features, lack of atmosphere. AIM FOR - Cinematic photorealistic illustration with anime aesthetic, dramatic lighting, complex realistic shading, atmospheric effects, and film-quality presentation.' },
+      { id: 'anime', name: 'Anime', prompt: 'Reimagine this portrait as hand-drawn anime art inspired by iconic 2D series. STYLE: crisp inked outlines, cel-shaded color blocks with one highlight and one shadow step, smooth gradient glow accents. FACE: expressive large eyes with sharp light reflections, softened nose and mouth, keep the subject proportions and attitude. COLOR: bold yet harmonious palette, saturated hues, minimal texture. HAIR: stylized clumps with defined edge highlights and dynamic shape language. BACKGROUND: simple gradient or graphic pattern that complements the character. AVOID: photorealistic rendering, gritty detail, Western comic look, painterly brush strokes.' },
+      { id: 'anime_v2', name: 'Anime Enhanced', prompt: 'Transform into premium digital anime key visual art similar to modern anime films and high-end illustrations. STYLE: confident line art paired with refined cel shading plus soft rim lights and atmospheric gradients. FACE: anime proportions with luminous large eyes, delicate features, and preserved likeness. DETAIL: layered hair with volumetric highlights, ornate costume accents, subtle texture on fabrics. LIGHTING: dramatic yet clean, with colored highlights and gentle bloom. COLOR: vibrant palette with controlled gradients and color dodge accents. BACKGROUND: cinematic but slightly abstract environment with depth haze and particle sparkle. AVOID: hyper-real skin pores, photoreal hair strands, muddy colors, visible painterly strokes.' },
+      { id: 'anime_v3', name: 'Anime Cinematic', prompt: 'Convert the scene into a cinematic anime illustration reminiscent of big-budget anime films. CAMERA: dramatic framing, light depth of field, sense of motion. STYLE: elegant line work blended with multi-step cel shading, glow passes, and volumetric lighting. FACE: anime expressiveness with realistic structure maintained; intense eyes with layered highlights. LIGHTING: cinematic rim lights, neon color contrast, atmospheric fog, light streaks. DETAIL: flowing hair and fabrics with motion blur hints, environmental effects like drifting particles or rain. COLOR: rich filmic palette with teal-magenta interplay and warm skin tones. AVOID: flat lighting, over-realistic textures, western comic anatomy, gritty realism.' },
       { id: 'cartoon', name: '3D Cartoon', prompt: 'Recreate in modern 3D animated film style (DreamWorks/Illumination quality): MODELING - Smooth, rounded 3D forms with soft edges and gentle curves. TEXTURING - Clean, painted textures without excessive detail or realism. LIGHTING - Soft, diffused three-point lighting with gentle shadows. FEATURES - Slightly exaggerated proportions, large expressive eyes, simplified but appealing facial structure. COLORS - Vibrant, saturated colors with subtle gradients. MATERIALS - Matte to semi-gloss surfaces, not hyper-realistic. AVOID - Photorealism, rough textures, harsh lighting, overly complex details. AIM FOR - Appealing, family-friendly 3D animation aesthetic with charm and personality.' },
       { id: 'pixar', name: 'Pixar Style', prompt: 'Transform into authentic Pixar Animation Studios style: CHARACTER DESIGN - Large, soulful eyes (most important feature), soft rounded shapes, appealing proportions, expressive eyebrows. MODELING - Smooth, stylized 3D forms with emphasis on readability and appeal over realism. TEXTURING - Clean, artistic textures with subtle detail (not photorealistic). LIGHTING - Warm, cinematic lighting with soft bounce light and rich colors. SHADING - Smooth gradients with subtle subsurface scattering on skin. COLORS - Rich, saturated palette with warm undertones. MOOD - Emotional warmth and inviting atmosphere. AVOID - Uncanny valley, excessive realism, harsh lighting, cold tones. REFERENCE - Think Toy Story, Inside Out, Up quality with emphasis on heart and charm.' },
       { id: 'western', name: 'Western Theme', prompt: 'Reimagine in classic American Old West aesthetic with authentic frontier atmosphere. Apply rugged cowboy styling with weathered textures, cowboy hats, boots, leather elements, vests, bandanas, and duster coats. Create a dusty frontier setting with wooden buildings, hitching posts, tumbleweeds, and vast open skies. Use warm golden hour lighting with dramatic shadows and atmospheric dust. Apply sepia-toned or desaturated color palette with browns, oranges, and muted earth tones. Include authentic western details like horses, cattle, cacti, and weathered wood textures for immersive Wild West atmosphere.' },
@@ -133,6 +134,10 @@ const App: React.FC = () => {
   const [showPrivacy, setShowPrivacy] = useState<boolean>(false);
   const [showFeedback, setShowFeedback] = useState<boolean>(false);
   
+  // Dev mode (only available in development)
+  const [isDevMode, setIsDevMode] = useState<boolean>(false);
+  const [devMockImageUrl, setDevMockImageUrl] = useState<string | null>(null);
+  
   const MAX_HISTORY = 15; // Limit history to prevent memory issues
 
   const handleImageUpload = (file: File) => {
@@ -144,6 +149,63 @@ const App: React.FC = () => {
     // Clear history when new image is uploaded
     setHistory([]);
     setCurrentHistoryIndex(-1);
+  };
+
+  // Handle dev mode toggle
+  const handleDevModeToggle = (enabled: boolean) => {
+    setIsDevMode(enabled);
+    
+    if (enabled && !originalImageUrl) {
+      // Create a placeholder image when dev mode is enabled
+      const canvas = document.createElement('canvas');
+      canvas.width = 800;
+      canvas.height = 800;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx) {
+        // Create gradient background
+        const gradient = ctx.createLinearGradient(0, 0, 800, 800);
+        gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(0.5, '#764ba2');
+        gradient.addColorStop(1, '#f093fb');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 800, 800);
+        
+        // Add text
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.font = 'bold 48px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('DEV MODE', 400, 350);
+        
+        ctx.font = '24px sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.fillText('Mock Image Placeholder', 400, 420);
+        ctx.fillText('Test UI without API calls', 400, 460);
+        
+        // Convert to blob and create URL
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const mockUrl = URL.createObjectURL(blob);
+            setDevMockImageUrl(mockUrl);
+            setOriginalImageUrl(mockUrl);
+            // Create a mock file
+            const mockFile = new File([blob], 'dev-mock.png', { type: 'image/png' });
+            setImageFile(mockFile);
+          }
+        });
+      }
+    } else if (!enabled && devMockImageUrl) {
+      // Clean up when dev mode is disabled
+      URL.revokeObjectURL(devMockImageUrl);
+      setDevMockImageUrl(null);
+      setOriginalImageUrl(null);
+      setImageFile(null);
+      setGeneratedImageUrl(null);
+      setActiveFilter(null);
+      setHistory([]);
+      setCurrentHistoryIndex(-1);
+    }
   };
 
   const handleApplyFilter = async (filter: Filter) => {
@@ -159,9 +221,23 @@ const App: React.FC = () => {
     }
     
     try {
-      const composedPrompt = `${STYLE_TRANSFER_CONSTRAINTS}\n\n${filter.prompt}`;
-      const base64Data = await applyImageFilter(imageFile, composedPrompt);
-      const newImageUrl = `data:image/png;base64,${base64Data}`;
+      let newImageUrl: string;
+      
+      // Dev mode: simulate image generation without API call
+      if (isDevMode) {
+        // Simulate processing delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Create a mock styled image by adding a colored overlay effect
+        // In dev mode, we'll just use the original image with a filter indicator
+        newImageUrl = originalImageUrl || '';
+      } else {
+        // Production mode: actual API call
+        const composedPrompt = `${STYLE_TRANSFER_CONSTRAINTS}\n\n${filter.prompt}`;
+        const base64Data = await applyImageFilter(imageFile, composedPrompt);
+        newImageUrl = `data:image/png;base64,${base64Data}`;
+      }
+      
       setGeneratedImageUrl(newImageUrl);
       
       // Add to history
@@ -211,7 +287,14 @@ const App: React.FC = () => {
     if (!generatedImageUrl) return;
     const link = document.createElement('a');
     link.href = generatedImageUrl;
-    link.download = `stylized-${activeFilter?.id || 'image'}.png`;
+    // Get original filename without extension
+    const originalName = imageFile?.name || 'image';
+    const nameWithoutExt = originalName.replace(/\.[^/.]+$/, '');
+    
+    // Create filename with style appended
+    const styleName = activeFilter?.name || 'styled';
+    const safeStyleName = styleName.replace(/\s+/g, '-').toLowerCase();
+    link.download = `${nameWithoutExt}-${safeStyleName}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -364,6 +447,7 @@ const App: React.FC = () => {
                 onDownload={handleDownload}
                 error={error}
                 activeFilterName={activeFilter?.name || null}
+                isDevMode={isDevMode}
               />
               {/* Comparison Mode Toggle */}
               {generatedImageUrl && (
@@ -424,7 +508,7 @@ const App: React.FC = () => {
                  <button
                   onClick={handleDownload}
                   disabled={!generatedImageUrl || isLoading}
-                  className="w-full px-6 py-3 bg-green-500/20 backdrop-blur-xl border border-green-400/30 text-green-100 font-semibold rounded-2xl hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-300 disabled:bg-gray-500/20 disabled:border-gray-400/20 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center shadow-lg gap-2"
+                  className="w-full px-6 py-3 bg-green-500/20 backdrop-blur-xl border border-green-400/30 text-green-100 font-semibold rounded-lg hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-300 disabled:bg-gray-500/20 disabled:border-gray-400/20 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center shadow-lg gap-2"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -437,7 +521,7 @@ const App: React.FC = () => {
                 />
                 <button
                   onClick={handleReset}
-                  className="w-full px-6 py-3 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white font-medium rounded-2xl hover:bg-white/[0.12] hover:border-white/20 transition-all duration-300 flex items-center justify-center gap-2"
+                  className="w-full px-6 py-3 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white font-medium rounded-lg hover:bg-white/[0.12] hover:border-white/20 transition-all duration-300 flex items-center justify-center gap-2"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
@@ -463,7 +547,6 @@ const App: React.FC = () => {
     >
       {/* Particle Background */}
       <ParticleBackground />
-      
       {/* Subtle mesh overlay */}
       <div className="absolute inset-0 mesh-overlay pointer-events-none" />
       {/* Drag overlay */}
@@ -498,8 +581,16 @@ const App: React.FC = () => {
       {showTerms && <TermsOfService onClose={() => setShowTerms(false)} />}
       {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
       {showFeedback && <FeedbackForm onClose={() => setShowFeedback(false)} />}
+      
+      {/* Dev Mode Toggle (only in development) */}
+      <DevModeToggle isDevMode={isDevMode} onToggle={handleDevModeToggle} />
     </div>
   );
 };
 
 export default App;
+
+
+
+
+
