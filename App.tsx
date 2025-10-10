@@ -154,20 +154,27 @@ const App: React.FC = () => {
       URL.revokeObjectURL(generatedImageUrl);
     }
     
-    setImageFile(file);
-    setOriginalImageUrl(URL.createObjectURL(file));
-    setGeneratedImageUrl(null);
-    setActiveFilter(null);
-    setError(null);
-    // Clear history when new image is uploaded
-    setHistory([]);
-    setCurrentHistoryIndex(-1);
+    // Force state reset for Safari
+    setImageFile(null);
+    setOriginalImageUrl(null);
     
-    // Open bottom sheet on mobile/tablet when image is uploaded
-    const isMobileOrTablet = window.innerWidth < 1024;
-    if (isMobileOrTablet) {
-      setIsMobileSheetOpen(true);
-    }
+    // Use setTimeout to ensure Safari processes the state change
+    setTimeout(() => {
+      setImageFile(file);
+      setOriginalImageUrl(URL.createObjectURL(file));
+      setGeneratedImageUrl(null);
+      setActiveFilter(null);
+      setError(null);
+      // Clear history when new image is uploaded
+      setHistory([]);
+      setCurrentHistoryIndex(-1);
+      
+      // Open bottom sheet on mobile/tablet when image is uploaded
+      const isMobileOrTablet = window.innerWidth < 1024;
+      if (isMobileOrTablet) {
+        setIsMobileSheetOpen(true);
+      }
+    }, 10);
   };
 
   // Handle dev mode toggle
@@ -305,23 +312,42 @@ const App: React.FC = () => {
 
   // Handle file input trigger for mobile
   const handleTriggerFileInput = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/avif';
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        try {
-          const processed = await ImageProcessor.processImage(file);
-          handleImageUpload(processed.file);
-        } catch (err) {
-          const errorMessage = err instanceof Error ? err.message : 'Failed to process image';
-          setError(errorMessage);
-          console.error('Image processing error:', err);
+    // Close bottom sheet first to prevent iOS Safari issues
+    setIsMobileSheetOpen(false);
+    
+    // Small delay to ensure sheet is closed before opening file picker
+    setTimeout(() => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/avif';
+      
+      // Add to DOM for better iOS Safari compatibility
+      input.style.display = 'none';
+      document.body.appendChild(input);
+      
+      input.onchange = async (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) {
+          try {
+            const processed = await ImageProcessor.processImage(file);
+            handleImageUpload(processed.file);
+          } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to process image';
+            setError(errorMessage);
+            console.error('Image processing error:', err);
+          }
         }
-      }
-    };
-    input.click();
+        // Clean up
+        document.body.removeChild(input);
+      };
+      
+      // Handle cancel (iOS Safari specific)
+      input.oncancel = () => {
+        document.body.removeChild(input);
+      };
+      
+      input.click();
+    }, 100);
   };
 
   const handleDownload = () => {
