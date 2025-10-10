@@ -15,6 +15,8 @@ import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import FeedbackForm from './components/FeedbackForm';
 import DevModeToggle from './components/DevModeToggle';
+import MobileBottomSheet from './components/MobileBottomSheet';
+import MobileFloatingButton from './components/MobileFloatingButton';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Filter } from './types';
 import { applyImageFilter } from './services/geminiService';
@@ -138,6 +140,9 @@ const App: React.FC = () => {
   const [isDevMode, setIsDevMode] = useState<boolean>(false);
   const [devMockImageUrl, setDevMockImageUrl] = useState<string | null>(null);
   
+  // Mobile bottom sheet
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState<boolean>(false);
+  
   const MAX_HISTORY = 15; // Limit history to prevent memory issues
 
   const handleImageUpload = (file: File) => {
@@ -149,6 +154,12 @@ const App: React.FC = () => {
     // Clear history when new image is uploaded
     setHistory([]);
     setCurrentHistoryIndex(-1);
+    
+    // Open bottom sheet on mobile when image is uploaded
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      setIsMobileSheetOpen(true);
+    }
   };
 
   // Handle dev mode toggle
@@ -214,9 +225,10 @@ const App: React.FC = () => {
     setError(null);
     setActiveFilter(filter);
     
-    // Scroll to top on mobile when filter is applied
+    // Close bottom sheet and scroll to top on mobile when filter is applied
     const isMobile = window.innerWidth <= 768;
     if (isMobile) {
+      setIsMobileSheetOpen(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     
@@ -281,6 +293,27 @@ const App: React.FC = () => {
     setIsLoading(false);
     setHistory([]);
     setCurrentHistoryIndex(-1);
+  };
+
+  // Handle file input trigger for mobile
+  const handleTriggerFileInput = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/avif';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        try {
+          const processed = await ImageProcessor.processImage(file);
+          handleImageUpload(processed.file);
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : 'Failed to process image';
+          setError(errorMessage);
+          console.error('Image processing error:', err);
+        }
+      }
+    };
+    input.click();
   };
 
   const handleDownload = () => {
@@ -477,8 +510,8 @@ const App: React.FC = () => {
           )}
         </div>
 
-        {/* Right Column: Controls */}
-        <div className="w-full lg:w-1/3 mt-8 lg:mt-0 flex flex-col">
+        {/* Right Column: Controls - Hidden on mobile, shown on desktop */}
+        <div className="hidden lg:flex w-full lg:w-1/3 mt-8 lg:mt-0 flex-col">
            {/* Style History */}
            {history.length > 0 && (
              <StyleHistory
@@ -560,7 +593,7 @@ const App: React.FC = () => {
         </div>
       )}
       
-      <Header />
+      <Header onLogoClick={handleReset} />
       <main className="w-full flex-grow flex items-center justify-center px-4 my-8">
         {renderContent()}
       </main>
@@ -584,6 +617,26 @@ const App: React.FC = () => {
       
       {/* Dev Mode Toggle (only in development) */}
       <DevModeToggle isDevMode={isDevMode} onToggle={handleDevModeToggle} />
+      
+      {/* Mobile Bottom Sheet */}
+      {originalImageUrl && (
+        <>
+          <MobileFloatingButton onClick={() => setIsMobileSheetOpen(true)} />
+          <MobileBottomSheet
+            isOpen={isMobileSheetOpen}
+            onClose={() => setIsMobileSheetOpen(false)}
+            categories={FILTER_CATEGORIES}
+            onSelectFilter={handleApplyFilter}
+            onClearFilter={handleClearFilter}
+            isLoading={isLoading}
+            activeFilterId={activeFilter?.id || null}
+            onDownload={handleDownload}
+            onReset={handleTriggerFileInput}
+            generatedImageUrl={generatedImageUrl}
+            styleName={activeFilter?.name}
+          />
+        </>
+      )}
     </div>
   );
 };
