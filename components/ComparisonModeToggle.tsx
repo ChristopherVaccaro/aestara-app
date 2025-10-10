@@ -10,13 +10,13 @@ const ComparisonModeToggle: React.FC<ComparisonModeToggleProps> = ({
   onToggle,
 }) => {
   return (
-    <div className="flex items-center justify-center gap-2 p-1 glass-panel rounded-full">
+    <div className="flex items-center justify-center gap-2 p-1 glass-panel rounded-lg">
       {/* Hold-to-Peek Button */}
       <button
         onClick={() => onToggle(false)}
-        className={`px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 flex items-center gap-2 ${
+        className={`px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-2 ${
           !useSlider
-            ? 'bg-purple-600 text-white shadow-lg'
+            ? 'bg-blue-600 text-white shadow-lg'
             : 'text-gray-400 hover:text-gray-300'
         }`}
         title="Hold button to see original"
@@ -31,15 +31,15 @@ const ComparisonModeToggle: React.FC<ComparisonModeToggleProps> = ({
       {/* Comparison Slider Button */}
       <button
         onClick={() => onToggle(true)}
-        className={`px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 flex items-center gap-2 ${
+        className={`px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-2 ${
           useSlider
-            ? 'bg-purple-600 text-white shadow-lg'
+            ? 'bg-blue-600 text-white shadow-lg'
             : 'text-gray-400 hover:text-gray-300'
         }`}
         title="Drag slider to compare"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
         </svg>
         Slider
       </button>

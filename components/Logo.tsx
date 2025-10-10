@@ -6,13 +6,13 @@ const Logo: React.FC<{ className?: string }>= ({ className = 'h-12 w-auto' }) =>
       <div className="text-logo relative">
         {/* Glow layer */}
         <span
-          className="absolute inset-0 blur-sm opacity-40 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-500 to-pink-500 select-none pointer-events-none font-black text-2xl md:text-3xl tracking-tight"
+          className="absolute inset-0 blur-sm opacity-40 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-500 to-sky-500 select-none pointer-events-none font-black text-2xl md:text-3xl tracking-tight"
           aria-hidden
         >
           AI
         </span>
         {/* Main gradient text */}
-        <span className="relative text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-fuchsia-400 to-pink-400 font-black text-2xl md:text-3xl tracking-tight">
+        <span className="relative text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-cyan-400 to-sky-400 font-black text-2xl md:text-3xl tracking-tight">
           AI
         </span>
       </div>

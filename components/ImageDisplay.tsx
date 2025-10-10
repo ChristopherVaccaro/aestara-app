@@ -47,7 +47,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
             <img
               src={imageUrlToShow}
               alt={isPeeking ? 'Original' : 'Stylized'}
-              className="w-full h-full object-cover transition-all duration-300 rounded-3xl"
+              className="w-full h-full object-cover transition-all duration-300 rounded-lg"
             />
             
             {/* Style Badge - Bottom Right */}
@@ -113,7 +113,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
               onPeekEnd();
             }}
             onContextMenu={(e) => e.preventDefault()}
-            className="px-8 py-3 glass-button-active text-purple-100 font-semibold shadow-lg select-none focus:outline-none touch-manipulation rounded-2xl"
+            className="px-8 py-3 glass-button-active text-blue-100 font-semibold shadow-lg select-none focus:outline-none touch-manipulation rounded-lg"
             style={{ touchAction: 'manipulation', userSelect: 'none', WebkitUserSelect: 'none' }}
           >
             Hold to see Original

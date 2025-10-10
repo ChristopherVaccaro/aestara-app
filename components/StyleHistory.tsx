@@ -32,13 +32,13 @@ const StyleHistory: React.FC<StyleHistoryProps> = ({
         className="w-full flex items-center justify-between hover:bg-white/[0.02] rounded-lg p-2 -m-2 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <h3 className="text-sm font-semibold text-gray-300">Style History</h3>
           <span className="text-xs text-gray-500">({history.length})</span>
           {!isExpanded && currentIndex >= 0 && (
-            <span className="text-xs text-purple-400 font-medium">
+            <span className="text-xs text-blue-400 font-medium">
               • {history[currentIndex].filterName}
             </span>
           )}
@@ -76,8 +76,8 @@ const StyleHistory: React.FC<StyleHistoryProps> = ({
                 onClick={() => onSelectHistory(index)}
                 className={`flex-shrink-0 relative group ${
                   index === currentIndex
-                    ? 'ring-2 ring-purple-500'
-                    : 'ring-1 ring-white/10 hover:ring-purple-400/50'
+                    ? 'ring-2 ring-blue-500'
+                    : 'ring-1 ring-white/10 hover:ring-blue-400/50'
                 } rounded-lg overflow-hidden transition-all duration-200`}
                 title={`${item.filterName} - ${new Date(item.timestamp).toLocaleTimeString()}`}
               >
@@ -94,7 +94,7 @@ const StyleHistory: React.FC<StyleHistoryProps> = ({
                 </div>
                 {/* Current indicator */}
                 {index === currentIndex && (
-                  <div className="absolute top-1 right-1 w-2 h-2 bg-purple-500 rounded-full border border-white"></div>
+                  <div className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full border border-white"></div>
                 )}
               </button>
             ))}

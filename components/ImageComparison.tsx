@@ -58,7 +58,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
     <div className="w-full flex flex-col items-center">
       <div
         ref={containerRef}
-        className="w-full aspect-square relative overflow-hidden rounded-3xl ring-1 ring-white/[0.08] cursor-ew-resize select-none"
+        className="w-full aspect-square relative overflow-hidden rounded-lg ring-1 ring-white/[0.08] cursor-ew-resize select-none"
         onMouseDown={handleStart}
         onTouchStart={handleStart}
         style={{ touchAction: 'none' }}
@@ -71,7 +71,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
             className="w-full h-full object-cover"
             draggable={false}
           />
-          <div className="absolute bottom-3 right-3 bg-purple-600/90 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-purple-400/50 font-medium">
+          <div className="absolute bottom-3 right-3 bg-blue-600/90 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-blue-400/50 font-medium">
             {activeFilterName}
           </div>
         </div>
@@ -109,7 +109,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2.5}
-                d="M8 9l4-4 4 4m0 6l-4 4-4-4"
+                d="M8 7l-4 5 4 5M16 7l4 5-4 5"
               />
             </svg>
           </div>
@@ -121,7 +121,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
         <p className="text-sm text-gray-400 text-center">
           <span className="inline-flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
             </svg>
             Drag to compare original and styled images
           </span>
