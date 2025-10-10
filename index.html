@@ -6,7 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Image Stylizer</title>
     <script src="https://cdn.tailwindcss.com"></script>
-  <script type="importmap">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontWeight: {
+              'thin': '100',
+              'extralight': '200',
+              'light': '300',
+              'normal': '300',
+              'medium': '400',
+              'semibold': '500',
+              'bold': '600',
+              'extrabold': '700',
+              'black': '800',
+            }
+          }
+        }
+      }
+    </script>
+    <script type="importmap">
 {
   "imports": {
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",

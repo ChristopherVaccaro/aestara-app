@@ -1,34 +1,15 @@
 import React from 'react';
 
-const Logo: React.FC<{ className?: string }>= ({ className = 'h-12 w-auto' }) => {
+const Logo: React.FC<{ className?: string }> = ({ className = '' }) => {
   return (
-    <div className={`${className} flex items-center`}>
-      <div className="text-logo relative">
-        {/* Glow layer */}
-        <span
-          className="absolute inset-0 blur-sm opacity-40 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-500 to-sky-500 select-none pointer-events-none font-black text-2xl md:text-3xl tracking-tight"
-          aria-hidden
-        >
-          AI
-        </span>
-        {/* Main gradient text */}
-        <span className="relative text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-cyan-400 to-sky-400 font-black text-2xl md:text-3xl tracking-tight">
-          AI
-        </span>
-      </div>
-      <div className="ml-1 text-logo-secondary relative">
-        {/* Glow layer */}
-        <span
-          className="absolute inset-0 blur-sm opacity-30 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 select-none pointer-events-none font-bold text-lg md:text-xl tracking-wide"
-          aria-hidden
-        >
-          Stylizer
-        </span>
-        {/* Main gradient text */}
-        <span className="relative text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-cyan-300 font-bold text-lg md:text-xl tracking-wide">
-          Stylizer
-        </span>
-      </div>
+    <div className={`relative inline-flex ${className}`}>
+      <span
+        className="absolute -inset-2 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-cyan-500/20 blur-xl"
+        aria-hidden
+      />
+      <span className="relative text-2xl md:text-3xl font-thin tracking-[0.25em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-purple-200 via-pink-200 to-cyan-200 drop-shadow-[0_2px_8px_rgba(168,85,247,0.4)]" style={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif' }}>
+        Aestara
+      </span>
     </div>
   );
 };
