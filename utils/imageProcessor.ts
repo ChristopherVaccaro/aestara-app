@@ -58,7 +58,7 @@ export class ImageProcessor {
 
     // Handle EXIF orientation and resize if needed
     const canvas = await this.loadImageToCanvas(processedFile);
-    const optimizedFile = await this.canvasToFile(canvas, finalMimeType);
+    const optimizedFile = await this.canvasToFile(canvas, finalMimeType, 0.9, file.name);
     const dataUrl = await this.fileToDataUrl(optimizedFile);
 
     return {
@@ -141,7 +141,7 @@ export class ImageProcessor {
     try {
       // Try to load the image directly (some browsers support HEIC natively)
       const canvas = await this.loadImageToCanvas(file);
-      const convertedFile = await this.canvasToFile(canvas, 'image/jpeg', 0.9);
+      const convertedFile = await this.canvasToFile(canvas, 'image/jpeg', 0.9, file.name);
       
       return {
         file: convertedFile,
@@ -304,11 +304,13 @@ export class ImageProcessor {
   /**
    * Convert canvas to file
    */
-  private static async canvasToFile(canvas: HTMLCanvasElement, mimeType: string, quality: number = 0.9): Promise<File> {
+  private static async canvasToFile(canvas: HTMLCanvasElement, mimeType: string, quality: number = 0.9, originalName?: string): Promise<File> {
     return new Promise((resolve) => {
       canvas.toBlob((blob) => {
         if (blob) {
-          const file = new File([blob], 'processed-image.jpg', { type: mimeType });
+          // Preserve original filename or use default
+          const fileName = originalName || 'processed-image.jpg';
+          const file = new File([blob], fileName, { type: mimeType });
           resolve(file);
         }
       }, mimeType, quality);

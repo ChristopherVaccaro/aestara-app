@@ -1,5 +1,39 @@
 /* Glass UI CSS with fallbacks */
 
+/* Global elegant thin font styling */
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+}
+
+/* Headings maintain hierarchy with slightly bolder weight */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 400;
+  letter-spacing: 0.03em;
+}
+
+/* Buttons use regular weight for legibility */
+button {
+  font-weight: 400;
+  letter-spacing: 0.025em;
+}
+
+/* Strong/bold text */
+strong, b {
+  font-weight: 500;
+}
+
+/* Semibold elements */
+.font-semibold {
+  font-weight: 500 !important;
+}
+
+/* Bold elements */
+.font-bold {
+  font-weight: 600 !important;
+}
+
 /* Subtle animated background - Dark navy to teal gradient */
 .subtle-bg {
   background: linear-gradient(135deg, 
@@ -20,10 +54,6 @@
   100% { background-position: 0% 50%; }
 }
 
-45% { transform: translate3d(-4%, 5%, 0) rotate(2deg) scale(0.97); }
-  80% { transform: translate3d(6%, 4%, 0) rotate(-3deg) scale(1.02); }
-  100% { transform: translate3d(-5%, -5%, 0) rotate(1deg) scale(1.05); }
-}
 /* Subtle mesh overlay - More natural and less tiled */
 .mesh-overlay {
   background-image: 

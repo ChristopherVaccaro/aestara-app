@@ -190,7 +190,7 @@ const App: React.FC = () => {
             setDevMockImageUrl(mockUrl);
             setOriginalImageUrl(mockUrl);
             // Create a mock file
-            const mockFile = new File([blob], 'dev-mock.png', { type: 'image/png' });
+            const mockFile = new File([blob], 'sample-image.png', { type: 'image/png' });
             setImageFile(mockFile);
           }
         });
