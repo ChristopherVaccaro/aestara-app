@@ -20,6 +20,19 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
+  // Update active category when activeFilterId changes
+  React.useEffect(() => {
+    if (activeFilterId) {
+      // Find which category contains the active filter
+      const categoryWithActiveFilter = categories.find(cat => 
+        cat.filters.some(filter => filter.id === activeFilterId)
+      );
+      if (categoryWithActiveFilter) {
+        setActiveCategory(categoryWithActiveFilter.name);
+      }
+    }
+  }, [activeFilterId, categories]);
+
   // Close dropdown when clicking outside
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

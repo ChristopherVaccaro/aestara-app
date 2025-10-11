@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import FilterSelector from './FilterSelector';
 import ShareButton from './ShareButton';
+import StyleHistory, { HistoryItem } from './StyleHistory';
 import { Filter } from '../types';
 
 interface FilterCategory {
@@ -20,6 +21,10 @@ interface MobileBottomSheetProps {
   onReset: () => void;
   generatedImageUrl: string | null;
   styleName?: string | null;
+  history: HistoryItem[];
+  currentHistoryIndex: number;
+  onSelectHistory: (index: number) => void;
+  onClearHistory: () => void;
 }
 
 const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
@@ -34,6 +39,10 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
   onReset,
   generatedImageUrl,
   styleName,
+  history,
+  currentHistoryIndex,
+  onSelectHistory,
+  onClearHistory,
 }) => {
   const sheetRef = useRef<HTMLDivElement>(null);
   const startY = useRef<number>(0);
@@ -139,6 +148,18 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
               activeFilterId={activeFilterId}
             />
           </div>
+
+          {/* Style History - Below Filter Selector */}
+          {history.length > 0 && (
+            <div className="px-6 py-4 border-b border-white/10">
+              <StyleHistory
+                history={history}
+                currentIndex={currentHistoryIndex}
+                onSelectHistory={onSelectHistory}
+                onClearHistory={onClearHistory}
+              />
+            </div>
+          )}
 
           {/* Action Buttons - Below */}
           <div className="px-6 py-4 space-y-3">

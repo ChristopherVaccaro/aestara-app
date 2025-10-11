@@ -43,8 +43,8 @@ const FILTER_CATEGORIES: FilterCategory[] = [
   {
     name: 'Artistic & Stylized',
     filters: [
-      { id: 'anime', name: 'Anime', prompt: 'Reimagine this portrait as hand-drawn anime art inspired by iconic 2D series. STYLE: crisp inked outlines, cel-shaded color blocks with one highlight and one shadow step, smooth gradient glow accents. FACE: expressive large eyes with sharp light reflections, softened nose and mouth, keep the subject proportions and attitude. COLOR: bold yet harmonious palette, saturated hues, minimal texture. HAIR: stylized clumps with defined edge highlights and dynamic shape language. BACKGROUND: simple gradient or graphic pattern that complements the character. AVOID: photorealistic rendering, gritty detail, Western comic look, painterly brush strokes.' },
-      { id: 'anime_v2', name: 'Anime Enhanced', prompt: 'Transform into premium digital anime key visual art similar to modern anime films and high-end illustrations. STYLE: confident line art paired with refined cel shading plus soft rim lights and atmospheric gradients. FACE: anime proportions with luminous large eyes, delicate features, and preserved likeness. DETAIL: layered hair with volumetric highlights, ornate costume accents, subtle texture on fabrics. LIGHTING: dramatic yet clean, with colored highlights and gentle bloom. COLOR: vibrant palette with controlled gradients and color dodge accents. BACKGROUND: cinematic but slightly abstract environment with depth haze and particle sparkle. AVOID: hyper-real skin pores, photoreal hair strands, muddy colors, visible painterly strokes.' },
+      { id: 'anime', name: 'Anime', prompt: 'Convert this photo into a clean 2D anime illustration while keeping the person fully recognizable. Use traditional cel-shaded style with solid colors, distinct shadow shapes, and sharp line art outlines. Maintain the original face shape, body proportions, clothing, and background framing. The artwork should look like it was hand-drawn for a modern TV anime series. Lighting should be simple and directional, with high-contrast shadows but soft edges. Avoid 3D realism or photographic texture. The image should evoke Kyoto Animation or Studio Trigger visual style. Do not change personal features such as eye or hair color.' },
+      { id: 'anime_v2', name: 'Anime Enhanced', prompt: 'Convert this photo into cinematic anime key visual art inspired by modern anime films and high-end illustrations.STYLE: confident, precise line art with refined cel shading, soft rim lighting, and subtle atmospheric gradients.FACE: maintain the subject’s facial identity and proportions while applying anime stylization — luminous large eyes, natural expression, delicate features.DETAIL: retain all original clothing, accessories, and visible objects exactly as they appear in the source photo. Do not change shirt, outfit design, or colors; only restyle their surface finish to match anime rendering (light shading, line art, smooth gradients).LIGHTING: dramatic yet balanced, with diffused colored highlights, soft bloom, and clear directionality.COLOR: rich, vibrant palette with controlled gradients and tasteful color dodge accents.BACKGROUND: cinematic and slightly abstract, featuring depth haze, bokeh, or soft particles for depth.AVOID: photoreal textures, visible brush strokes, over-saturated tones, hyper-real pores, or CG-like lighting.The final image should preserve the subject’s full likeness, pose, outfit, and background composition — translated faithfully into polished key visual anime art.' },
       { id: 'anime_v3', name: 'Anime Cinematic', prompt: 'Convert the scene into a cinematic anime illustration reminiscent of big-budget anime films. CAMERA: dramatic framing, light depth of field, sense of motion. STYLE: elegant line work blended with multi-step cel shading, glow passes, and volumetric lighting. FACE: anime expressiveness with realistic structure maintained; intense eyes with layered highlights. LIGHTING: cinematic rim lights, neon color contrast, atmospheric fog, light streaks. DETAIL: flowing hair and fabrics with motion blur hints, environmental effects like drifting particles or rain. COLOR: rich filmic palette with teal-magenta interplay and warm skin tones. AVOID: flat lighting, over-realistic textures, western comic anatomy, gritty realism.' },
       { id: 'cartoon', name: '3D Cartoon', prompt: 'Recreate in modern 3D animated film style (DreamWorks/Illumination quality): MODELING - Smooth, rounded 3D forms with soft edges and gentle curves. TEXTURING - Clean, painted textures without excessive detail or realism. LIGHTING - Soft, diffused three-point lighting with gentle shadows. FEATURES - Slightly exaggerated proportions, large expressive eyes, simplified but appealing facial structure. COLORS - Vibrant, saturated colors with subtle gradients. MATERIALS - Matte to semi-gloss surfaces, not hyper-realistic. AVOID - Photorealism, rough textures, harsh lighting, overly complex details. AIM FOR - Appealing, family-friendly 3D animation aesthetic with charm and personality.' },
       { id: 'pixar', name: 'Pixar Style', prompt: 'Transform into authentic Pixar Animation Studios style: CHARACTER DESIGN - Large, soulful eyes (most important feature), soft rounded shapes, appealing proportions, expressive eyebrows. MODELING - Smooth, stylized 3D forms with emphasis on readability and appeal over realism. TEXTURING - Clean, artistic textures with subtle detail (not photorealistic). LIGHTING - Warm, cinematic lighting with soft bounce light and rich colors. SHADING - Smooth gradients with subtle subsurface scattering on skin. COLORS - Rich, saturated palette with warm undertones. MOOD - Emotional warmth and inviting atmosphere. AVOID - Uncanny valley, excessive realism, harsh lighting, cold tones. REFERENCE - Think Toy Story, Inside Out, Up quality with emphasis on heart and charm.' },
@@ -70,6 +70,7 @@ const FILTER_CATEGORIES: FilterCategory[] = [
       { id: 'softglow', name: 'Soft Glow', prompt: 'Apply soft romantic glow effect (portrait photography filter): GLOW - Gentle, diffused glow emanating from highlights. Soft halation effect. SKIN - Smoothed skin texture while maintaining natural appearance (not plastic). HIGHLIGHTS - Enhanced, luminous highlights with soft bloom. FOCUS - Slight softening overall with maintained subject clarity. MOOD - Dreamy, ethereal, flattering quality. COLORS - Slightly desaturated with warm, gentle tones. CONTRAST - Reduced contrast for soft, gentle appearance. AVOID - Harsh blur, loss of detail, over-smoothing, artificial look, excessive blur. AIM FOR - Professional portrait retouching aesthetic with flattering soft focus and romantic glow, elegant and natural.' },
       { id: 'filmnoir', name: 'Film Noir', prompt: 'Transform into classic Film Noir cinematography (1940s-50s detective film aesthetic): BLACK & WHITE - High contrast monochrome with dramatic tonal range. LIGHTING - Strong directional lighting with deep, dramatic shadows (chiaroscuro). Hard light creating sharp shadow edges. SHADOWS - Deep, inky blacks with bold shadow patterns. Venetian blind shadows, dramatic silhouettes. COMPOSITION - Low-key lighting, mysterious atmosphere, noir cinematography angles. MOOD - Dark, moody, mysterious, tension-filled atmosphere. CONTRAST - Extreme contrast between light and shadow areas. FOG/SMOKE - Atmospheric haze, volumetric lighting if appropriate. AVOID - Flat lighting, gray tones, bright cheerful mood, soft shadows. AIM FOR - Classic noir films like The Maltese Falcon or Double Indemnity with dramatic expressionist lighting and mystery.' },
       { id: 'doubleexposure', name: 'Double Exposure', prompt: 'Create artistic double exposure photography effect: TECHNIQUE - Blend two exposures together with translucent overlay. Primary subject with secondary ghostly image superimposed. TRANSPARENCY - Soft, ethereal transparency in overlapping areas. Multiple exposure blend. ELEMENTS - Combine subject with complementary imagery (nature, cityscapes, textures). BLENDING - Natural, organic blending modes (not cut-and-paste). Seamless integration. CONTRAST - Strong subject silhouette with lighter overlaid elements. MOOD - Dreamy, artistic, surreal quality. COMPOSITION - Thoughtful positioning of overlapping elements. AVOID - Harsh edges, obvious compositing, cluttered overlays, muddy blending. AIM FOR - Professional multiple exposure photography like analog double exposure technique with artistic, intentional overlapping imagery.' },
+      { id: 'boudoir', name: 'Boudoir', prompt: 'Transform into elegant boudoir photography style (intimate portrait aesthetic): LIGHTING - Soft, flattering lighting with gentle shadows. Window light quality or soft studio lighting. Warm, romantic illumination with subtle highlights. MOOD - Intimate, elegant, confident, sensual yet tasteful atmosphere. Sophisticated and empowering. COMPOSITION - Classic portrait framing with attention to flattering angles. Elegant poses that convey confidence and grace. COLORS - Warm, romantic color palette. Soft creams, blush pinks, warm grays, champagne tones. Muted elegance. STYLE - Professional boudoir photography aesthetic. Timeless, sophisticated, artistic. DETAILS - Soft focus on skin, gentle depth of field, romantic atmosphere. Flattering retouching while maintaining natural beauty. TEXTURES - Soft fabrics like silk, lace, satin. Luxurious, delicate materials. ATMOSPHERE - Private, intimate setting with elegant styling. Bedroom or studio environment with romantic elements. QUALITY - High-end portrait photography with professional lighting and composition. AVOID - Harsh lighting, unflattering angles, overly explicit content, clinical atmosphere, cold tones. AIM FOR - Elegant, tasteful boudoir photography with soft romantic lighting, flattering composition, and sophisticated intimate atmosphere that celebrates confidence and beauty.' },
     ],
   },
   {
@@ -163,11 +164,8 @@ const App: React.FC = () => {
       setImageFile(file);
       setOriginalImageUrl(URL.createObjectURL(file));
       setGeneratedImageUrl(null);
-      setActiveFilter(null);
       setError(null);
-      // Clear history when new image is uploaded
-      setHistory([]);
-      setCurrentHistoryIndex(-1);
+      // Note: activeFilter and history are preserved when uploading a new image
       
       // Open bottom sheet on mobile/tablet when image is uploaded
       const isMobileOrTablet = window.innerWidth < 1024;
@@ -527,21 +525,6 @@ const App: React.FC = () => {
               )}
             </>
           )}
-          
-          {/* Error Display */}
-          {error && !isLoading && (
-            <div className="mt-4 p-4 bg-red-500/[0.08] backdrop-blur-xl border border-red-400/30 rounded-2xl">
-              <div className="flex items-start gap-3">
-                <svg className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-                <div>
-                  <p className="font-semibold text-red-200 text-sm">Error</p>
-                  <p className="mt-1 text-xs text-red-300">{error}</p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Right Column: Controls - Hidden on mobile, shown on desktop */}
@@ -587,7 +570,7 @@ const App: React.FC = () => {
                   styleName={activeFilter?.name}
                 />
                 <button
-                  onClick={handleReset}
+                  onClick={handleTriggerFileInput}
                   className="w-full px-6 py-3 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white font-medium rounded-lg hover:bg-white/[0.12] hover:border-white/20 transition-all duration-300 flex items-center justify-center gap-2"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -668,6 +651,10 @@ const App: React.FC = () => {
             onReset={handleTriggerFileInput}
             generatedImageUrl={generatedImageUrl}
             styleName={activeFilter?.name}
+            history={history}
+            currentHistoryIndex={currentHistoryIndex}
+            onSelectHistory={handleSelectHistory}
+            onClearHistory={handleClearHistory}
           />
         </>
       )}
