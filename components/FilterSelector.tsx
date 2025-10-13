@@ -128,14 +128,14 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
                       key={filter.id}
                       onClick={() => onSelectFilter(filter)}
                       disabled={isLoading}
-                      className={`flex-shrink-0 min-w-[120px] h-[80px] rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
+                      className={`flex-shrink-0 min-w-[120px] h-[70px] rounded-xl transition-all duration-150 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center active:scale-95 ${
                         filter.id === activeFilterId
-                          ? 'glass-button-active text-blue-100 shadow-lg border-blue-400/50'
-                          : 'glass-button text-gray-300 hover:text-white hover:bg-white/[0.08] hover:backdrop-blur-xl hover:border-white/20'
+                          ? 'bg-blue-600 text-white shadow-lg font-semibold'
+                          : 'bg-white/10 text-white hover:bg-white/15 active:bg-white/20 font-medium'
                       }`}
                       title={filter.name}
                     >
-                      <span className="text-sm font-medium text-center px-2 leading-tight">
+                      <span className="text-sm text-center px-2 leading-tight">
                         {filter.name}
                       </span>
                     </button>
@@ -150,14 +150,14 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
                     key={filter.id}
                     onClick={() => onSelectFilter(filter)}
                     disabled={isLoading}
-                    className={`h-[60px] rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center px-4 ${
+                    className={`h-[56px] rounded-xl transition-all duration-150 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center px-4 active:scale-98 ${
                       filter.id === activeFilterId
-                        ? 'glass-button-active text-blue-100 shadow-lg border-blue-400/50'
-                        : 'glass-button text-gray-300 hover:text-white hover:bg-white/[0.08] hover:backdrop-blur-xl hover:border-white/20'
+                        ? 'bg-blue-600 text-white shadow-lg font-semibold'
+                        : 'bg-white/10 text-white hover:bg-white/15 active:bg-white/20 font-medium'
                     }`}
                     title={filter.name}
                   >
-                    <span className="font-medium text-center text-sm leading-tight">
+                    <span className="text-center text-sm leading-tight">
                       {filter.name}
                     </span>
                   </button>
