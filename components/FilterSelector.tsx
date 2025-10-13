@@ -72,7 +72,7 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
             
             {/* Dropdown Menu */}
             {isDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800/95 backdrop-blur-xl border border-gray-600/50 rounded-lg shadow-2xl z-50 overflow-hidden">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800/95 backdrop-blur-xl border border-gray-600/50 rounded-lg shadow-2xl z-50 max-h-[300px] overflow-y-auto">
                 {categories.map((category) => (
                   <button
                     key={category.name}

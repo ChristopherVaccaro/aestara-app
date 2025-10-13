@@ -10,7 +10,7 @@ const Footer: React.FC<FooterProps> = ({ onOpenTerms, onOpenPrivacy, onOpenFeedb
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full text-center py-8 mt-12 border-t border-gray-700/50">
+    <footer className="w-full text-center py-8 mt-12">
       <div className="max-w-6xl mx-auto px-4">
         {/* Main Footer Content */}
         <div className="mb-6">

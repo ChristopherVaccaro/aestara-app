@@ -111,11 +111,16 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
       {/* Bottom Sheet */}
       <div
         ref={sheetRef}
-        className={`absolute bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-xl rounded-t-3xl shadow-2xl transition-transform duration-500 ease-out ${
+        className={`absolute bottom-0 left-0 right-0 bg-gray-900/60 rounded-t-3xl shadow-2xl transition-all duration-300 ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{
           maxHeight: '85vh',
+          transitionTimingFunction: 'cubic-bezier(0.215, 0.61, 0.355, 1)',
+          backdropFilter: isOpen ? 'blur(40px)' : 'blur(0px)',
+          WebkitBackdropFilter: isOpen ? 'blur(40px)' : 'blur(0px)',
+          transform: 'translateZ(0)',
+          willChange: 'transform, backdrop-filter',
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
