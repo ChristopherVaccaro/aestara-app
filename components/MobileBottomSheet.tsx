@@ -111,31 +111,36 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
       {/* Bottom Sheet */}
       <div
         ref={sheetRef}
-        className={`absolute bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-xl rounded-t-3xl shadow-2xl transition-transform duration-500 ease-out ${
+        className={`absolute bottom-0 left-0 right-0 bg-gray-900/60 rounded-t-3xl shadow-2xl transition-all duration-300 ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{
           maxHeight: '85vh',
+          transitionTimingFunction: 'cubic-bezier(0.215, 0.61, 0.355, 1)',
+          backdropFilter: isOpen ? 'blur(40px)' : 'blur(0px)',
+          WebkitBackdropFilter: isOpen ? 'blur(40px)' : 'blur(0px)',
+          transform: 'translateZ(0)',
+          willChange: 'transform, backdrop-filter',
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Drag Handle */}
-        <div className="flex justify-center pt-3 pb-2 md:pt-4">
-          <div className="w-12 h-1.5 bg-white/30 rounded-full md:w-16 md:h-2" />
+        {/* Drag Handle - iOS style */}
+        <div className="flex justify-center pt-2 pb-1">
+          <div className="w-9 h-1 bg-white/40 rounded-full" />
         </div>
 
-        {/* Header */}
-        <div className="px-6 py-3 border-b border-white/10">
-          <h3 className="text-lg font-medium text-white">Style & Actions</h3>
+        {/* Header - iOS style */}
+        <div className="px-4 py-3 border-b border-white/10">
+          <h3 className="text-lg font-semibold text-white text-center tracking-tight">Styles</h3>
         </div>
 
         {/* Content */}
         <div className="overflow-y-auto" style={{ maxHeight: 'calc(85vh - 180px)' }}>
           {/* Filter Selector - First */}
-          <div className="px-6 py-4 border-b border-white/10">
-            <h4 className="text-sm font-medium text-white/70 mb-3">Choose a Style</h4>
+          <div className="px-4 py-4 border-b border-white/10">
+            <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-3">Choose a Style</h4>
             <FilterSelector
               categories={categories}
               onSelectFilter={(filter) => {
@@ -151,7 +156,7 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
 
           {/* Style History - Below Filter Selector */}
           {history.length > 0 && (
-            <div className="px-6 py-4 border-b border-white/10">
+            <div className="px-4 py-4 border-b border-white/10">
               <StyleHistory
                 history={history}
                 currentIndex={currentHistoryIndex}
@@ -162,7 +167,7 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
           )}
 
           {/* Action Buttons - Below */}
-          <div className="px-6 py-4 space-y-3">
+          <div className="px-4 py-4 space-y-2">
             <button
               onClick={onDownload}
               disabled={!generatedImageUrl || isLoading}
@@ -181,7 +186,7 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
             
             <button
               onClick={onReset}
-              className="w-full px-6 py-3 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white font-medium rounded-lg hover:bg-white/[0.12] hover:border-white/20 transition-all duration-300 flex items-center justify-center gap-2"
+              className="w-full px-4 py-3.5 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/15 active:bg-white/20 transition-colors duration-150 flex items-center justify-center gap-2"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
@@ -191,15 +196,15 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
           </div>
         </div>
 
-        {/* Close Button */}
-        <div className="absolute top-4 right-4">
+        {/* Close Button - iOS X style */}
+        <div className="absolute top-3 right-3">
           <button
             onClick={onClose}
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 transition-colors duration-150 flex items-center justify-center"
             aria-label="Close"
           >
-            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>

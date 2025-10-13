@@ -99,11 +99,6 @@ const StyleHistory: React.FC<StyleHistoryProps> = ({
               </button>
             ))}
           </div>
-
-          {/* Undo/Redo keyboard shortcuts hint */}
-          <p className="text-xs text-gray-500 mt-2 text-center">
-            Tip: Use Ctrl+Z to undo, Ctrl+Y to redo
-          </p>
         </>
       )}
     </div>
