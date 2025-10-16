@@ -38,10 +38,18 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
 
   return (
     <div className="w-full flex flex-col items-center justify-center">
-      <div
-        className={`w-full aspect-square glass-image-container overflow-hidden ring-1 ${hasError ? 'ring-red-400/50' : 'ring-white/[0.08]'} flex items-center justify-center relative group ${isClickable && !hasError ? 'cursor-pointer' : ''}`}
-        onClick={isClickable && !hasError ? onOpenPreview : undefined}
-      >
+      {/* Image Container with Modern Design */}
+      <div className="relative w-full">
+        {/* Gradient Border Wrapper */}
+        <div className={`relative rounded-2xl overflow-hidden p-[2px] transition-all duration-300 ${
+          hasError 
+            ? 'bg-gradient-to-r from-red-500/50 to-pink-500/50' 
+            : 'bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-pink-500/30 hover:from-blue-500/50 hover:via-purple-500/50 hover:to-pink-500/50'
+        }`}>
+          <div
+            className={`w-full aspect-square bg-gray-900/95 backdrop-blur-xl overflow-hidden flex items-center justify-center relative group rounded-2xl ${isClickable && !hasError ? 'cursor-pointer' : ''}`}
+            onClick={isClickable && !hasError ? onOpenPreview : undefined}
+          >
         {isLoading ? (
           <Spinner message={activeFilterName ? `Applying ${activeFilterName} style...` : "Applying style..."} />
         ) : (
@@ -54,16 +62,20 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
             
             {/* Style Badge - Bottom Right */}
             {generatedImageUrl && activeFilterName && !isPeeking && (
-              <div className="absolute bottom-3 right-3 flex gap-2">
-                <div className="bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full border border-white/20">
-                  {activeFilterName}
+              <div className="absolute bottom-4 right-4 flex gap-2">
+                <div className="relative overflow-hidden rounded-full">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50 blur-sm"></div>
+                  <div className="relative bg-black/80 backdrop-blur-md text-white text-sm px-4 py-2 rounded-full border border-white/20 font-medium flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-400 to-purple-400"></div>
+                    {activeFilterName}
+                  </div>
                 </div>
                 {isDevMode && (
-                  <div className="bg-yellow-500/80 backdrop-blur-sm text-black text-xs px-2 py-1 rounded-full border border-yellow-400 font-semibold flex items-center gap-1">
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="bg-yellow-500/90 backdrop-blur-md text-black text-xs px-3 py-2 rounded-full border border-yellow-400 font-bold flex items-center gap-1.5 shadow-lg">
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
-                    MOCK
+                    DEV
                   </div>
                 )}
               </div>
@@ -104,9 +116,12 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
             )}
           </>
         )}
+          </div>
+        </div>
       </div>
+      
       {/* Fixed height container for controls to prevent layout shift */}
-      <div className="mt-6 text-center h-12 flex items-center justify-center">
+      <div className="mt-8 text-center h-14 flex items-center justify-center">
         {showPeekButton && (
           <button
             onMouseDown={onPeekStart}
@@ -125,14 +140,22 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
               onPeekEnd();
             }}
             onContextMenu={(e) => e.preventDefault()}
-            className="px-8 py-3 glass-button-active text-blue-100 font-semibold shadow-lg select-none focus:outline-none touch-manipulation rounded-lg flex items-center justify-center gap-2"
+            className="relative overflow-hidden rounded-xl select-none focus:outline-none touch-manipulation"
             style={{ touchAction: 'manipulation', userSelect: 'none', WebkitUserSelect: 'none' }}
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            Compare
+            {/* Gradient Border */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-[2px] rounded-xl">
+              <div className="h-full w-full rounded-xl bg-gradient-to-br from-blue-600/90 to-purple-600/90" />
+            </div>
+            
+            {/* Content */}
+            <div className="relative z-10 px-8 py-3.5 flex items-center justify-center gap-2.5">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              <span className="text-white font-semibold text-base">Hold to Compare</span>
+            </div>
           </button>
         )}
       </div>

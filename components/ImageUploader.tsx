@@ -71,65 +71,100 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
   }, []);
 
   return (
-    <div className="w-full max-w-5xl mx-auto flex flex-col items-center">
+    <div className="w-full max-w-6xl mx-auto flex flex-col items-center">
         {/* Hero Section */}
-        <div className="text-center mb-8 max-w-3xl">
-          <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-400 mb-4">
-            Transform Your Images with AI
+        <div className="text-center mb-8 max-w-4xl">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight">
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Transform Photos
+            </span>
+            <br />
+            <span className="text-white">into Art with AI</span>
           </h1>
-          <p className="text-lg md:text-xl text-gray-300 mb-2">
-            Turn any photo into stunning artwork with 30+ artistic styles
-          </p>
-          <p className="text-sm text-gray-400">
-            Powered by advanced AI • No signup required • Free to use
+          <p className="text-lg md:text-xl text-gray-300 mb-6 font-light">
+            Apply 60+ artistic filters instantly — 100% free, no sign-up required.
           </p>
         </div>
 
-        {/* Main Upload Area */}
+        {/* Main Upload Area - Modern Glass Design */}
         <label
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
-          className={`w-full h-80 border-2 border-dashed rounded-lg flex flex-col justify-center items-center cursor-pointer transition-all duration-300 ${
+          className={`group relative w-full max-w-3xl rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 ${
             isProcessing 
-              ? 'border-blue-500 bg-blue-500/10' 
+              ? 'scale-[0.98]' 
               : isDragging 
-                ? 'border-blue-500 bg-blue-500/10 scale-105' 
-                : 'border-gray-600 hover:border-blue-400 hover:bg-gray-800/50'
+                ? 'scale-[1.02]' 
+                : 'hover:scale-[1.01]'
           }`}
         >
-          <input 
-            type="file" 
-            className="hidden" 
-            onChange={handleFileChange} 
-            accept="image/png, image/jpeg, image/jpg, image/webp, image/heic, image/heif, image/avif, .png, .jpg, .jpeg, .webp, .heic, .heif, .avif"
-            disabled={isProcessing}
-            aria-label="Upload image file"
-          />
+          {/* Gradient Border Effect */}
+          <div className={`absolute inset-0 rounded-2xl p-[2px] transition-all duration-300 ${
+            isDragging 
+              ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500' 
+              : 'bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50 group-hover:from-blue-500/70 group-hover:via-purple-500/70 group-hover:to-pink-500/70'
+          }`}>
+            <div className="h-full w-full rounded-2xl bg-gray-900/95 backdrop-blur-xl" />
+          </div>
           
-          {isProcessing ? (
-            <>
-              <div className="w-16 h-16 mb-4 relative">
-                <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
-              </div>
-              <p className="text-blue-400 text-lg font-semibold">Processing image...</p>
-              <p className="text-sm text-blue-300 mt-2">Optimizing for compatibility</p>
-            </>
-          ) : (
-            <>
-              <div className="w-20 h-20 mb-4 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <svg className="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-              </div>
-              <p className="text-gray-300 text-xl font-semibold mb-2">Upload Your Image</p>
-              <p className="text-gray-400 text-base mb-1">
-                <span className="font-semibold text-blue-400">Click to browse</span> or drag and drop
-              </p>
-              <p className="text-sm text-gray-500">Supports PNG, JPG, WebP, HEIC • Max 10MB</p>
-            </>
-          )}
+          {/* Content */}
+          <div className="relative z-10 flex flex-col items-center justify-center py-20 px-8">
+            <input 
+              type="file" 
+              className="hidden" 
+              onChange={handleFileChange} 
+              accept="image/png, image/jpeg, image/jpg, image/webp, image/heic, image/heif, image/avif, .png, .jpg, .jpeg, .webp, .heic, .heif, .avif"
+              disabled={isProcessing}
+              aria-label="Upload image file"
+            />
+            
+            {isProcessing ? (
+              <>
+                <div className="relative w-20 h-20 mb-6">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-20 animate-pulse"></div>
+                  <div className="absolute inset-0 border-4 border-transparent border-t-blue-500 border-r-purple-500 rounded-full animate-spin"></div>
+                </div>
+                <p className="text-white text-2xl font-semibold mb-2">Processing your image</p>
+                <p className="text-gray-400">Optimizing for the best results...</p>
+              </>
+            ) : (
+              <>
+                <div className="relative mb-6">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity"></div>
+                  <div className="relative w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-white/10">
+                    <svg className="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                  </div>
+                </div>
+                
+                <h3 className="text-white text-2xl font-semibold mb-3">
+                  {isDragging ? 'Drop your image here' : 'Upload Your Photo'}
+                </h3>
+                <p className="text-gray-300 text-lg mb-4">
+                  <span className="font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Click to browse</span>
+                  <span className="text-gray-400"> or drag and drop</span>
+                </p>
+                <div className="flex items-center gap-4 text-sm text-gray-500">
+                  <span className="flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    PNG, JPG, WebP, HEIC
+                  </span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Max 10MB
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
         </label>
         
         {error && (
@@ -146,53 +181,50 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
           </div>
         )}
 
-        {/* Features Grid */}
-        <div className="mt-16 w-full">
-          <h3 className="text-2xl font-bold text-white text-center mb-8">
-            Why Choose Our AI Stylizer?
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="glass-panel p-6 text-center hover:bg-white/[0.12] transition-all duration-300">
-              <div className="w-14 h-14 mx-auto mb-4 rounded-lg bg-gradient-to-br from-blue-500/30 to-blue-600/30 flex items-center justify-center border border-blue-400/40">
-                <svg className="w-7 h-7 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                </svg>
+        {/* Value Propositions */}
+        <div className="mt-16 w-full max-w-4xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="group text-center p-6">
+              <div className="relative mb-4">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                <div className="relative w-14 h-14 mx-auto rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center border border-purple-400/30">
+                  <svg className="w-7 h-7 text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                  </svg>
+                </div>
               </div>
-              <p className="text-base font-semibold text-gray-200 mb-2">30+ Art Styles</p>
-              <p className="text-sm text-gray-400">From anime to oil painting, explore diverse artistic transformations</p>
+              <h3 className="text-lg font-semibold text-white mb-2">60+ Art Styles</h3>
+              <p className="text-gray-400 text-sm">Anime, oil painting, cyberpunk, vintage & more</p>
             </div>
 
-            <div className="glass-panel p-6 text-center hover:bg-white/[0.12] transition-all duration-300">
-              <div className="w-14 h-14 mx-auto mb-4 rounded-lg bg-gradient-to-br from-pink-500/30 to-pink-600/30 flex items-center justify-center border border-pink-400/40">
-                <svg className="w-7 h-7 text-pink-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+            <div className="group text-center p-6">
+              <div className="relative mb-4">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                <div className="relative w-14 h-14 mx-auto rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center border border-blue-400/30">
+                  <svg className="w-7 h-7 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
               </div>
-              <p className="text-base font-semibold text-gray-200 mb-2">Lightning Fast</p>
-              <p className="text-sm text-gray-400">Get your styled images in seconds with powerful AI processing</p>
+              <h3 className="text-lg font-semibold text-white mb-2">Lightning Fast</h3>
+              <p className="text-gray-400 text-sm">AI-powered transformations in seconds</p>
             </div>
 
-            <div className="glass-panel p-6 text-center hover:bg-white/[0.12] transition-all duration-300">
-              <div className="w-14 h-14 mx-auto mb-4 rounded-lg bg-gradient-to-br from-blue-500/30 to-blue-600/30 flex items-center justify-center border border-blue-400/40">
-                <svg className="w-7 h-7 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
+            <div className="group text-center p-6">
+              <div className="relative mb-4">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                <div className="relative w-14 h-14 mx-auto rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center border border-green-400/30">
+                  <svg className="w-7 h-7 text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
               </div>
-              <p className="text-base font-semibold text-gray-200 mb-2">Privacy First</p>
-              <p className="text-sm text-gray-400">Your images are processed securely and never stored permanently</p>
-            </div>
-
-            <div className="glass-panel p-6 text-center hover:bg-white/[0.12] transition-all duration-300">
-              <div className="w-14 h-14 mx-auto mb-4 rounded-lg bg-gradient-to-br from-green-500/30 to-green-600/30 flex items-center justify-center border border-green-400/40">
-                <svg className="w-7 h-7 text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <p className="text-base font-semibold text-gray-200 mb-2">100% Free</p>
-              <p className="text-sm text-gray-400">No hidden costs, no subscriptions, no watermarks on your images</p>
+              <h3 className="text-lg font-semibold text-white mb-2">Privacy First</h3>
+              <p className="text-gray-400 text-sm">Images never stored, completely secure</p>
             </div>
           </div>
         </div>
+
     </div>
   );
 };

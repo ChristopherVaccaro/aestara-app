@@ -1,18 +1,19 @@
 import React, { useEffect, useRef } from 'react';
 
-interface Particle {
+interface Star {
   x: number;
   y: number;
   vx: number;
   vy: number;
   size: number;
   opacity: number;
-  color: string;
+  twinkleSpeed: number;
+  twinklePhase: number;
 }
 
 const ParticleBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const particlesRef = useRef<Particle[]>([]);
+  const starsRef = useRef<Star[]>([]);
   const animationRef = useRef<number>();
 
   useEffect(() => {
@@ -31,84 +32,61 @@ const ParticleBackground: React.FC = () => {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Particle colors that match the gradient theme
-    const colors = [
-      'rgba(59, 130, 246, 0.3)',  // Blue
-      'rgba(96, 165, 250, 0.3)',  // Light Blue
-      'rgba(14, 165, 233, 0.3)',  // Sky Blue
-      'rgba(34, 211, 238, 0.3)',  // Cyan
-      'rgba(56, 189, 248, 0.3)',  // Bright Blue
-    ];
-
-    // Initialize particles
-    const initParticles = () => {
-      particlesRef.current = [];
-      const particleCount = Math.min(50, Math.floor((canvas.width * canvas.height) / 15000));
+    // Initialize stars
+    const initStars = () => {
+      starsRef.current = [];
+      // More stars for a denser starfield
+      const starCount = Math.floor((canvas.width * canvas.height) / 8000);
       
-      for (let i = 0; i < particleCount; i++) {
-        particlesRef.current.push({
+      for (let i = 0; i < starCount; i++) {
+        starsRef.current.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * 0.1,
-          vy: (Math.random() - 0.5) * 0.1,
-          size: Math.random() * 3 + 1,
-          opacity: Math.random() * 0.5 + 0.1,
-          color: colors[Math.floor(Math.random() * colors.length)]
+          vx: (Math.random() - 0.5) * 0.15, // Slow horizontal drift
+          vy: (Math.random() - 0.5) * 0.15, // Slow vertical drift
+          size: Math.random() * 1.5 + 0.5, // Smaller, more subtle stars
+          opacity: Math.random() * 0.8 + 0.2,
+          twinkleSpeed: Math.random() * 0.02 + 0.005,
+          twinklePhase: Math.random() * Math.PI * 2
         });
       }
     };
 
-    initParticles();
+    initStars();
 
     // Animation loop
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      particlesRef.current.forEach((particle) => {
-        // Update position
-        particle.x += particle.vx;
-        particle.y += particle.vy;
+      starsRef.current.forEach((star) => {
+        // Update position - slow drift
+        star.x += star.vx;
+        star.y += star.vy;
 
         // Wrap around edges
-        if (particle.x < 0) particle.x = canvas.width;
-        if (particle.x > canvas.width) particle.x = 0;
-        if (particle.y < 0) particle.y = canvas.height;
-        if (particle.y > canvas.height) particle.y = 0;
+        if (star.x < 0) star.x = canvas.width;
+        if (star.x > canvas.width) star.x = 0;
+        if (star.y < 0) star.y = canvas.height;
+        if (star.y > canvas.height) star.y = 0;
 
-        // Animate opacity
-        particle.opacity += (Math.random() - 0.5) * 0.02;
-        particle.opacity = Math.max(0.05, Math.min(0.6, particle.opacity));
+        // Twinkle animation using sine wave
+        star.twinklePhase += star.twinkleSpeed;
+        const twinkle = Math.sin(star.twinklePhase) * 0.3 + 0.7; // Oscillate between 0.4 and 1.0
+        const currentOpacity = star.opacity * twinkle;
 
-        // Draw particle
+        // Draw star
         ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = particle.color.replace(/[\d\.]+\)$/g, `${particle.opacity})`);
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${currentOpacity})`;
         ctx.fill();
 
-        // Add subtle glow effect
-        ctx.shadowColor = particle.color;
-        ctx.shadowBlur = particle.size * 2;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      });
-
-      // Draw connecting lines between nearby particles
-      particlesRef.current.forEach((particle, i) => {
-        particlesRef.current.slice(i + 1).forEach((otherParticle) => {
-          const dx = particle.x - otherParticle.x;
-          const dy = particle.y - otherParticle.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          if (distance < 100) {
-            const opacity = (100 - distance) / 100 * 0.1;
-            ctx.beginPath();
-            ctx.moveTo(particle.x, particle.y);
-            ctx.lineTo(otherParticle.x, otherParticle.y);
-            ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        });
+        // Add subtle glow for larger stars
+        if (star.size > 1) {
+          ctx.shadowColor = `rgba(255, 255, 255, ${currentOpacity * 0.5})`;
+          ctx.shadowBlur = star.size * 3;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
       });
 
       animationRef.current = requestAnimationFrame(animate);
@@ -125,14 +103,26 @@ const ParticleBackground: React.FC = () => {
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0"
-      style={{ 
-        background: 'transparent',
-        mixBlendMode: 'screen'
-      }}
-    />
+    <>
+      {/* Top gradient glow */}
+      <div 
+        className="fixed top-0 left-0 right-0 pointer-events-none"
+        style={{
+          height: '500px',
+          background: 'radial-gradient(ellipse 70% 60% at 50% 0%, rgba(120, 120, 140, 0.25) 0%, rgba(80, 80, 100, 0.12) 40%, transparent 80%)',
+          zIndex: 1
+        }}
+      />
+      
+      {/* Animated starfield */}
+      <canvas
+        ref={canvasRef}
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{ 
+          background: 'transparent'
+        }}
+      />
+    </>
   );
 };
 

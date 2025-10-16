@@ -49,45 +49,66 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
 
   return (
     <div className="w-full flex flex-col space-y-6">
+      {/* Header */}
+      <div className="hidden lg:flex items-center justify-between mb-2">
+        <h2 className="text-xl font-semibold text-white">Choose Your Style</h2>
+      </div>
+
       {/* Category Selection */}
       <div className="relative">
-        {/* Desktop: Click Dropdown */}
-        <div className="hidden md:block">
+        {/* Desktop: Modern Dropdown */}
+        <div className="hidden lg:block">
           <div className="relative" ref={dropdownRef}>
             {/* Dropdown Trigger */}
             <button 
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-full px-4 py-3 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white hover:bg-white/[0.12] hover:border-white/20 rounded-lg transition-all duration-300 flex items-center justify-between"
+              className="group relative w-full overflow-hidden rounded-xl transition-all duration-300"
             >
-              <span className="font-medium">{activeCategory}</span>
-              <svg 
-                className={`w-5 h-5 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              {/* Gradient Border */}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50 group-hover:from-blue-500/70 group-hover:via-purple-500/70 group-hover:to-pink-500/70 p-[1px] rounded-xl transition-all">
+                <div className="h-full w-full rounded-xl bg-gray-900/95 backdrop-blur-xl" />
+              </div>
+              
+              {/* Content */}
+              <div className="relative z-10 px-5 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-400 to-purple-400"></div>
+                  <span className="font-semibold text-white text-lg">{activeCategory}</span>
+                </div>
+                <svg 
+                  className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </button>
             
             {/* Dropdown Menu */}
             {isDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800/95 backdrop-blur-xl border border-gray-600/50 rounded-lg shadow-2xl z-50 overflow-hidden">
-                <div className="max-h-[300px] overflow-y-auto">
-                  {categories.map((category) => (
+              <div className="absolute top-full left-0 right-0 mt-3 bg-gray-800 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl z-50 overflow-hidden">
+                <div className="max-h-[320px] overflow-y-auto p-2">
+                  {categories.map((category, index) => (
                     <button
                       key={category.name}
                       onClick={() => {
                         setActiveCategory(category.name);
                         setIsDropdownOpen(false);
                       }}
-                      className={`w-full px-4 py-3 text-left transition-all duration-200 ${
+                      className={`w-full px-4 py-3 text-left rounded-lg transition-colors duration-200 flex items-center gap-3 ${
                         activeCategory === category.name
-                          ? 'bg-blue-600/80 text-blue-100'
-                          : 'text-gray-300 hover:bg-gray-700/50 hover:text-white'
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                          : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                       }`}
                     >
-                      {category.name}
+                      <div className={`w-1.5 h-1.5 rounded-full ${
+                        activeCategory === category.name 
+                          ? 'bg-white' 
+                          : 'bg-gray-600'
+                      }`}></div>
+                      <span className="font-medium">{category.name}</span>
                     </button>
                   ))}
                 </div>
@@ -96,17 +117,17 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
           </div>
         </div>
 
-        {/* Mobile: Horizontal Scroll Tabs */}
-        <div className="md:hidden">
-          <div className="flex overflow-x-auto gap-2 pb-2" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+        {/* Mobile & Tablet: Horizontal Scroll Tabs */}
+        <div className="lg:hidden">
+          <div className="flex overflow-x-auto gap-2 pb-2 px-4" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
             {categories.map((category) => (
               <button
                 key={category.name}
                 onClick={() => setActiveCategory(category.name)}
-                className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
                   activeCategory === category.name
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 hover:text-white'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                    : 'bg-white/10 text-gray-300 hover:bg-white/15 hover:text-white'
                 }`}
               >
                 {category.name}
@@ -116,50 +137,79 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
         </div>
       </div>
 
-      {/* Filter Grid - Responsive */}
+      {/* Filters Display */}
+      
+      {/* Mobile & Tablet: Single horizontal row for selected category */}
+      <div className="block lg:hidden w-full overflow-x-auto transition-opacity duration-150" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+        <div className="inline-flex gap-3 pb-2 px-4" style={{whiteSpace: 'nowrap'}}>
+          {categories
+            .find(category => category.name === activeCategory)
+            ?.filters.map((filter) => (
+              <button
+                key={filter.id}
+                onClick={() => onSelectFilter(filter)}
+                disabled={isLoading}
+                className="group relative inline-block min-w-[130px] h-[75px] rounded-2xl transition-colors duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed overflow-hidden align-top"
+                style={{display: 'inline-flex', alignItems: 'center', justifyContent: 'center'}}
+                title={filter.name}
+              >
+                {/* Background with gradient border effect */}
+                <div className={`absolute inset-0 rounded-2xl p-[1px] transition-all ${
+                  filter.id === activeFilterId
+                    ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500'
+                    : 'bg-white/10 group-hover:bg-white/20'
+                }`}>
+                  <div className={`h-full w-full rounded-2xl transition-all ${
+                    filter.id === activeFilterId
+                      ? 'bg-gradient-to-br from-blue-600/90 to-purple-600/90'
+                      : 'bg-gray-800/90 group-hover:bg-gray-700/90'
+                  }`} />
+                </div>
+                
+                {/* Content */}
+                <span className={`relative z-10 text-sm text-center px-3 leading-tight font-semibold ${
+                  filter.id === activeFilterId ? 'text-white' : 'text-gray-200'
+                }`}>
+                  {filter.name}
+                </span>
+              </button>
+            ))}
+        </div>
+      </div>
+
+      {/* Desktop: Show filters by selected category */}
       {categories
         .filter(category => category.name === activeCategory)
         .map((category) => {
           return (
-            <div key={category.name}>
-              {/* Horizontal Scroll for Mobile - Show All Filters */}
-              <div className="block md:hidden">
-                <div className="flex gap-3 overflow-x-auto" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
-                  {category.filters.map((filter) => (
-                    <button
-                      key={filter.id}
-                      onClick={() => onSelectFilter(filter)}
-                      disabled={isLoading}
-                      className={`flex-shrink-0 min-w-[120px] h-[70px] rounded-xl transition-all duration-150 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center active:scale-95 ${
-                        filter.id === activeFilterId
-                          ? 'bg-blue-600 text-white shadow-lg font-semibold'
-                          : 'bg-white/10 text-white hover:bg-white/15 active:bg-white/20 font-medium'
-                      }`}
-                      title={filter.name}
-                    >
-                      <span className="text-sm text-center px-2 leading-tight">
-                        {filter.name}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
+            <div key={category.name} className="hidden lg:block">
               {/* Desktop Grid - Show All Filters */}
-              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="hidden lg:grid grid-cols-3 gap-3">
                 {category.filters.map((filter) => (
                   <button
                     key={filter.id}
                     onClick={() => onSelectFilter(filter)}
                     disabled={isLoading}
-                    className={`h-[56px] rounded-xl transition-all duration-150 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center px-4 active:scale-98 ${
-                      filter.id === activeFilterId
-                        ? 'bg-blue-600 text-white shadow-lg font-semibold'
-                        : 'bg-white/10 text-white hover:bg-white/15 active:bg-white/20 font-medium'
-                    }`}
+                    className="group relative h-[60px] rounded-xl transition-colors duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center px-4 overflow-hidden"
                     title={filter.name}
                   >
-                    <span className="text-center text-sm leading-tight">
+                    {/* Background with gradient border effect */}
+                    <div className={`absolute inset-0 rounded-xl p-[1px] transition-all ${
+                      filter.id === activeFilterId
+                        ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500'
+                        : 'bg-white/10 group-hover:bg-gradient-to-r group-hover:from-blue-500/50 group-hover:via-purple-500/50 group-hover:to-pink-500/50'
+                    }`}>
+                      <div className={`h-full w-full rounded-xl transition-all ${
+                        filter.id === activeFilterId
+                          ? 'bg-gradient-to-br from-blue-600/90 to-purple-600/90'
+                          : 'bg-gray-800/90 group-hover:bg-gray-700/90'
+                      }`} />
+                    </div>
+                    
+                    {/* Content */}
+                    <span className={`relative z-10 text-center text-sm leading-tight font-semibold ${
+                      filter.id === activeFilterId ? 'text-white' : 'text-gray-200'
+                    }`}>
                       {filter.name}
                     </span>
                   </button>
