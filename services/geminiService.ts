@@ -1,4 +1,5 @@
 import { GoogleGenAI, Modality } from "@google/genai";
+import { logger } from "../utils/logger";
 
 const fileToGenerativePart = async (file: File) => {
   const base64EncodedDataPromise = new Promise<string>((resolve, reject) => {
@@ -64,7 +65,7 @@ export const applyImageFilter = async (imageFile: File, prompt: string, retryCou
     const finalPrompt = retryCount > 0 ? simplifyPrompt(prompt) : prompt;
     
     if (retryCount > 0) {
-      console.log('Using simplified prompt due to safety filter:', finalPrompt);
+      logger.log('Using simplified prompt due to safety filter:', finalPrompt);
     }
 
     const response = await ai.models.generateContent({
@@ -95,7 +96,7 @@ export const applyImageFilter = async (imageFile: File, prompt: string, retryCou
     if (candidate?.finishReason) {
         const reason = candidate.finishReason;
         if ((reason === 'SAFETY' || reason === 'PROHIBITED_CONTENT') && retryCount === 0) {
-            console.warn('⚠️ Safety filter triggered on first attempt. Retrying with simplified prompt...');
+            logger.warn('⚠️ Safety filter triggered on first attempt. Retrying with simplified prompt...');
             return applyImageFilter(imageFile, prompt, 1); // Retry once with simplified prompt
         } else if (reason === 'SAFETY' || reason === 'PROHIBITED_CONTENT') {
             throw new Error("This image cannot be styled with the selected filter due to content restrictions. Try: 1) A different art style, 2) A different image, or 3) A simpler photo without people.");
@@ -108,11 +109,11 @@ export const applyImageFilter = async (imageFile: File, prompt: string, retryCou
         }
     }
     
-    console.warn('⚠️ API returned no image data - content may have been silently blocked');
+    logger.warn('⚠️ API returned no image data - content may have been silently blocked');
     throw new Error("The style could not be applied to this image. This may happen with: 1) Images containing people/faces for certain styles, 2) Low quality images, 3) Complex compositions. Try a different image or simpler style.");
 
   } catch (error) {
-    console.error("Error applying filter with Gemini API:", error);
+    logger.error("Error applying filter with Gemini API:", error);
     if (error instanceof Error) {
         throw new Error(`Failed to apply filter: ${error.message}`);
     }
