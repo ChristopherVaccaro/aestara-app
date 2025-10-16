@@ -139,19 +139,20 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
         {/* Content */}
         <div className="overflow-y-auto" style={{ maxHeight: 'calc(85vh - 180px)' }}>
           {/* Filter Selector - First */}
-          <div className="px-4 py-4 border-b border-white/10">
-            <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-3">Choose a Style</h4>
-            <FilterSelector
-              categories={categories}
-              onSelectFilter={(filter) => {
-                onSelectFilter(filter);
-                // Optional: close sheet after selection
-                // setTimeout(() => onClose(), 300);
-              }}
-              onClearFilter={onClearFilter}
-              isLoading={isLoading}
-              activeFilterId={activeFilterId}
-            />
+          <div className="py-4 border-b border-white/10">
+            <div className="overflow-x-visible">
+              <FilterSelector
+                categories={categories}
+                onSelectFilter={(filter) => {
+                  onSelectFilter(filter);
+                  // Optional: close sheet after selection
+                  // setTimeout(() => onClose(), 300);
+                }}
+                onClearFilter={onClearFilter}
+                isLoading={isLoading}
+                activeFilterId={activeFilterId}
+              />
+            </div>
           </div>
 
           {/* Style History - Below Filter Selector */}
