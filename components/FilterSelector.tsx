@@ -177,14 +177,14 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
         .map((category) => {
           return (
             <div key={category.name} className="hidden lg:block">
-              {/* Desktop Grid - Show All Filters */}
-              <div className="hidden lg:grid grid-cols-3 gap-3">
+              {/* Desktop Grid - Optimized 2-column layout for better readability */}
+              <div className="hidden lg:grid grid-cols-2 gap-3">
                 {category.filters.map((filter) => (
                   <button
                     key={filter.id}
                     onClick={() => onSelectFilter(filter)}
                     disabled={isLoading}
-                    className="group relative h-[60px] rounded-xl transition-colors duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center px-4 overflow-hidden"
+                    className="group relative h-[56px] rounded-xl transition-all duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center px-4 overflow-hidden hover:scale-[1.02] active:scale-[0.98]"
                     title={filter.name}
                   >
                     {/* Background with gradient border effect */}
@@ -201,7 +201,7 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
                     </div>
                     
                     {/* Content */}
-                    <span className={`relative z-10 text-center text-sm leading-tight font-semibold ${
+                    <span className={`relative z-10 text-center text-[15px] leading-snug font-semibold ${
                       filter.id === activeFilterId ? 'text-white' : 'text-gray-200'
                     }`}>
                       {filter.name}

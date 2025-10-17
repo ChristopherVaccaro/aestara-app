@@ -40,11 +40,11 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
     <div className="w-full flex flex-col items-center">
       {/* Image Container with Modern Design */}
       <div className="relative w-full aspect-square">
-        {/* Gradient Border Wrapper */}
+        {/* Gradient Border Wrapper - Matches upload button style */}
         <div className={`relative rounded-2xl overflow-hidden p-[2px] transition-all duration-300 ${
           hasError 
             ? 'bg-gradient-to-r from-red-500/50 to-pink-500/50' 
-            : 'bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-pink-500/30 hover:from-blue-500/50 hover:via-purple-500/50 hover:to-pink-500/50'
+            : 'bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50 hover:from-blue-500/70 hover:via-purple-500/70 hover:to-pink-500/70'
         }`}>
           <div
             className={`w-full aspect-square bg-gray-900/95 backdrop-blur-xl overflow-hidden flex items-center justify-center relative group rounded-2xl ${isClickable && !hasError ? 'cursor-pointer' : ''}`}
@@ -62,13 +62,9 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
             
             {/* Style Badge - Bottom Right */}
             {generatedImageUrl && activeFilterName && !isPeeking && (
-              <div className="absolute bottom-4 right-4 flex gap-2">
-                <div className="relative overflow-hidden rounded-full">
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50 blur-sm"></div>
-                  <div className="relative bg-black/80 backdrop-blur-md text-white text-sm px-4 py-2 rounded-full border border-white/20 font-medium flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-400 to-purple-400"></div>
-                    {activeFilterName}
-                  </div>
+              <div className="absolute bottom-3 right-3 flex gap-2">
+                <div className="bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium">
+                  {activeFilterName}
                 </div>
                 {isDevMode && (
                   <div className="bg-yellow-500/90 backdrop-blur-md text-black text-xs px-3 py-2 rounded-full border border-yellow-400 font-bold flex items-center gap-1.5 shadow-lg">

@@ -10,6 +10,7 @@ import ParticleBackground from './components/ParticleBackground';
 import ImageComparison from './components/ImageComparison';
 import StyleHistory, { HistoryItem } from './components/StyleHistory';
 import LoadingProgress from './components/LoadingProgress';
+import BlurredImageLoading from './components/BlurredImageLoading';
 import ComparisonModeToggle from './components/ComparisonModeToggle';
 import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy';
@@ -186,6 +187,9 @@ const App: React.FC = () => {
   // Mobile bottom sheet
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState<boolean>(false);
   
+  // Transition state for smooth reveal
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
+  
   const MAX_HISTORY = 15; // Limit history to prevent memory issues
 
   const handleImageUpload = (file: File) => {
@@ -280,6 +284,7 @@ const App: React.FC = () => {
   const handleApplyFilter = async (filter: Filter) => {
     if (!imageFile) return;
     setIsLoading(true);
+    setIsTransitioning(false);
     setError(null);
     setActiveFilter(filter);
     
@@ -308,7 +313,14 @@ const App: React.FC = () => {
         newImageUrl = `data:image/png;base64,${base64Data}`;
       }
       
+      // Start transition effect
+      setIsTransitioning(true);
+      
+      // Small delay to show the unblur transition
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       setGeneratedImageUrl(newImageUrl);
+      setIsTransitioning(false);
       
       // Add to history
       const newHistoryItem: HistoryItem = {
@@ -522,13 +534,12 @@ const App: React.FC = () => {
       <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row lg:space-x-8 items-start">
         {/* Left Column: Image Display */}
         <div className="w-full lg:w-2/3">
-          {isLoading ? (
-            <div className="w-full aspect-square glass-image-container overflow-hidden ring-1 ring-white/[0.08] flex items-center justify-center rounded-3xl">
-              <LoadingProgress 
-                message={activeFilter ? `Applying ${activeFilter.name}...` : 'Processing image...'}
-                estimatedTimeMs={10000}
-              />
-            </div>
+          {isLoading || isTransitioning ? (
+            <BlurredImageLoading 
+              originalImageUrl={originalImageUrl}
+              message={isTransitioning ? 'Finalizing...' : (activeFilter ? `Applying ${activeFilter.name}...` : 'Processing image...')}
+              estimatedTimeMs={isTransitioning ? 300 : 10000}
+            />
           ) : generatedImageUrl && useComparisonSlider ? (
             <ImageComparison
               originalImageUrl={originalImageUrl}

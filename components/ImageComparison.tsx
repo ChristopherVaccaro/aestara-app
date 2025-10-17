@@ -57,41 +57,43 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
   return (
     <div className="w-full flex flex-col items-center">
       <div className="w-full aspect-square">
-        <div
-          ref={containerRef}
-          className="w-full h-full relative overflow-hidden rounded-lg ring-1 ring-white/[0.08] cursor-ew-resize select-none"
-          onMouseDown={handleStart}
-          onTouchStart={handleStart}
-          style={{ touchAction: 'none' }}
-        >
-        {/* Generated Image (Behind) */}
-        <div className="absolute inset-0">
-          <img
-            src={generatedImageUrl}
-            alt="Stylized"
-            className="w-full h-full object-cover"
-            draggable={false}
-          />
-          <div className="absolute bottom-3 right-3 bg-blue-600/90 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-blue-400/50 font-medium">
-            {activeFilterName}
-          </div>
-        </div>
+        {/* Gradient Border Wrapper - Matches upload button style */}
+        <div className="relative rounded-2xl overflow-hidden p-[2px] bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50 hover:from-blue-500/70 hover:via-purple-500/70 hover:to-pink-500/70 transition-all duration-300">
+          <div
+            ref={containerRef}
+            className="w-full aspect-square relative overflow-hidden rounded-2xl bg-gray-900/95 backdrop-blur-xl cursor-ew-resize select-none"
+            onMouseDown={handleStart}
+            onTouchStart={handleStart}
+            style={{ touchAction: 'none' }}
+          >
+            {/* Generated Image (Behind) */}
+            <div className="absolute inset-0">
+              <img
+                src={generatedImageUrl}
+                alt="Stylized"
+                className="w-full h-full object-cover"
+                draggable={false}
+              />
+              <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium">
+                {activeFilterName}
+              </div>
+            </div>
 
-        {/* Original Image (Overlay with clip) */}
-        <div
-          className="absolute inset-0 overflow-hidden"
-          style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
-        >
-          <img
-            src={originalImageUrl}
-            alt="Original"
-            className="w-full h-full object-cover"
-            draggable={false}
-          />
-          <div className="absolute bottom-3 left-3 bg-gray-800/90 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-gray-600/50 font-medium">
-            Original
-          </div>
-        </div>
+            {/* Original Image (Overlay with clip) */}
+            <div
+              className="absolute inset-0 overflow-hidden"
+              style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
+            >
+              <img
+                src={originalImageUrl}
+                alt="Original"
+                className="w-full h-full object-cover"
+                draggable={false}
+              />
+              <div className="absolute bottom-3 left-3 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium">
+                Original
+              </div>
+            </div>
 
         {/* Slider Line and Handle */}
         <div
@@ -114,6 +116,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
               />
             </svg>
           </div>
+        </div>
         </div>
         </div>
       </div>
