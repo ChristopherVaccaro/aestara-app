@@ -71,8 +71,7 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
               
               {/* Content */}
               <div className="relative z-10 px-5 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-400 to-purple-400"></div>
+                <div className="flex items-center">
                   <span className="font-semibold text-white text-lg">{activeCategory}</span>
                 </div>
                 <svg 
@@ -97,17 +96,12 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
                         setActiveCategory(category.name);
                         setIsDropdownOpen(false);
                       }}
-                      className={`w-full px-4 py-3 text-left rounded-lg transition-colors duration-200 flex items-center gap-3 ${
+                      className={`w-full px-4 py-3 text-left rounded-lg transition-colors duration-200 ${
                         activeCategory === category.name
                           ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
                           : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                       }`}
                     >
-                      <div className={`w-1.5 h-1.5 rounded-full ${
-                        activeCategory === category.name 
-                          ? 'bg-white' 
-                          : 'bg-gray-600'
-                      }`}></div>
                       <span className="font-medium">{category.name}</span>
                     </button>
                   ))}

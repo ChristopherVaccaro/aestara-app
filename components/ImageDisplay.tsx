@@ -37,9 +37,9 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   const hasError = !!error;
 
   return (
-    <div className="w-full flex flex-col items-center justify-center">
+    <div className="w-full flex flex-col items-center">
       {/* Image Container with Modern Design */}
-      <div className="relative w-full">
+      <div className="relative w-full aspect-square">
         {/* Gradient Border Wrapper */}
         <div className={`relative rounded-2xl overflow-hidden p-[2px] transition-all duration-300 ${
           hasError 
@@ -121,7 +121,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
       </div>
       
       {/* Fixed height container for controls to prevent layout shift */}
-      <div className="mt-8 text-center h-14 flex items-center justify-center">
+      <div className="mt-6 text-center flex items-center justify-center" style={{ minHeight: '72px' }}>
         {showPeekButton && (
           <button
             onMouseDown={onPeekStart}

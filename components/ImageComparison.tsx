@@ -56,13 +56,14 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
 
   return (
     <div className="w-full flex flex-col items-center">
-      <div
-        ref={containerRef}
-        className="w-full aspect-square relative overflow-hidden rounded-lg ring-1 ring-white/[0.08] cursor-ew-resize select-none"
-        onMouseDown={handleStart}
-        onTouchStart={handleStart}
-        style={{ touchAction: 'none' }}
-      >
+      <div className="w-full aspect-square">
+        <div
+          ref={containerRef}
+          className="w-full h-full relative overflow-hidden rounded-lg ring-1 ring-white/[0.08] cursor-ew-resize select-none"
+          onMouseDown={handleStart}
+          onTouchStart={handleStart}
+          style={{ touchAction: 'none' }}
+        >
         {/* Generated Image (Behind) */}
         <div className="absolute inset-0">
           <img
@@ -114,10 +115,11 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
             </svg>
           </div>
         </div>
+        </div>
       </div>
 
       {/* Fixed height container for instructions to prevent layout shift */}
-      <div className="mt-6 h-12 flex items-center justify-center">
+      <div className="mt-6 flex items-center justify-center" style={{ minHeight: '72px' }}>
         <p className="text-sm text-gray-400 text-center">
           <span className="inline-flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

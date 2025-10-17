@@ -29,37 +29,36 @@ interface FilterCategory {
 
 // Global guidance to improve style consistency across all filters
 const STYLE_TRANSFER_CONSTRAINTS = (
-  'Apply the artistic style uniformly across the entire composition. ' +
-  'Maintain the original spatial arrangement and proportions. ' +
-  'CRITICAL: Preserve exact facial structure, bone structure, and all facial features to maintain perfect likeness and identity. ' +
-  'Keep the identical face shape, eye placement, nose shape, mouth shape, chin shape, cheekbones, and facial proportions. ' +
-  'The person must remain 100% recognizable as the same individual. ' +
-  'Only change styling elements (hair color/style, makeup, clothing, accessories) but NEVER alter the underlying facial anatomy, bone structure, or identity. ' +
-  'Do not change eye shape, nose bridge, lip shape, face width, jawline, or any facial measurements. ' +
-  'Preserve all visual elements and their relationships. ' +
-  'Keep details coherent and clearly defined within the chosen aesthetic. ' +
-  'Ensure consistent treatment of all components without distortion or omission.'
+  'CRITICAL IDENTITY PRESERVATION RULES - HIGHEST PRIORITY:\n' +
+  '1. FACIAL STRUCTURE: Preserve exact facial bone structure, face shape, jawline, chin shape, cheekbones, and forehead. The person MUST remain 100% recognizable.\n' +
+  '2. FACIAL FEATURES: Keep identical eye shape, eye spacing, nose shape, nose bridge, mouth shape, lip proportions, and ear placement. Do NOT alter any facial measurements or proportions.\n' +
+  '3. BODY & POSE: Maintain exact body position, pose, posture, limb placement, and overall composition. Do NOT change body proportions or positioning.\n' +
+  '4. LIKENESS: The subject must be instantly recognizable as the same person. Preserve their unique facial characteristics and identity completely.\n' +
+  '5. STYLE APPLICATION: Apply ONLY the artistic rendering style (brushstrokes, colors, textures, lighting effects). Change styling elements like hair texture, makeup, or clothing texture ONLY - never the underlying anatomy.\n' +
+  '6. WHAT TO PRESERVE: Face geometry, facial proportions, body structure, pose, composition, spatial relationships, background layout.\n' +
+  '7. WHAT TO CHANGE: Only the artistic medium, rendering technique, color palette, lighting style, and surface textures according to the chosen art style.\n' +
+  '\nApply the artistic style as a visual filter over the existing image while keeping all structural elements identical.'
 );
 
 const FILTER_CATEGORIES: FilterCategory[] = [
   {
     name: 'Artistic & Stylized',
     filters: [
-      { id: 'anime', name: 'Anime', prompt: 'Convert this photo into a clean 2D anime illustration while keeping the person fully recognizable. Use traditional cel-shaded style with solid colors, distinct shadow shapes, and sharp line art outlines. Maintain the original face shape, body proportions, clothing, and background framing. The artwork should look like it was hand-drawn for a modern TV anime series. Lighting should be simple and directional, with high-contrast shadows but soft edges. Avoid 3D realism or photographic texture. The image should evoke Kyoto Animation or Studio Trigger visual style. Do not change personal features such as eye or hair color.' },
-      { id: 'anime_v2', name: 'Anime Enhanced', prompt: 'Convert this photo into cinematic anime key visual art inspired by modern anime films and high-end illustrations.STYLE: confident, precise line art with refined cel shading, soft rim lighting, and subtle atmospheric gradients.FACE: maintain the subject’s facial identity and proportions while applying anime stylization — luminous large eyes, natural expression, delicate features.DETAIL: retain all original clothing, accessories, and visible objects exactly as they appear in the source photo. Do not change shirt, outfit design, or colors; only restyle their surface finish to match anime rendering (light shading, line art, smooth gradients).LIGHTING: dramatic yet balanced, with diffused colored highlights, soft bloom, and clear directionality.COLOR: rich, vibrant palette with controlled gradients and tasteful color dodge accents.BACKGROUND: cinematic and slightly abstract, featuring depth haze, bokeh, or soft particles for depth.AVOID: photoreal textures, visible brush strokes, over-saturated tones, hyper-real pores, or CG-like lighting.The final image should preserve the subject’s full likeness, pose, outfit, and background composition — translated faithfully into polished key visual anime art.' },
-      { id: 'anime_v3', name: 'Anime Cinematic', prompt: 'Convert the scene into a cinematic anime illustration reminiscent of big-budget anime films. CAMERA: dramatic framing, light depth of field, sense of motion. STYLE: elegant line work blended with multi-step cel shading, glow passes, and volumetric lighting. FACE: anime expressiveness with realistic structure maintained; intense eyes with layered highlights. LIGHTING: cinematic rim lights, neon color contrast, atmospheric fog, light streaks. DETAIL: flowing hair and fabrics with motion blur hints, environmental effects like drifting particles or rain. COLOR: rich filmic palette with teal-magenta interplay and warm skin tones. AVOID: flat lighting, over-realistic textures, western comic anatomy, gritty realism.' },
-      { id: 'cartoon', name: '3D Cartoon', prompt: 'Recreate in modern 3D animated film style (DreamWorks/Illumination quality): MODELING - Smooth, rounded 3D forms with soft edges and gentle curves. TEXTURING - Clean, painted textures without excessive detail or realism. LIGHTING - Soft, diffused three-point lighting with gentle shadows. FEATURES - Slightly exaggerated proportions, large expressive eyes, simplified but appealing facial structure. COLORS - Vibrant, saturated colors with subtle gradients. MATERIALS - Matte to semi-gloss surfaces, not hyper-realistic. AVOID - Photorealism, rough textures, harsh lighting, overly complex details. AIM FOR - Appealing, family-friendly 3D animation aesthetic with charm and personality.' },
-      { id: 'pixar', name: 'Pixar Style', prompt: 'Transform into authentic Pixar Animation Studios style: CHARACTER DESIGN - Large, soulful eyes (most important feature), soft rounded shapes, appealing proportions, expressive eyebrows. MODELING - Smooth, stylized 3D forms with emphasis on readability and appeal over realism. TEXTURING - Clean, artistic textures with subtle detail (not photorealistic). LIGHTING - Warm, cinematic lighting with soft bounce light and rich colors. SHADING - Smooth gradients with subtle subsurface scattering on skin. COLORS - Rich, saturated palette with warm undertones. MOOD - Emotional warmth and inviting atmosphere. AVOID - Uncanny valley, excessive realism, harsh lighting, cold tones. REFERENCE - Think Toy Story, Inside Out, Up quality with emphasis on heart and charm.' },
+      { id: 'anime', name: 'Anime', prompt: 'Apply anime illustration style rendering to this image. PRESERVE: Exact facial structure, face shape, eye shape, nose shape, mouth shape, all facial proportions, body pose, and composition. STYLE: Traditional 2D anime cel-shading with clean linework, solid color blocks, and soft shadows. Render the existing features in anime aesthetic without altering facial geometry or proportions. Keep the person 100% recognizable with their unique facial characteristics intact. Only change the rendering style to anime illustration technique.' },
+      { id: 'anime_v2', name: 'Anime Enhanced', prompt: 'Apply cinematic anime key visual rendering style. PRESERVE: Exact facial structure, all facial features, eye shape, nose shape, mouth proportions, face geometry, body pose, clothing design, and composition. STYLE: Refined cel-shading with soft rim lighting and atmospheric gradients. Render existing features with anime aesthetic while maintaining perfect facial likeness. LIGHTING: Dramatic yet balanced with colored highlights. COLOR: Rich, vibrant anime palette. Keep the person 100% recognizable with all unique facial characteristics intact. Only apply anime rendering technique to existing structure.' },
+      { id: 'anime_v3', name: 'Anime Cinematic', prompt: 'Apply cinematic anime film rendering style. PRESERVE: Exact facial structure, all facial features, face shape, eye shape, nose shape, mouth shape, body pose, and composition. STYLE: Elegant linework with multi-step cel-shading, cinematic lighting effects, and atmospheric elements. Render existing features with anime aesthetic while maintaining realistic facial structure and perfect likeness. LIGHTING: Cinematic rim lights with atmospheric effects. COLOR: Rich filmic palette with warm skin tones. Keep the person 100% recognizable. Only apply anime rendering technique.' },
+      { id: 'cartoon', name: '3D Cartoon', prompt: 'Apply 3D animated film rendering style (DreamWorks/Illumination aesthetic). PRESERVE: Exact facial structure, face shape, eye placement, nose shape, mouth shape, all facial proportions, body pose, and composition. STYLE: Smooth 3D rendering with clean painted textures, soft lighting, and vibrant colors. Render existing features in 3D animation style while maintaining perfect facial likeness and proportions. Keep the person 100% recognizable. Only apply 3D animation rendering technique to existing structure without altering facial geometry.' },
+      { id: 'pixar', name: 'Pixar Style', prompt: 'Apply Pixar Animation Studios rendering style. PRESERVE: Exact facial structure, face shape, eye shape and placement, nose shape, mouth shape, all facial proportions, body pose, and composition. STYLE: Smooth stylized 3D rendering with warm cinematic lighting, clean textures, and rich colors. Render existing features in Pixar aesthetic while maintaining perfect facial likeness. Keep the person 100% recognizable with their unique facial characteristics intact. Only apply Pixar rendering technique to existing structure without altering facial geometry or proportions.' },
       { id: 'western', name: 'Western Theme', prompt: 'Reimagine in classic American Old West aesthetic with authentic frontier atmosphere. Apply rugged cowboy styling with weathered textures, cowboy hats, boots, leather elements, vests, bandanas, and duster coats. Create a dusty frontier setting with wooden buildings, hitching posts, tumbleweeds, and vast open skies. Use warm golden hour lighting with dramatic shadows and atmospheric dust. Apply sepia-toned or desaturated color palette with browns, oranges, and muted earth tones. Include authentic western details like horses, cattle, cacti, and weathered wood textures for immersive Wild West atmosphere.' },
-      { id: 'oil', name: 'Oil Painting', prompt: 'Recreate as classical oil painting with authentic traditional technique: BRUSHWORK - Visible, directional brushstrokes with varied thickness and texture. Apply impasto technique where appropriate. COLORS - Rich, layered pigments with subtle color mixing on canvas. Use warm and cool color temperatures. TEXTURE - Heavy paint application with dimensional surface quality. BLENDING - Wet-on-wet blending in some areas, distinct strokes in others. COMPOSITION - Traditional painting composition with attention to light and form. SURFACE - Canvas texture visible through paint layers. AVOID - Digital smoothness, photograph-like precision, flat colors. AIM FOR - Authentic oil painting appearance like classical masters (Rembrandt, Monet, Van Gogh style richness).' },
-      { id: 'watercolor', name: 'Watercolor', prompt: 'Transform into authentic watercolor painting on paper: TECHNIQUE - Transparent washes with color bleeding and blooming effects. EDGES - Soft, irregular edges where water and pigment interact naturally. COLORS - Luminous, translucent layers with visible paper showing through in places. TEXTURE - Granulation effects, salt textures, water marks, and natural pigment settling. BRUSHWORK - Loose, fluid strokes with varying wetness. WHITES - Preserved paper whites for highlights (no white paint). COMPOSITION - Light, airy quality with spontaneous feel. AVOID - Opaque colors, hard edges, digital perfection, heavy coverage. AIM FOR - Delicate, ethereal quality of traditional watercolor with natural medium behavior.' },
-      { id: 'sketch', name: 'Pencil Sketch', prompt: 'Create as realistic graphite pencil drawing on textured paper: LINE QUALITY - Varied pencil strokes from light to dark (2H to 6B range). SHADING - Crosshatching, hatching, and blending techniques for tonal values. TEXTURE - Visible paper tooth/grain, pencil grain direction. HIGHLIGHTS - Paper white for brightest areas, subtle eraser marks. DETAILS - Fine linework for important features, looser sketching for secondary elements. SMUDGING - Subtle blending in shadow areas. COMPOSITION - Artistic sketch quality, not mechanical precision. AVOID - Digital clean lines, perfect smoothness, photo tracing look. AIM FOR - Hand-drawn sketch authenticity with artistic spontaneity and traditional graphite characteristics.' },
-      { id: 'comic', name: 'Comic Book', prompt: 'Transform into authentic comic book art style (Marvel/DC quality): LINEWORK - Bold, confident black ink outlines (2-4pt weight) with varied thickness for emphasis. COLORS - Vibrant, flat color blocks with limited palette. Primary and secondary colors dominate. SHADING - Ben-Day dot patterns for midtones, solid black shadows for drama. HIGHLIGHTS - Stark white areas for dramatic contrast. COMPOSITION - Dynamic angles, action-oriented poses, dramatic perspective. DETAILS - Simplified features with emphasis on strong silhouettes. EFFECTS - Speed lines, emanata, and comic visual vocabulary where appropriate. AVOID - Subtle gradients, soft shadows, painterly effects, photorealistic rendering. AIM FOR - Classic four-color comic book printing aesthetic with bold graphic impact.' },
-      { id: 'lowpoly', name: 'Low Poly', prompt: 'Transform into low-polygon 3D art style: GEOMETRY - Simple triangular and polygonal facets, clearly visible edges. Reduce detail to basic geometric shapes. SHADING - Flat shading per polygon (no gradients within faces), single color per face. COLORS - Solid, distinct colors for each polygon with clear facet separation. EDGES - Sharp, well-defined polygon edges. COMPLEXITY - Simplified mesh with minimal polygon count. AESTHETIC - Geometric, crystalline appearance. AVOID - Smooth surfaces, curved lines, gradient shading, high detail. AIM FOR - Stylized low-poly 3D game aesthetic with clear geometric structure and minimalist appeal.' },
-      { id: 'ukiyo', name: 'Ukiyo-e', prompt: 'Recreate as traditional Japanese Ukiyo-e woodblock print (Edo period style): LINEWORK - Elegant, flowing black outlines with varied thickness. Graceful curves and organic shapes. COLORS - Limited, flat color palette (4-8 colors maximum). Use traditional pigments: indigo, vermillion, ochre, green. TECHNIQUE - Flat color blocks with no gradients (woodblock printing limitations). Visible registration marks if appropriate. COMPOSITION - Asymmetrical balance, negative space, traditional Japanese aesthetic principles. PATTERNS - Decorative patterns in clothing and backgrounds. TEXTURE - Slight paper grain, woodblock texture. AVOID - Western perspective, gradients, photorealism, modern colors. AIM FOR - Authentic Ukiyo-e appearance like Hokusai or Hiroshige works with traditional Japanese artistic sensibility.' },
-      { id: 'impressionist', name: 'Impressionism', prompt: 'Transform into Impressionist painting (Monet, Renoir, Pissarro style): BRUSHWORK - Short, broken brushstrokes with visible directional marks. Quick, spontaneous application. COLORS - Bright, vibrant palette without black. Juxtaposed pure colors that mix optically. Use complementary colors side by side. LIGHT - Emphasis on capturing changing light quality and atmospheric effects. EDGES - Soft, blurred boundaries. Forms suggested rather than defined. COMPOSITION - Natural, snapshot-like framing. Outdoor lighting quality even for indoor scenes. TECHNIQUE - Wet-on-wet painting, layered strokes, emphasis on color over line. AVOID - Sharp details, defined edges, dark shadows, precise rendering. AIM FOR - Luminous, shimmering quality with emphasis on light effects and momentary impression over photographic accuracy.' },
-      { id: 'popart', name: 'Pop Art', prompt: 'Transform into bold Pop Art style (Andy Warhol, Roy Lichtenstein aesthetic): COLORS - Bright, saturated, limited palette (3-5 bold colors). High contrast with vibrant primaries and secondaries. TECHNIQUE - Flat, screen-printing appearance with clean color blocks. No gradients or subtle transitions. OUTLINES - Strong black outlines or solid color edges. HALFTONES - Ben-Day dots or similar printing patterns for shading where needed. COMPOSITION - Graphic, commercial art aesthetic. Bold, simplified forms. STYLE - Mass production feel, repetition elements, commercial advertising influence. CONTRAST - Extreme contrast between colors and areas. AVOID - Subtlety, complex shading, realistic textures, muted colors. AIM FOR - Bold graphic impact like 1960s commercial art and silkscreen printing with iconic, immediately recognizable style.' },
-      { id: 'artdeco', name: 'Art Deco', prompt: 'Transform into Art Deco style (1920s-1930s luxury aesthetic): GEOMETRY - Strong geometric patterns, symmetrical designs, zigzags, chevrons, sunburst motifs. LINES - Bold, clean lines with streamlined forms. Angular and stepped shapes. COLORS - Sophisticated palette: gold, black, silver, rich jewel tones (emerald, sapphire, ruby), cream, metallics. ORNAMENTATION - Stylized decorative elements, Egyptian influences, machine-age aesthetics. PATTERNS - Repetitive geometric patterns, fan shapes, stepped forms. LUXURY - Glamorous, opulent feel with metallic accents and shine. COMPOSITION - Symmetry, balance, architectural quality. AVOID - Organic curves, muted colors, rustic textures, minimalism. AIM FOR - Elegant, sophisticated Jazz Age aesthetic with geometric precision and luxurious materials like Tamara de Lempicka or Erté artwork.' },
+      { id: 'oil', name: 'Oil Painting', prompt: 'Apply classical oil painting rendering style. PRESERVE: Exact facial structure, face shape, all facial features, eye shape, nose shape, mouth shape, body pose, and composition. STYLE: Visible directional brushstrokes with rich layered pigments and canvas texture. Apply oil painting technique to existing features without altering facial geometry. TECHNIQUE: Impasto texture, wet-on-wet blending, warm and cool color temperatures. Keep the person 100% recognizable. Only change the rendering medium to oil painting technique while maintaining perfect facial likeness.' },
+      { id: 'watercolor', name: 'Watercolor', prompt: 'Apply watercolor painting rendering style. PRESERVE: Exact facial structure, face shape, all facial features, eye shape, nose shape, mouth shape, body pose, and composition. STYLE: Transparent washes with soft edges, luminous translucent colors, and paper texture. Apply watercolor technique to existing features without altering facial geometry. TECHNIQUE: Color bleeding effects, loose fluid brushwork, preserved paper whites. Keep the person 100% recognizable. Only change the rendering medium to watercolor technique while maintaining perfect facial likeness.' },
+      { id: 'sketch', name: 'Pencil Sketch', prompt: 'Apply graphite pencil sketch rendering style. PRESERVE: Exact facial structure, face shape, all facial features, eye shape, nose shape, mouth shape, body pose, and composition. STYLE: Varied pencil strokes with crosshatching and blending on textured paper. Apply pencil sketch technique to existing features without altering facial geometry. TECHNIQUE: Light to dark pencil range, paper texture, subtle smudging. Keep the person 100% recognizable. Only change the rendering medium to pencil sketch technique while maintaining perfect facial likeness.' },
+      { id: 'comic', name: 'Comic Book', prompt: 'Apply comic book art rendering style. PRESERVE: Exact facial structure, face shape, all facial features, eye shape, nose shape, mouth shape, body pose, and composition. STYLE: Bold black ink outlines with vibrant flat color blocks and Ben-Day dot shading. Apply comic book technique to existing features without altering facial geometry. TECHNIQUE: Strong linework, limited color palette, solid shadows. Keep the person 100% recognizable. Only change the rendering style to comic book technique while maintaining perfect facial likeness.' },
+      { id: 'lowpoly', name: 'Low Poly', prompt: 'Apply low-polygon 3D art rendering style. PRESERVE: Exact facial structure, face shape, all facial features, body pose, and composition. STYLE: Simple triangular polygonal facets with flat shading and geometric appearance. Apply low-poly technique to existing features without altering facial geometry or proportions. TECHNIQUE: Clear polygon edges, solid colors per face, minimal polygon count. Keep the person 100% recognizable. Only change the rendering style to low-poly 3D technique while maintaining perfect facial likeness.' },
+      { id: 'ukiyo', name: 'Ukiyo-e', prompt: 'Apply traditional Japanese Ukiyo-e woodblock print rendering style. PRESERVE: Exact facial structure, face shape, all facial features, eye shape, nose shape, mouth shape, body pose, and composition. STYLE: Elegant flowing black outlines with limited flat color palette and traditional Japanese aesthetic. Apply Ukiyo-e technique to existing features without altering facial geometry. TECHNIQUE: Flat color blocks, paper grain texture, traditional pigments. Keep the person 100% recognizable. Only change the rendering style to woodblock print technique while maintaining perfect facial likeness.' },
+      { id: 'impressionist', name: 'Impressionism', prompt: 'Apply Impressionist painting rendering style. PRESERVE: Exact facial structure, face shape, all facial features, eye shape, nose shape, mouth shape, body pose, and composition. STYLE: Short broken brushstrokes with vibrant colors and soft blurred edges emphasizing light effects. Apply Impressionist technique to existing features without altering facial geometry. TECHNIQUE: Layered strokes, optical color mixing, luminous quality. Keep the person 100% recognizable. Only change the rendering style to Impressionist painting technique while maintaining perfect facial likeness.' },
+      { id: 'popart', name: 'Pop Art', prompt: 'Apply Pop Art rendering style. PRESERVE: Exact facial structure, face shape, all facial features, eye shape, nose shape, mouth shape, body pose, and composition. STYLE: Bright saturated colors with strong outlines, flat color blocks, and Ben-Day dot patterns. Apply Pop Art technique to existing features without altering facial geometry. TECHNIQUE: Limited bold palette, screen-printing appearance, high contrast. Keep the person 100% recognizable. Only change the rendering style to Pop Art technique while maintaining perfect facial likeness.' },
+      { id: 'artdeco', name: 'Art Deco', prompt: 'Apply Art Deco rendering style. PRESERVE: Exact facial structure, face shape, all facial features, eye shape, nose shape, mouth shape, body pose, and composition. STYLE: Strong geometric patterns, bold clean lines, and sophisticated metallic color palette with luxurious aesthetic. Apply Art Deco technique to existing features without altering facial geometry. TECHNIQUE: Symmetrical designs, stylized decorative elements, glamorous opulent feel. Keep the person 100% recognizable. Only change the rendering style to Art Deco technique while maintaining perfect facial likeness.' },
     ],
   },
   {
@@ -531,45 +530,36 @@ const App: React.FC = () => {
               />
             </div>
           ) : generatedImageUrl && useComparisonSlider ? (
-            <>
-              <ImageComparison
-                originalImageUrl={originalImageUrl}
-                generatedImageUrl={generatedImageUrl}
-                activeFilterName={activeFilter?.name || 'Styled'}
-              />
-              {/* Comparison Mode Toggle */}
-              <div className="mt-6 flex justify-center">
-                <ComparisonModeToggle
-                  useSlider={useComparisonSlider}
-                  onToggle={setUseComparisonSlider}
-                />
-              </div>
-            </>
+            <ImageComparison
+              originalImageUrl={originalImageUrl}
+              generatedImageUrl={generatedImageUrl}
+              activeFilterName={activeFilter?.name || 'Styled'}
+            />
           ) : (
-            <>
-              <ImageDisplay
-                originalImageUrl={originalImageUrl}
-                generatedImageUrl={generatedImageUrl}
-                isLoading={isLoading}
-                isPeeking={isPeeking}
-                onPeekStart={handlePeekStart}
-                onPeekEnd={handlePeekEnd}
-                onOpenPreview={handleOpenPreview}
-                onDownload={handleDownload}
-                error={error}
-                activeFilterName={activeFilter?.name || null}
-                isDevMode={isDevMode}
-              />
-              {generatedImageUrl && (
-                <div className="mt-6 flex justify-center">
-                  <ComparisonModeToggle
-                    useSlider={useComparisonSlider}
-                    onToggle={setUseComparisonSlider}
-                  />
-                </div>
-              )}
-            </>
+            <ImageDisplay
+              originalImageUrl={originalImageUrl}
+              generatedImageUrl={generatedImageUrl}
+              isLoading={isLoading}
+              isPeeking={isPeeking}
+              onPeekStart={handlePeekStart}
+              onPeekEnd={handlePeekEnd}
+              onOpenPreview={handleOpenPreview}
+              onDownload={handleDownload}
+              error={error}
+              activeFilterName={activeFilter?.name || null}
+              isDevMode={isDevMode}
+            />
           )}
+          
+          {/* Comparison Mode Toggle - Always rendered outside conditional to prevent layout shift */}
+          <div className="flex justify-center" style={{ minHeight: '48px' }}>
+            <div style={{ visibility: generatedImageUrl ? 'visible' : 'hidden' }}>
+              <ComparisonModeToggle
+                useSlider={useComparisonSlider}
+                onToggle={setUseComparisonSlider}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Right Column: Controls - Hidden on mobile, shown on desktop */}
