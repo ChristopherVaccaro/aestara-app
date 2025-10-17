@@ -249,6 +249,28 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 For questions, feedback, or bug reports, please use the in-app feedback form or contact: therise03@hotmail.com
 
+## Android App
+
+This project can be built as a native Android app using Capacitor!
+
+### Quick Start
+```bash
+npm run build
+npm run cap:open:android
+```
+
+See **[QUICK_START_ANDROID.md](QUICK_START_ANDROID.md)** for step-by-step instructions.
+
+### Features
+- 📱 Native Android app
+- 📸 Camera integration
+- 🖼️ Photo gallery access
+- 📤 Native share functionality
+- 💾 Save images to device
+- 🎨 Full-screen immersive experience
+
+For comprehensive setup and deployment guide, see **[ANDROID_SETUP.md](ANDROID_SETUP.md)**.
+
 ## Roadmap
 
 Future enhancements planned:
@@ -256,8 +278,9 @@ Future enhancements planned:
 - Batch processing for multiple images
 - Style intensity controls
 - Custom style creation
-- Mobile app versions
+- ✅ ~~Mobile app versions~~ (Android app available!)
 - API access for developers
+- iOS app version
 
 ---
 
