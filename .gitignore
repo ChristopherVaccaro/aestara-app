@@ -23,20 +23,31 @@ dist-ssr
 *.sln
 *.sw?
 
-# Capacitor
-android/app/build/
-android/app/release/
-android/app/debug/
+# Capacitor - Android (android folder has its own .gitignore)
+# Only ignore these at root level if needed
+android/local.properties
 android/.gradle/
 android/build/
-android/local.properties
-android/.idea/
-android/*.iml
-android/gradle/
+android/gradle/wrapper/
 android/gradlew
 android/gradlew.bat
+
+# iOS (if added later)
+ios/App/Pods/
+ios/App/build/
+ios/App/Podfile.lock
+
+# Capacitor generated files
+.capacitor/
 
 # Environment variables
 .env
 .env.local
 .env.production
+.env.development
+
+# API keys and secrets
+*.keystore
+*.jks
+google-services.json
+GoogleService-Info.plist
