@@ -553,7 +553,12 @@ const App: React.FC = () => {
           
           {/* Comparison Mode Toggle - Always rendered outside conditional to prevent layout shift */}
           <div className="flex justify-center" style={{ minHeight: '48px' }}>
-            <div style={{ visibility: generatedImageUrl ? 'visible' : 'hidden' }}>
+            <div 
+              style={{ 
+                opacity: generatedImageUrl && !isLoading ? 1 : 0,
+                pointerEvents: generatedImageUrl && !isLoading ? 'auto' : 'none'
+              }}
+            >
               <ComparisonModeToggle
                 useSlider={useComparisonSlider}
                 onToggle={setUseComparisonSlider}
