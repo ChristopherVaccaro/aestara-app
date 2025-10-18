@@ -684,7 +684,7 @@ const App: React.FC = () => {
       )}
       
       <Header onLogoClick={handleReset} />
-      <main className="w-full flex-1 flex items-center justify-center px-4 overflow-hidden">
+      <main className="w-full flex-1 flex items-start justify-center px-4 overflow-hidden pt-4 md:pt-8">
         {renderContent()}
       </main>
       <Footer 

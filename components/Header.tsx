@@ -7,7 +7,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onLogoClick }) => {
   return (
-    <header className="w-full py-1 md:py-2 flex-shrink-0">
+    <header className="w-full py-4 md:py-6 flex-shrink-0">
       <div className="flex items-center justify-center">
         <button
           onClick={onLogoClick}

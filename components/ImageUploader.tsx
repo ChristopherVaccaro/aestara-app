@@ -73,8 +73,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
   return (
     <div className="w-full max-w-6xl mx-auto flex flex-col items-center">
         {/* Hero Section */}
-        <div className="text-center mb-4 max-w-4xl">
-          <h1 className="text-3xl md:text-5xl font-bold mb-2 leading-tight">
+        <div className="text-center mb-3 md:mb-4 max-w-4xl">
+          <h1 className="text-3xl md:text-5xl font-bold mb-1.5 leading-tight">
             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
               Transform Photos
             </span>
