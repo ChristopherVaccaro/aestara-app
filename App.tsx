@@ -660,7 +660,7 @@ const App: React.FC = () => {
 
   return (
     <div 
-      className={`h-screen flex flex-col items-center overflow-hidden p-4 md:p-6 font-sans text-gray-200 relative subtle-bg ${
+      className={`h-screen flex flex-col items-center overflow-hidden py-0 px-4 md:p-6 font-sans text-gray-200 relative subtle-bg ${
         isDragOver ? 'bg-blue-900/20' : ''
       }`}
       onDragEnter={handleDragEnter}

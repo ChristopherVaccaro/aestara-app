@@ -92,13 +92,13 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
       className={`fixed inset-0 z-50 lg:hidden transition-opacity duration-300 ${
         isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
-      onClick={handleBackdropClick}
     >
-      {/* Backdrop */}
+      {/* Backdrop - Click to dismiss */}
       <div 
         className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
           isOpen ? 'opacity-100' : 'opacity-0'
         }`}
+        onClick={handleBackdropClick}
       />
       
       {/* Bottom Sheet */}
@@ -115,17 +115,24 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
           transform: 'translateZ(0)',
           willChange: 'transform, backdrop-filter',
         }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
-        {/* Drag Handle - iOS style */}
-        <div className="flex justify-center pt-2 pb-1">
+        {/* Drag Handle Area - ONLY draggable part */}
+        <div 
+          className="flex justify-center pt-2 pb-1 cursor-grab active:cursor-grabbing"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="w-9 h-1 bg-white/40 rounded-full" />
         </div>
 
-        {/* Header - iOS style */}
-        <div className="px-4 py-3 border-b border-white/10">
+        {/* Header - iOS style - Also draggable */}
+        <div 
+          className="px-4 py-3 border-b border-white/10 cursor-grab active:cursor-grabbing"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <h3 className="text-lg font-semibold text-white text-center tracking-tight">Styles</h3>
         </div>
 
