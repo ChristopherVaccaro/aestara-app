@@ -10,10 +10,10 @@ const Footer: React.FC<FooterProps> = ({ onOpenTerms, onOpenPrivacy, onOpenFeedb
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full text-center py-2 flex-shrink-0">
+    <footer className="w-full text-center py-1 md:py-2 flex-shrink-0">
       <div className="max-w-6xl mx-auto px-4">
         {/* Single line footer with all content */}
-        <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3 text-xs text-gray-500">
+        <div className="flex flex-wrap items-center justify-center gap-1.5 md:gap-3 text-xs text-gray-500">
           <span className="hidden md:inline">© {currentYear} AI Image Stylizer</span>
           <span className="md:hidden">© {currentYear}</span>
           <span className="text-gray-600">•</span>
