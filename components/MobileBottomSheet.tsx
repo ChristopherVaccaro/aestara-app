@@ -51,6 +51,8 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
     const diff = currentY.current - startY.current;
     
     if (diff > 0 && sheetRef.current) {
+      // Disable transition during drag for immediate feedback
+      sheetRef.current.style.transition = 'none';
       sheetRef.current.style.transform = `translateY(${diff}px)`;
     }
   };
@@ -58,12 +60,16 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
   const handleTouchEnd = () => {
     const diff = currentY.current - startY.current;
     
-    if (diff > 100) {
-      onClose();
-    }
-    
     if (sheetRef.current) {
-      sheetRef.current.style.transform = '';
+      // Re-enable transition for smooth animation
+      sheetRef.current.style.transition = '';
+      
+      if (diff > 100) {
+        onClose();
+      } else {
+        // Snap back to original position with animation
+        sheetRef.current.style.transform = '';
+      }
     }
   };
 
