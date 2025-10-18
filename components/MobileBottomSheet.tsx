@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import FilterSelector from './FilterSelector';
-import ShareButton from './ShareButton';
 import StyleHistory, { HistoryItem } from './StyleHistory';
 import { Filter } from '../types';
 
@@ -17,10 +16,7 @@ interface MobileBottomSheetProps {
   onClearFilter: () => void;
   isLoading: boolean;
   activeFilterId: string | null;
-  onDownload: () => void;
   onReset: () => void;
-  generatedImageUrl: string | null;
-  styleName?: string | null;
   history: HistoryItem[];
   currentHistoryIndex: number;
   onSelectHistory: (index: number) => void;
@@ -35,10 +31,7 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
   onClearFilter,
   isLoading,
   activeFilterId,
-  onDownload,
   onReset,
-  generatedImageUrl,
-  styleName,
   history,
   currentHistoryIndex,
   onSelectHistory,
@@ -168,25 +161,9 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
           )}
         </div>
 
-        {/* Fixed Action Buttons - Always Visible at Bottom */}
+        {/* Upload New Image Button - Fixed at Bottom */}
         <div className="border-t border-white/10 bg-gray-900/80 backdrop-blur-xl">
-          <div className="px-4 py-3 space-y-2 landscape-compact-actions">
-            <button
-              onClick={onDownload}
-              disabled={!generatedImageUrl || isLoading}
-              className="w-full px-4 py-2.5 bg-green-500/20 backdrop-blur-xl border border-green-400/30 text-green-100 font-semibold rounded-lg hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-300 disabled:bg-gray-500/20 disabled:border-gray-400/20 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center shadow-lg gap-2 text-sm"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-              Download Image
-            </button>
-            
-            <ShareButton 
-              imageUrl={generatedImageUrl}
-              styleName={styleName}
-            />
-            
+          <div className="px-4 py-3 landscape-compact-actions">
             <button
               onClick={onReset}
               className="w-full px-4 py-2.5 bg-white/10 text-white font-semibold rounded-lg hover:bg-white/15 active:bg-white/20 transition-colors duration-150 flex items-center justify-center gap-2 text-sm"

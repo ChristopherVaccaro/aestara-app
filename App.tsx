@@ -5,7 +5,6 @@ import ImageUploader from './components/ImageUploader';
 import ImageDisplay from './components/ImageDisplay';
 import FilterSelector from './components/FilterSelector';
 import ImagePreviewModal from './components/ImagePreviewModal';
-import ShareButton from './components/ShareButton';
 import ParticleBackground from './components/ParticleBackground';
 import ImageComparison from './components/ImageComparison';
 import StyleHistory, { HistoryItem } from './components/StyleHistory';
@@ -422,6 +421,43 @@ const App: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  const handleShare = async () => {
+    if (!generatedImageUrl) return;
+
+    try {
+      // Convert base64 to blob for sharing
+      const response = await fetch(generatedImageUrl);
+      const blob = await response.blob();
+      const styleName = activeFilter?.name || 'styled';
+      const file = new File([blob], `stylized-${styleName}.png`, { type: 'image/png' });
+
+      const shareData = {
+        title: `AI Stylized Image${styleName ? ` - ${styleName}` : ''}`,
+        text: `Check out this cool ${styleName} image I created with AI! Try it yourself at: ${window.location.origin}`,
+        url: window.location.origin
+      };
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          title: shareData.title,
+          text: shareData.text,
+          files: [file]
+        });
+      } else if (navigator.share) {
+        // Fallback without file
+        await navigator.share({
+          title: shareData.title,
+          text: shareData.text,
+          url: shareData.url
+        });
+      }
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Sharing failed:', error);
+      }
+    }
+  };
+
   const handlePeekStart = () => setIsPeeking(true);
   const handlePeekEnd = () => setIsPeeking(false);
 
@@ -556,6 +592,7 @@ const App: React.FC = () => {
               onPeekEnd={handlePeekEnd}
               onOpenPreview={handleOpenPreview}
               onDownload={handleDownload}
+              onShare={handleShare}
               error={error}
               activeFilterName={activeFilter?.name || null}
               isDevMode={isDevMode}
@@ -603,34 +640,19 @@ const App: React.FC = () => {
               </div>
            </div>
 
-           {/* Fixed Action Buttons */}
+           {/* Upload New Image Button */}
            <div className="glass-panel p-3 lg:p-4">
-              <div className="flex flex-col space-y-2">
-                 <button
-                  onClick={handleDownload}
-                  disabled={!generatedImageUrl || isLoading}
-                  className="w-full px-4 py-2.5 bg-green-500/20 backdrop-blur-xl border border-green-400/30 text-green-100 font-semibold rounded-lg hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-300 disabled:bg-gray-500/20 disabled:border-gray-400/20 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center shadow-lg gap-2"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                  Download Image
-                </button>
-                <ShareButton 
-                  imageUrl={generatedImageUrl}
-                  styleName={activeFilter?.name}
-                />
-                <button
-                  onClick={handleTriggerFileInput}
-                  className="w-full px-4 py-2.5 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white font-medium rounded-lg hover:bg-white/[0.12] hover:border-white/20 transition-all duration-300 flex items-center justify-center gap-2"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                  </svg>
-                  Upload New Image
-                </button>
-              </div>
+              <button
+                onClick={handleTriggerFileInput}
+                className="w-full px-4 py-2.5 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white font-medium rounded-lg hover:bg-white/[0.12] hover:border-white/20 transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                </svg>
+                Upload New Image
+              </button>
            </div>
+
         </div>
       </div>
     );
@@ -698,10 +720,7 @@ const App: React.FC = () => {
             onClearFilter={handleClearFilter}
             isLoading={isLoading}
             activeFilterId={activeFilter?.id || null}
-            onDownload={handleDownload}
             onReset={handleTriggerFileInput}
-            generatedImageUrl={generatedImageUrl}
-            styleName={activeFilter?.name}
             history={history}
             currentHistoryIndex={currentHistoryIndex}
             onSelectHistory={handleSelectHistory}

@@ -10,6 +10,7 @@ interface ImageDisplayProps {
   onPeekEnd: () => void;
   onOpenPreview: () => void;
   onDownload: () => void;
+  onShare?: () => void;
   error?: string | null;
   activeFilterName?: string | null;
   isDevMode?: boolean;
@@ -24,6 +25,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   onPeekEnd,
   onOpenPreview,
   onDownload,
+  onShare,
   error,
   activeFilterName,
   isDevMode = false,
@@ -88,26 +90,57 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
                 </p>
               </div>
             )}
-            {isClickable && !isPeeking && (
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                {/* Download Button - Top Right */}
+            {/* Circular Action Buttons - Top Right - Always Visible */}
+            {!isLoading && (
+              <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
+                {/* Download Button */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onDownload();
                   }}
-                  className="absolute top-4 right-4 text-white glass-button rounded-full p-2 focus:outline-none z-10"
+                  disabled={!generatedImageUrl}
+                  className="w-12 h-12 rounded-full bg-green-500/90 hover:bg-green-500 backdrop-blur-md border border-green-400/50 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Download Image"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                   </svg>
                 </button>
-                
-                {/* Zoom Icon - Center */}
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                </svg>
+
+                {/* Share Button */}
+                {onShare && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onShare();
+                    }}
+                    disabled={!generatedImageUrl}
+                    className="w-12 h-12 rounded-full bg-blue-500/90 hover:bg-blue-500 backdrop-blur-md border border-blue-400/50 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Share Image"
+                  >
+                    {/* Android Share Icon */}
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+                    </svg>
+                  </button>
+                )}
+
+                {/* Enlarge/Preview Button */}
+                {isClickable && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenPreview();
+                    }}
+                    className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/30 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                    title="Enlarge Image"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                    </svg>
+                  </button>
+                )}
               </div>
             )}
           </>
