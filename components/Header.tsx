@@ -7,14 +7,14 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onLogoClick }) => {
   return (
-    <header className="w-full pt-6">
+    <header className="w-full py-2 flex-shrink-0">
       <div className="flex items-center justify-center">
         <button
           onClick={onLogoClick}
           className="cursor-pointer hover:opacity-80 transition-opacity duration-200 focus:outline-none focus:opacity-80"
           aria-label="Go to home"
         >
-          <Logo className="h-12 w-auto" />
+          <Logo className="h-10 w-auto" />
         </button>
       </div>
     </header>

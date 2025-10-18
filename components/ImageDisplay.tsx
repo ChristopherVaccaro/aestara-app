@@ -39,15 +39,15 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   return (
     <div className="w-full flex flex-col items-center">
       {/* Image Container with Modern Design */}
-      <div className="relative w-full aspect-square">
+      <div className="relative w-full responsive-image-container">
         {/* Gradient Border Wrapper - Matches upload button style */}
-        <div className={`relative rounded-2xl overflow-hidden p-[2px] transition-all duration-300 ${
+        <div className={`relative rounded-2xl overflow-hidden p-[2px] transition-all duration-300 h-full ${
           hasError 
             ? 'bg-gradient-to-r from-red-500/50 to-pink-500/50' 
             : 'bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50 hover:from-blue-500/70 hover:via-purple-500/70 hover:to-pink-500/70'
         }`}>
           <div
-            className={`w-full aspect-square bg-gray-900/95 backdrop-blur-xl overflow-hidden flex items-center justify-center relative group rounded-2xl ${isClickable && !hasError ? 'cursor-pointer' : ''}`}
+            className={`w-full h-full bg-gray-900/95 backdrop-blur-xl overflow-hidden flex items-center justify-center relative group rounded-2xl ${isClickable && !hasError ? 'cursor-pointer' : ''}`}
             onClick={isClickable && !hasError ? onOpenPreview : undefined}
           >
         {isLoading ? (
@@ -57,7 +57,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
             <img
               src={imageUrlToShow}
               alt={isPeeking ? 'Original' : 'Stylized'}
-              className="w-full h-full object-cover transition-all duration-300 rounded-lg"
+              className="w-full h-full object-contain transition-all duration-300 rounded-lg"
             />
             
             {/* Style Badge - Bottom Right */}
@@ -117,7 +117,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
       </div>
       
       {/* Fixed height container for controls to prevent layout shift */}
-      <div className="mt-6 text-center flex items-center justify-center" style={{ minHeight: '72px' }}>
+      <div className="mt-2 text-center flex items-center justify-center" style={{ minHeight: '48px' }}>
         {showPeekButton && (
           <button
             onMouseDown={onPeekStart}
@@ -145,7 +145,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
             </div>
             
             {/* Content */}
-            <div className="relative z-10 px-8 py-3.5 flex items-center justify-center gap-2.5">
+            <div className="relative z-10 px-5 py-2 flex items-center justify-center gap-2">
               <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />

@@ -56,22 +56,22 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
 
   return (
     <div className="w-full flex flex-col items-center">
-      <div className="w-full aspect-square">
+      <div className="w-full responsive-image-container">
         {/* Gradient Border Wrapper - Matches upload button style */}
-        <div className="relative rounded-2xl overflow-hidden p-[2px] bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50 hover:from-blue-500/70 hover:via-purple-500/70 hover:to-pink-500/70 transition-all duration-300">
+        <div className="relative rounded-2xl overflow-hidden p-[2px] bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50 hover:from-blue-500/70 hover:via-purple-500/70 hover:to-pink-500/70 transition-all duration-300 h-full">
           <div
             ref={containerRef}
-            className="w-full aspect-square relative overflow-hidden rounded-2xl bg-gray-900/95 backdrop-blur-xl cursor-ew-resize select-none"
+            className="w-full h-full relative overflow-hidden rounded-2xl bg-gray-900/95 backdrop-blur-xl cursor-ew-resize select-none"
+            style={{ touchAction: 'none' }}
             onMouseDown={handleStart}
             onTouchStart={handleStart}
-            style={{ touchAction: 'none' }}
           >
             {/* Generated Image (Behind) */}
             <div className="absolute inset-0">
               <img
                 src={generatedImageUrl}
                 alt="Stylized"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
                 draggable={false}
               />
               <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium">
@@ -87,7 +87,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
               <img
                 src={originalImageUrl}
                 alt="Original"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
                 draggable={false}
               />
               <div className="absolute bottom-3 left-3 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium">
@@ -122,7 +122,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
       </div>
 
       {/* Fixed height container for instructions to prevent layout shift */}
-      <div className="mt-6 flex items-center justify-center" style={{ minHeight: '72px' }}>
+      <div className="mt-2 flex items-center justify-center" style={{ minHeight: '40px' }}>
         <p className="text-sm text-gray-400 text-center">
           <span className="inline-flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

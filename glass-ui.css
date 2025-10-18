@@ -5,6 +5,24 @@ body {
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   font-weight: 300;
   letter-spacing: 0.02em;
+  /* Prevent overscroll bounce for native app feel */
+  overscroll-behavior: none;
+  /* Fix height for mobile browsers with collapsing address bars */
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+/* Root element height fix for mobile */
+html {
+  height: -webkit-fill-available;
+}
+
+/* Support for mobile safe areas (notched devices) */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
 }
 
 /* Headings maintain hierarchy with slightly bolder weight */
@@ -121,16 +139,29 @@ strong, b {
 
 /* Scrollable filters container */
 .scrollable-filters {
-  max-height: 60vh;
+  max-height: calc(100vh - 400px);
   overflow-y: auto;
   padding-right: 8px;
   margin-right: -8px;
 }
 
+/* Desktop: More conservative max-height to ensure action buttons visible */
+@media (min-width: 1024px) {
+  .scrollable-filters {
+    max-height: calc(100vh - 450px);
+  }
+  
+  /* Desktop right column - ensure it fits within viewport */
+  .desktop-controls-column {
+    max-height: calc(100vh - 100px);
+    overflow: visible;
+  }
+}
+
 /* Mobile adjustments for scrollable filters */
 @media (max-width: 768px) {
   .scrollable-filters {
-    max-height: 50vh;
+    max-height: calc(100vh - 300px);
     padding-right: 4px;
     margin-right: -4px;
   }
@@ -408,4 +439,109 @@ button, a, [role="button"] {
   }
 }
 
+/* ===== NATIVE APP LAYOUT UTILITIES ===== */
 
+/* Prevent page scrolling - only allow internal scrolling */
+.no-page-scroll {
+  overflow: hidden;
+  height: 100vh;
+  height: -webkit-fill-available;
+}
+
+/* Responsive image container heights based on device size */
+/* Default (Desktop): 280px reserved for UI - strict to prevent ANY scroll */
+.responsive-image-container {
+  max-height: calc(100vh - 280px);
+  min-height: 200px;
+  height: calc(100vh - 280px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.responsive-image-container > div {
+  max-height: 100%;
+  max-width: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Tablet (768px - 1024px): 260px reserved */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .responsive-image-container {
+    max-height: calc(100vh - 260px) !important;
+    height: calc(100vh - 260px) !important;
+    min-height: 200px !important;
+  }
+}
+
+/* Mobile (up to 768px): More aggressive space saving */
+@media (max-width: 768px) {
+  .responsive-image-container {
+    max-height: calc(100vh - 240px) !important;
+    height: calc(100vh - 240px) !important;
+    min-height: 180px !important;
+  }
+  
+  /* Tighter spacing on mobile */
+  .mobile-compact {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+}
+
+/* Small mobile (up to 640px): Even more aggressive */
+@media (max-width: 640px) {
+  .responsive-image-container {
+    max-height: calc(100vh - 220px) !important;
+    height: calc(100vh - 220px) !important;
+    min-height: 160px !important;
+  }
+}
+
+/* Landscape mobile optimizations */
+@media (max-height: 600px) and (orientation: landscape) {
+  /* More aggressive space saving in landscape */
+  header, footer {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+  }
+  
+  .responsive-image-container {
+    max-height: calc(100vh - 180px) !important;
+    height: calc(100vh - 180px) !important;
+    min-height: 140px !important;
+  }
+  
+  /* Make mobile bottom sheet more compact in landscape */
+  .landscape-compact-sheet {
+    max-height: 75vh !important;
+  }
+  
+  /* Reduce filter button sizes in landscape */
+  .landscape-compact-filters button {
+    height: 50px !important;
+    min-width: 100px !important;
+  }
+  
+  /* Smaller action buttons in landscape */
+  .landscape-compact-actions button {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+}
+
+/* Very short screens (portrait on small devices) */
+@media (max-height: 700px) {
+  .responsive-image-container {
+    max-height: calc(100vh - 240px) !important;
+    height: calc(100vh - 240px) !important;
+    min-height: 160px !important;
+  }
+}
+
+/* Prevent pull-to-refresh on mobile */
+.prevent-pull-refresh {
+  overscroll-behavior-y: contain;
+}
