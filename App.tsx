@@ -531,7 +531,7 @@ const App: React.FC = () => {
     }
 
     return (
-      <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row lg:space-x-8 items-start">
+      <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row lg:space-x-8 items-start overflow-hidden h-full">
         {/* Left Column: Image Display */}
         <div className="w-full lg:w-2/3">
           {isLoading || isTransitioning ? (
@@ -563,7 +563,7 @@ const App: React.FC = () => {
           )}
           
           {/* Comparison Mode Toggle - Always rendered outside conditional to prevent layout shift */}
-          <div className="flex justify-center" style={{ minHeight: '48px' }}>
+          <div className="flex justify-center" style={{ minHeight: '36px' }}>
             <div 
               style={{ 
                 opacity: generatedImageUrl && !isLoading ? 1 : 0,
@@ -579,7 +579,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Right Column: Controls - Hidden on mobile, shown on desktop */}
-        <div className="hidden lg:flex w-full lg:w-1/3 mt-8 lg:mt-0 flex-col">
+        <div className="hidden lg:flex w-full lg:w-1/3 mt-4 lg:mt-0 flex-col desktop-controls-column">
            {/* Style History */}
            {history.length > 0 && (
              <StyleHistory
@@ -591,7 +591,7 @@ const App: React.FC = () => {
            )}
            
            {/* Scrollable Filters Section */}
-           <div className="flex-1 glass-panel p-3 lg:p-6 mb-6 overflow-hidden flex flex-col">
+           <div className="flex-1 glass-panel p-3 lg:p-4 mb-3 overflow-hidden flex flex-col">
               <div className="flex-1 overflow-y-auto scrollable-filters">
                 <FilterSelector
                   categories={FILTER_CATEGORIES}
@@ -604,12 +604,12 @@ const App: React.FC = () => {
            </div>
 
            {/* Fixed Action Buttons */}
-           <div className="glass-panel p-6">
-              <div className="flex flex-col space-y-3">
+           <div className="glass-panel p-3 lg:p-4">
+              <div className="flex flex-col space-y-2">
                  <button
                   onClick={handleDownload}
                   disabled={!generatedImageUrl || isLoading}
-                  className="w-full px-6 py-3 bg-green-500/20 backdrop-blur-xl border border-green-400/30 text-green-100 font-semibold rounded-lg hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-300 disabled:bg-gray-500/20 disabled:border-gray-400/20 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center shadow-lg gap-2"
+                  className="w-full px-4 py-2.5 bg-green-500/20 backdrop-blur-xl border border-green-400/30 text-green-100 font-semibold rounded-lg hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-300 disabled:bg-gray-500/20 disabled:border-gray-400/20 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center shadow-lg gap-2"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -622,7 +622,7 @@ const App: React.FC = () => {
                 />
                 <button
                   onClick={handleTriggerFileInput}
-                  className="w-full px-6 py-3 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white font-medium rounded-lg hover:bg-white/[0.12] hover:border-white/20 transition-all duration-300 flex items-center justify-center gap-2"
+                  className="w-full px-4 py-2.5 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white font-medium rounded-lg hover:bg-white/[0.12] hover:border-white/20 transition-all duration-300 flex items-center justify-center gap-2"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
@@ -638,7 +638,7 @@ const App: React.FC = () => {
 
   return (
     <div 
-      className={`min-h-screen flex flex-col items-center justify-between p-4 md:p-8 font-sans text-gray-200 relative subtle-bg ${
+      className={`h-screen flex flex-col items-center overflow-hidden p-4 md:p-6 font-sans text-gray-200 relative subtle-bg ${
         isDragOver ? 'bg-blue-900/20' : ''
       }`}
       onDragEnter={handleDragEnter}
@@ -662,7 +662,7 @@ const App: React.FC = () => {
       )}
       
       <Header onLogoClick={handleReset} />
-      <main className="w-full flex-grow flex items-center justify-center px-4 my-8">
+      <main className="w-full flex-1 flex items-center justify-center px-4 overflow-hidden">
         {renderContent()}
       </main>
       <Footer 

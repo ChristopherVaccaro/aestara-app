@@ -31,15 +31,15 @@ const BlurredImageLoading: React.FC<BlurredImageLoadingProps> = ({
   }, [estimatedTimeMs]);
 
   return (
-    <div className="relative w-full aspect-square rounded-2xl overflow-hidden">
+    <div className="relative w-full responsive-image-container">
       {/* Gradient Border Wrapper */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50 p-[2px] rounded-2xl">
-        <div className="h-full w-full rounded-2xl bg-gray-900/95 backdrop-blur-xl overflow-hidden relative">
+      <div className="relative h-full bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50 p-[2px] rounded-2xl">
+        <div className="h-full w-full rounded-2xl bg-gray-900/95 backdrop-blur-xl overflow-hidden relative flex items-center justify-center">
           {/* Blurred Original Image */}
           <img 
             src={originalImageUrl} 
             alt="Processing" 
-            className="w-full h-full object-cover transition-all duration-300"
+            className="w-full h-full object-contain transition-all duration-300"
             style={{
               filter: `blur(${blurAmount}px) brightness(0.7)`,
             }}

@@ -111,7 +111,7 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
       {/* Bottom Sheet */}
       <div
         ref={sheetRef}
-        className={`absolute bottom-0 left-0 right-0 bg-gray-900/60 rounded-t-3xl shadow-2xl transition-all duration-300 ${
+        className={`absolute bottom-0 left-0 right-0 bg-gray-900/60 rounded-t-3xl shadow-2xl transition-all duration-300 landscape-compact-sheet ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{
@@ -136,8 +136,8 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
           <h3 className="text-lg font-semibold text-white text-center tracking-tight">Styles</h3>
         </div>
 
-        {/* Content */}
-        <div className="overflow-y-auto" style={{ maxHeight: 'calc(85vh - 180px)' }}>
+        {/* Scrollable Content Area - Filters and History Only */}
+        <div className="overflow-y-auto flex-1 landscape-compact-filters" style={{ maxHeight: 'calc(85vh - 240px)' }}>
           {/* Filter Selector - First */}
           <div className="py-4 border-b border-white/10">
             <div className="overflow-x-visible">
@@ -157,7 +157,7 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
 
           {/* Style History - Below Filter Selector */}
           {history.length > 0 && (
-            <div className="px-4 py-4 border-b border-white/10">
+            <div className="px-4 py-3 border-b border-white/10">
               <StyleHistory
                 history={history}
                 currentIndex={currentHistoryIndex}
@@ -166,15 +166,17 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
               />
             </div>
           )}
+        </div>
 
-          {/* Action Buttons - Below */}
-          <div className="px-4 py-4 space-y-2">
+        {/* Fixed Action Buttons - Always Visible at Bottom */}
+        <div className="border-t border-white/10 bg-gray-900/80 backdrop-blur-xl">
+          <div className="px-4 py-3 space-y-2 landscape-compact-actions">
             <button
               onClick={onDownload}
               disabled={!generatedImageUrl || isLoading}
-              className="w-full px-6 py-3 bg-green-500/20 backdrop-blur-xl border border-green-400/30 text-green-100 font-semibold rounded-lg hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-300 disabled:bg-gray-500/20 disabled:border-gray-400/20 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center shadow-lg gap-2"
+              className="w-full px-4 py-2.5 bg-green-500/20 backdrop-blur-xl border border-green-400/30 text-green-100 font-semibold rounded-lg hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-300 disabled:bg-gray-500/20 disabled:border-gray-400/20 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center shadow-lg gap-2 text-sm"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
               Download Image
@@ -187,9 +189,9 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
             
             <button
               onClick={onReset}
-              className="w-full px-4 py-3.5 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/15 active:bg-white/20 transition-colors duration-150 flex items-center justify-center gap-2"
+              className="w-full px-4 py-2.5 bg-white/10 text-white font-semibold rounded-lg hover:bg-white/15 active:bg-white/20 transition-colors duration-150 flex items-center justify-center gap-2 text-sm"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
               </svg>
               Upload New Image

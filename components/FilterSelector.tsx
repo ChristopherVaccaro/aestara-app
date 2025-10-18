@@ -49,11 +49,6 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
 
   return (
     <div className="w-full flex flex-col space-y-6">
-      {/* Header */}
-      <div className="hidden lg:flex items-center justify-between mb-2">
-        <h2 className="text-xl font-semibold text-white">Choose Your Style</h2>
-      </div>
-
       {/* Category Selection */}
       <div className="relative">
         {/* Desktop: Modern Dropdown */}
@@ -135,7 +130,7 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
       
       {/* Mobile & Tablet: Single horizontal row for selected category */}
       <div className="block lg:hidden w-full overflow-x-auto transition-opacity duration-150" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
-        <div className="inline-flex gap-3 pb-2 px-4" style={{whiteSpace: 'nowrap'}}>
+        <div className="inline-flex gap-2 pb-2 px-4" style={{whiteSpace: 'nowrap'}}>
           {categories
             .find(category => category.name === activeCategory)
             ?.filters.map((filter) => (
@@ -143,17 +138,17 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
                 key={filter.id}
                 onClick={() => onSelectFilter(filter)}
                 disabled={isLoading}
-                className="group relative inline-block min-w-[130px] h-[75px] rounded-2xl transition-colors duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed overflow-hidden align-top"
+                className="group relative inline-block min-w-[110px] h-[60px] rounded-xl transition-colors duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed overflow-hidden align-top"
                 style={{display: 'inline-flex', alignItems: 'center', justifyContent: 'center'}}
                 title={filter.name}
               >
                 {/* Background with gradient border effect */}
-                <div className={`absolute inset-0 rounded-2xl p-[1px] transition-all ${
+                <div className={`absolute inset-0 rounded-xl p-[1px] transition-all ${
                   filter.id === activeFilterId
                     ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500'
                     : 'bg-white/10 group-hover:bg-white/20'
                 }`}>
-                  <div className={`h-full w-full rounded-2xl transition-all ${
+                  <div className={`h-full w-full rounded-xl transition-all ${
                     filter.id === activeFilterId
                       ? 'bg-gradient-to-br from-blue-600/90 to-purple-600/90'
                       : 'bg-gray-800/90 group-hover:bg-gray-700/90'
@@ -161,7 +156,7 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
                 </div>
                 
                 {/* Content */}
-                <span className={`relative z-10 text-sm text-center px-3 leading-tight font-semibold ${
+                <span className={`relative z-10 text-xs text-center px-2 leading-tight font-semibold ${
                   filter.id === activeFilterId ? 'text-white' : 'text-gray-200'
                 }`}>
                   {filter.name}
@@ -178,22 +173,22 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
           return (
             <div key={category.name} className="hidden lg:block">
               {/* Desktop Grid - Optimized 2-column layout for better readability */}
-              <div className="hidden lg:grid grid-cols-2 gap-3">
+              <div className="hidden lg:grid grid-cols-2 gap-2.5">
                 {category.filters.map((filter) => (
                   <button
                     key={filter.id}
                     onClick={() => onSelectFilter(filter)}
                     disabled={isLoading}
-                    className="group relative h-[56px] rounded-xl transition-all duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center px-4 overflow-hidden hover:scale-[1.02] active:scale-[0.98]"
+                    className="group relative h-[48px] rounded-lg transition-all duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center px-3 overflow-hidden hover:scale-[1.02] active:scale-[0.98]"
                     title={filter.name}
                   >
                     {/* Background with gradient border effect */}
-                    <div className={`absolute inset-0 rounded-xl p-[1px] transition-all ${
+                    <div className={`absolute inset-0 rounded-lg p-[1px] transition-all ${
                       filter.id === activeFilterId
                         ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500'
                         : 'bg-white/10 group-hover:bg-gradient-to-r group-hover:from-blue-500/50 group-hover:via-purple-500/50 group-hover:to-pink-500/50'
                     }`}>
-                      <div className={`h-full w-full rounded-xl transition-all ${
+                      <div className={`h-full w-full rounded-lg transition-all ${
                         filter.id === activeFilterId
                           ? 'bg-gradient-to-br from-blue-600/90 to-purple-600/90'
                           : 'bg-gray-800/90 group-hover:bg-gray-700/90'
@@ -201,7 +196,7 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
                     </div>
                     
                     {/* Content */}
-                    <span className={`relative z-10 text-center text-[15px] leading-snug font-semibold ${
+                    <span className={`relative z-10 text-center text-sm leading-snug font-semibold ${
                       filter.id === activeFilterId ? 'text-white' : 'text-gray-200'
                     }`}>
                       {filter.name}
