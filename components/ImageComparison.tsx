@@ -122,7 +122,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
       </div>
 
       {/* Fixed height container for instructions to prevent layout shift */}
-      <div className="mt-2 flex items-center justify-center" style={{ minHeight: '40px' }}>
+      <div className="mt-2 flex items-center justify-center" style={{ minHeight: '48px' }}>
         <p className="text-sm text-gray-400 text-center">
           <span className="inline-flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

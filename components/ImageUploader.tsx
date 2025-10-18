@@ -81,9 +81,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
             <br />
             <span className="text-white">into Art with AI</span>
           </h1>
-          <p className="text-base md:text-lg text-gray-300 mb-3 font-light">
-            Apply 60+ artistic filters instantly — 100% free, no sign-up required.
-          </p>
         </div>
 
         {/* Main Upload Area - Modern Glass Design */}
