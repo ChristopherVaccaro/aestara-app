@@ -80,10 +80,15 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
     }
   };
 
-  // Prevent body scroll when open
+  // Reset transform and prevent body scroll when open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      // Reset any lingering transform from drag gestures
+      if (sheetRef.current) {
+        sheetRef.current.style.transform = '';
+        sheetRef.current.style.transition = '';
+      }
     } else {
       document.body.style.overflow = '';
     }
@@ -118,7 +123,6 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
           transitionTimingFunction: 'cubic-bezier(0.215, 0.61, 0.355, 1)',
           backdropFilter: isOpen ? 'blur(40px)' : 'blur(0px)',
           WebkitBackdropFilter: isOpen ? 'blur(40px)' : 'blur(0px)',
-          transform: 'translateZ(0)',
           willChange: 'transform, backdrop-filter',
         }}
       >
