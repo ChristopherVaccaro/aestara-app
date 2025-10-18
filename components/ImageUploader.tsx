@@ -89,7 +89,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
           onDragOver={handleDragOver}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
-          className={`group relative w-full max-w-3xl rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 ${
+          className={`group relative w-full max-w-3xl rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 mt-6 md:mt-8 ${
             isProcessing 
               ? 'scale-[0.98]' 
               : isDragging 
