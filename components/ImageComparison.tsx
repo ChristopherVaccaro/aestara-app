@@ -120,18 +120,6 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
         </div>
         </div>
       </div>
-
-      {/* Fixed height container for instructions to prevent layout shift */}
-      <div className="mt-2 flex items-center justify-center" style={{ minHeight: '48px' }}>
-        <p className="text-sm text-gray-400 text-center">
-          <span className="inline-flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-            </svg>
-            Drag to compare original and styled images
-          </span>
-        </p>
-      </div>
     </div>
   );
 };
