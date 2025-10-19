@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
-import Footer from './components/Footer';
 import ImageUploader from './components/ImageUploader';
 import ImageDisplay from './components/ImageDisplay';
 import FilterSelector from './components/FilterSelector';
@@ -687,11 +686,6 @@ const App: React.FC = () => {
       <main className="w-full flex-1 flex items-start justify-center px-4 overflow-hidden pt-4 md:pt-8">
         {renderContent()}
       </main>
-      <Footer 
-        onOpenTerms={() => setShowTerms(true)}
-        onOpenPrivacy={() => setShowPrivacy(true)}
-        onOpenFeedback={() => setShowFeedback(true)}
-      />
       {isPreviewOpen && generatedImageUrl && (
         <ImagePreviewModal 
           imageUrl={generatedImageUrl} 

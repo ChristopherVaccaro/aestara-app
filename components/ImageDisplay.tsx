@@ -100,7 +100,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
                     onDownload();
                   }}
                   disabled={!generatedImageUrl}
-                  className="w-12 h-12 rounded-full bg-green-500/90 hover:bg-green-500 backdrop-blur-md border border-green-400/50 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Download Image"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -116,7 +116,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
                       onShare();
                     }}
                     disabled={!generatedImageUrl}
-                    className="w-12 h-12 rounded-full bg-blue-500/90 hover:bg-blue-500 backdrop-blur-md border border-blue-400/50 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Share Image"
                   >
                     {/* Android Share Icon */}
@@ -133,7 +133,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
                       e.stopPropagation();
                       onOpenPreview();
                     }}
-                    className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/30 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                    className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
                     title="Enlarge Image"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

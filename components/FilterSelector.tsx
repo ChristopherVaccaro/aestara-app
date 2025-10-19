@@ -179,7 +179,7 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFil
                     key={filter.id}
                     onClick={() => onSelectFilter(filter)}
                     disabled={isLoading}
-                    className="group relative h-[48px] rounded-lg transition-all duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center px-3 overflow-hidden hover:scale-[1.02] active:scale-[0.98]"
+                    className="group relative h-[48px] rounded-lg transition-all duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center px-3 overflow-hidden"
                     title={filter.name}
                   >
                     {/* Background with gradient border effect */}
