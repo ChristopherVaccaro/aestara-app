@@ -8,24 +8,15 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 glass-modal" onClick={onClose}>
       <div 
-        className="glass-panel max-w-3xl w-full max-h-[90vh] overflow-y-auto p-8 relative"
+        className="glass-panel max-w-3xl w-full max-h-[90vh] flex flex-col relative"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-          aria-label="Close"
-        >
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto p-8 pb-4">
+          <h1 className="text-3xl font-bold text-white mb-2">Terms of Service</h1>
+          <p className="text-sm text-gray-400 mb-6">Last Updated: {new Date().toLocaleDateString()}</p>
 
-        <h1 className="text-3xl font-bold text-white mb-2">Terms of Service</h1>
-        <p className="text-sm text-gray-400 mb-6">Last Updated: {new Date().toLocaleDateString()}</p>
-
-        <div className="space-y-6 text-gray-300">
+          <div className="space-y-6 text-gray-300">
           <section>
             <h2 className="text-xl font-semibold text-white mb-3">1. Acceptance of Terms</h2>
             <p className="text-sm leading-relaxed">
@@ -138,9 +129,11 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onClose }) => {
               If you have questions about these Terms of Service, please use our Feedback form to contact us.
             </p>
           </section>
+          </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-gray-600">
+        {/* Fixed Close Button at Bottom */}
+        <div className="flex-shrink-0 p-6 border-t border-gray-600 bg-gray-900/95">
           <button
             onClick={onClose}
             className="w-full px-6 py-3 glass-button-active text-blue-100 font-semibold rounded-lg hover:bg-blue-500/40 transition-all duration-300"
