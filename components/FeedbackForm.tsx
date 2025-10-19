@@ -12,22 +12,13 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 glass-modal" onClick={onClose}>
       <div 
-        className="glass-panel max-w-lg w-full p-8 relative"
+        className="glass-panel max-w-lg w-full max-h-[90vh] flex flex-col relative"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-          aria-label="Close"
-        >
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-
-        {/* Header */}
-        <div className="text-center mb-6">
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto p-8 pb-4">
+          {/* Header */}
+          <div className="text-center mb-6">
           <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-blue-500/20 flex items-center justify-center">
             <svg className="w-8 h-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -86,10 +77,11 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ onClose }) => {
               </li>
             </ul>
           </div>
+          </div>
         </div>
 
-        {/* Close Button */}
-        <div className="mt-6">
+        {/* Fixed Close Button at Bottom */}
+        <div className="flex-shrink-0 p-6 border-t border-gray-600 bg-gray-900/95">
           <button
             onClick={onClose}
             className="w-full px-6 py-3 glass-button text-gray-300 font-medium rounded-lg hover:bg-white/[0.12] transition-all duration-300"
