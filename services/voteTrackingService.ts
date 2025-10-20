@@ -4,7 +4,7 @@
  * Uses Supabase for global voting system across all users
  * Automatically triggers prompt refinement when negative threshold is exceeded
  * Supports both authenticated users (via user_id) and anonymous users (via browser_id)
- * Voting is per-generation, not per-style (allows voting on same style multiple times)
+ * UNLIMITED VOTING - No restrictions on how many times users can vote
  */
 
 import { supabase } from '../utils/supabaseClient';
@@ -109,60 +109,30 @@ export async function loadPromptOverrides(): Promise<PromptOverrides> {
 }
 
 /**
- * Check if user has voted for this specific generation
- * Returns the vote record if found, null otherwise
+ * Get recent vote (DEPRECATED - no longer used for restrictions)
+ * Kept for backwards compatibility only
  */
 export async function getRecentVote(filterName: string, generationId: string): Promise<{ id: string; vote_type: string; created_at: string } | null> {
-  try {
-    const { userId, browserId } = await getUserIdentifier();
-    
-    let query = supabase
-      .from('user_votes')
-      .select('id, vote_type, created_at')
-      .eq('filter_name', filterName)
-      .eq('generation_id', generationId)
-      .order('created_at', { ascending: false })
-      .limit(1);
-    
-    // Check by user_id if authenticated, otherwise by browser_id
-    if (userId) {
-      query = query.eq('user_id', userId);
-    } else {
-      query = query.eq('browser_id', browserId);
-    }
-    
-    const { data } = await query.single();
-    
-    return data || null;
-  } catch (error) {
-    return null;
-  }
+  // No longer checks for existing votes - unlimited voting allowed
+  return null;
 }
 
 /**
- * Check if user has already voted for this specific generation
+ * Check if user has already voted (DEPRECATED - always returns false)
+ * Kept for backwards compatibility only
  */
 export async function hasUserVoted(filterName: string, generationId: string): Promise<boolean> {
-  const recentVote = await getRecentVote(filterName, generationId);
-  return !!recentVote;
+  // Always return false - unlimited voting allowed
+  return false;
 }
 
 /**
  * Record a vote for a specific generation
- * Each generation gets its own vote, allowing multiple votes on the same style
+ * UNLIMITED VOTING - No duplicate checks, users can vote as many times as they want
  */
 export async function recordVote(filterName: string, isPositive: boolean, generationId: string): Promise<boolean> {
   try {
     const { userId, browserId } = await getUserIdentifier();
-    
-    // Check if user has already voted for this specific generation
-    const existingGenerationVote = await getRecentVote(filterName, generationId);
-    
-    if (existingGenerationVote) {
-      console.log('User has already voted for this generation');
-      return false;
-    }
-    
     const newVoteType = isPositive ? 'up' : 'down';
     
     // Create new vote for this generation
