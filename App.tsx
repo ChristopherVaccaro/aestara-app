@@ -10,7 +10,6 @@ import ImageComparison from './components/ImageComparison';
 import StyleHistory, { HistoryItem } from './components/StyleHistory';
 import LoadingProgress from './components/LoadingProgress';
 import BlurredImageLoading from './components/BlurredImageLoading';
-import ComparisonModeToggle from './components/ComparisonModeToggle';
 import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import FeedbackForm from './components/FeedbackForm';
@@ -178,7 +177,6 @@ const App: React.FC = () => {
   // New UX improvements
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
-  const [useComparisonSlider, setUseComparisonSlider] = useState<boolean>(false);
   
   // Modal states
   const [showTerms, setShowTerms] = useState<boolean>(false);
@@ -652,11 +650,14 @@ const App: React.FC = () => {
               message={isTransitioning ? 'Finalizing...' : (activeFilter ? `Applying ${activeFilter.name}...` : 'Processing image...')}
               estimatedTimeMs={isTransitioning ? 300 : 10000}
             />
-          ) : generatedImageUrl && useComparisonSlider ? (
+          ) : generatedImageUrl ? (
             <ImageComparison
               originalImageUrl={originalImageUrl}
               generatedImageUrl={generatedImageUrl}
               activeFilterName={activeFilter?.name || 'Styled'}
+              onOpenPreview={handleOpenPreview}
+              onDownload={handleDownload}
+              onShare={handleShare}
             />
           ) : (
             <ImageDisplay
@@ -675,25 +676,11 @@ const App: React.FC = () => {
             />
           )}
           
-          {/* Comparison Mode Toggle - Always rendered outside conditional to prevent layout shift */}
-          <div className="flex justify-center" style={{ minHeight: '36px' }}>
-            <div 
-              style={{ 
-                opacity: generatedImageUrl && !isLoading ? 1 : 0,
-                pointerEvents: generatedImageUrl && !isLoading ? 'auto' : 'none'
-              }}
-            >
-              <ComparisonModeToggle
-                useSlider={useComparisonSlider}
-                onToggle={setUseComparisonSlider}
-              />
-            </div>
-          </div>
-          
           {/* Generation Feedback - Only show after successful generation */}
           {generatedImageUrl && !isLoading && activeFilter && currentGenerationId && (
             <GenerationFeedback
               filterName={activeFilter.id}
+              generationId={currentGenerationId}
               onVoteRecorded={handleVoteRecorded}
             />
           )}
