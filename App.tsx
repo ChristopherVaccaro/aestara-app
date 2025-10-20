@@ -21,11 +21,14 @@ import { Filter } from './types';
 import { applyImageFilter, refinePrompt } from './services/geminiService';
 import { ImageProcessor } from './utils/imageProcessor';
 import { GenerationFeedback } from './components/GenerationFeedback';
+import { useToast, ToastContainer } from './components/Toast';
 import {
   needsRefinement,
   getVoteStats,
   savePromptOverride,
   getActivePrompt,
+  VOTE_THRESHOLD,
+  NEGATIVE_RATIO_THRESHOLD,
 } from './services/voteTrackingService';
 
 interface FilterCategory {
@@ -164,6 +167,7 @@ const FILTER_CATEGORIES: FilterCategory[] = [
 ];
 
 const App: React.FC = () => {
+  const { toasts, addToast, removeToast } = useToast();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
@@ -407,7 +411,18 @@ const App: React.FC = () => {
       try {
         const stats = await getVoteStats(activeFilter.id);
         if (stats) {
-          console.log(`🔧 Refining prompt for ${activeFilter.name} due to ${stats.thumbsDown} negative votes...`);
+          const negativePercentage = Math.round((stats.thumbsDown / stats.totalVotes) * 100);
+          
+          console.log(`🔧 PROMPT REFINEMENT TRIGGERED for ${activeFilter.name}`);
+          console.log(`   Votes: ${stats.thumbsUp} 👍 / ${stats.thumbsDown} 👎 (${stats.totalVotes} total)`);
+          console.log(`   Negative ratio: ${negativePercentage}% (threshold: ${NEGATIVE_RATIO_THRESHOLD * 100}%)`);
+          console.log(`   Minimum votes: ${VOTE_THRESHOLD}`);
+          
+          // Show notification about refinement starting
+          addToast(
+            `🔧 Refining "${activeFilter.name}" prompt based on ${stats.thumbsDown} negative votes (${negativePercentage}% negative feedback)...`,
+            'info'
+          );
           
           const refinedPrompt = await refinePrompt(
             activeFilter.name,
@@ -421,17 +436,21 @@ const App: React.FC = () => {
             activeFilter.id,
             activeFilter.prompt,
             refinedPrompt,
-            `Auto-refined after receiving ${stats.thumbsDown}/${stats.totalVotes} negative votes`
+            `Auto-refined after receiving ${stats.thumbsDown}/${stats.totalVotes} negative votes (${negativePercentage}% negative)`
           );
           
           console.log(`✅ Prompt refined and saved for ${activeFilter.name}`);
+          console.log(`   New prompt: ${refinedPrompt.substring(0, 100)}...`);
           
-          // Show notification to user
-          setError(`✨ We've improved the ${activeFilter.name} style based on your feedback! Try it again for better results.`);
-          setTimeout(() => setError(null), 5000);
+          // Show success notification to user
+          addToast(
+            `✨ "${activeFilter.name}" style improved! The AI has updated the prompt based on ${stats.totalVotes} votes. Try it again for better results!`,
+            'success'
+          );
         }
       } catch (err) {
         console.error('Error refining prompt:', err);
+        addToast('Failed to refine prompt. Please try again.', 'error');
       } finally {
         setIsRefiningPrompt(false);
       }
@@ -785,6 +804,9 @@ const App: React.FC = () => {
       {/* Dev Mode Toggle (only in development) */}
       <DevModeToggle isDevMode={isDevMode} onToggle={handleDevModeToggle} />
       
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      
       {/* Mobile Bottom Sheet */}
       {originalImageUrl && (
         <>
@@ -812,8 +834,5 @@ const App: React.FC = () => {
 };
 
 export default App;
-
-
-
 
 
