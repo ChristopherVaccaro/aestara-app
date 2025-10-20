@@ -61,12 +61,14 @@ const simplifyPrompt = (prompt: string): string => {
 /**
  * Refine a prompt that has received negative feedback
  * Uses Gemini to analyze and improve the prompt based on common issues
+ * Now includes specific user-reported issues from feedback tags
  */
 export const refinePrompt = async (
   filterName: string,
   originalPrompt: string,
   thumbsUpCount: number,
-  thumbsDownCount: number
+  thumbsDownCount: number,
+  feedbackContext: string = ''
 ): Promise<string> => {
   try {
     const refinementPrompt = `You are an expert at crafting prompts for Gemini's image generation API. 
@@ -80,6 +82,7 @@ FEEDBACK STATS:
 - Thumbs Up: ${thumbsUpCount}
 - Thumbs Down: ${thumbsDownCount}
 - Negative Ratio: ${((thumbsDownCount / (thumbsUpCount + thumbsDownCount)) * 100).toFixed(1)}%
+${feedbackContext}
 
 Your task is to refine this prompt to produce better, more consistent results. Consider:
 1. Is the prompt too complex or vague?
@@ -87,6 +90,7 @@ Your task is to refine this prompt to produce better, more consistent results. C
 3. Could the style description be more specific and clear?
 4. Are there conflicting instructions?
 5. Would simpler, more direct language work better?
+${feedbackContext ? '6. Address the specific user-reported issues listed above' : ''}
 
 Provide ONLY the improved prompt text. Do not include explanations or meta-commentary. The prompt should:
 - Be clear and specific about the desired art style
@@ -94,6 +98,7 @@ Provide ONLY the improved prompt text. Do not include explanations or meta-comme
 - Use positive descriptions (what TO include) rather than negative (what to avoid)
 - Be concise but descriptive
 - Work well with the Gemini image generation API
+${feedbackContext ? '- Specifically address the user-reported issues' : ''}
 
 REFINED PROMPT:`;
 

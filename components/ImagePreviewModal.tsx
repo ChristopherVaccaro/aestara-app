@@ -9,7 +9,11 @@ interface ImagePreviewModalProps {
 const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose, filterName }) => {
   const touchStartY = useRef<number>(0);
   const touchEndY = useRef<number>(0);
+  
   useEffect(() => {
+    // Dispatch event to close any open dropdowns
+    window.dispatchEvent(new Event('modal-open'));
+    
     const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();

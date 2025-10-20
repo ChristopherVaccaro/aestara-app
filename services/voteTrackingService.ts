@@ -133,13 +133,13 @@ export async function hasUserVoted(filterName: string, generationId: string): Pr
  * UNLIMITED VOTING - No duplicate checks, users can vote as many times as they want
  * Automatically triggers AI refinement when net feedback reaches -5
  */
-export async function recordVote(filterName: string, isPositive: boolean, generationId: string, filterId?: string, currentPrompt?: string): Promise<boolean> {
+export async function recordVote(filterName: string, isPositive: boolean, generationId: string, filterId?: string, currentPrompt?: string): Promise<string | null> {
   try {
     const { userId, browserId } = await getUserIdentifier();
     const newVoteType = isPositive ? 'up' : 'down';
     
     // Create new vote for this generation
-    const { error: userVoteError } = await supabase
+    const { data: voteData, error: userVoteError } = await supabase
       .from('user_votes')
       .insert({
         user_id: userId,
@@ -147,9 +147,13 @@ export async function recordVote(filterName: string, isPositive: boolean, genera
         filter_name: filterName,
         vote_type: newVoteType,
         generation_id: generationId,
-      });
+      })
+      .select('id')
+      .single();
     
     if (userVoteError) throw userVoteError;
+    
+    const voteId = voteData?.id;
     
     // Update the global vote count for this style
     const { data: styleVoteData } = await supabase
@@ -210,10 +214,10 @@ export async function recordVote(filterName: string, isPositive: boolean, genera
       }
     }
     
-    return true;
+    return voteId || null;
   } catch (error) {
     console.error('Error recording vote:', error);
-    return false;
+    return null;
   }
 }
 
@@ -400,6 +404,7 @@ export async function clearAllVoteData(): Promise<void> {
 /**
  * Trigger automatic AI refinement for a prompt with poor feedback
  * Runs in background without blocking vote recording
+ * Now includes detailed feedback tag analysis for more targeted improvements
  */
 async function triggerAutoRefinement(
   filterId: string,
@@ -411,8 +416,28 @@ async function triggerAutoRefinement(
   try {
     console.log(`🤖 Starting AI refinement for ${filterName}...`);
     
-    // Call Gemini to refine the prompt
-    const refinedPrompt = await refinePrompt(filterName, currentPrompt, thumbsUp, thumbsDown);
+    // Get detailed feedback tag data
+    const { getTopFeedbackIssues } = await import('./feedbackTagService');
+    const topIssues = await getTopFeedbackIssues(filterId, 10);
+    
+    // Build feedback context for AI
+    let feedbackContext = '';
+    if (topIssues.length > 0) {
+      feedbackContext = '\n\nSPECIFIC USER-REPORTED ISSUES:\n';
+      topIssues.forEach((issue, index) => {
+        feedbackContext += `${index + 1}. ${issue.tag.tag_label} (${issue.count} reports): ${issue.tag.tag_description || 'No description'}\n`;
+      });
+      feedbackContext += '\nFocus on addressing these specific issues in your refinement.';
+    }
+    
+    // Call Gemini to refine the prompt with detailed feedback
+    const refinedPrompt = await refinePrompt(
+      filterName, 
+      currentPrompt, 
+      thumbsUp, 
+      thumbsDown,
+      feedbackContext
+    );
     
     if (!refinedPrompt || refinedPrompt === currentPrompt) {
       console.warn('AI returned no changes or same prompt');
@@ -421,7 +446,10 @@ async function triggerAutoRefinement(
     
     // Update prompt in database
     const netFeedback = thumbsUp - thumbsDown;
-    const refinementReason = `Net feedback reached ${netFeedback} (${thumbsUp} up, ${thumbsDown} down)`;
+    const issuesSummary = topIssues.length > 0 
+      ? ` Top issues: ${topIssues.slice(0, 3).map(i => i.tag.tag_label).join(', ')}`
+      : '';
+    const refinementReason = `Net feedback reached ${netFeedback} (${thumbsUp} up, ${thumbsDown} down).${issuesSummary}`;
     
     const success = await updatePrompt(filterId, refinedPrompt, refinementReason);
     
@@ -429,6 +457,9 @@ async function triggerAutoRefinement(
       console.log(`✅ Successfully refined prompt for ${filterName}`);
       console.log(`Old: ${currentPrompt.substring(0, 80)}...`);
       console.log(`New: ${refinedPrompt.substring(0, 80)}...`);
+      if (topIssues.length > 0) {
+        console.log(`Addressed ${topIssues.length} specific user-reported issues`);
+      }
       
       // Note: We're NOT resetting votes here - keeping historical data
       // Net feedback is reset in the style_prompts table only

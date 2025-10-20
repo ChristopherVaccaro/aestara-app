@@ -5,12 +5,17 @@ interface FeedbackFormProps {
 }
 
 const FeedbackForm: React.FC<FeedbackFormProps> = ({ onClose }) => {
+  // Dispatch event to close any open dropdowns
+  React.useEffect(() => {
+    window.dispatchEvent(new Event('modal-open'));
+  }, []);
+
   const handleEmailClick = () => {
     window.location.href = 'mailto:therise03@hotmail.com?subject=AI Image Stylizer - Feedback';
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 glass-modal" onClick={onClose}>
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 glass-modal" onClick={onClose}>
       <div 
         className="glass-panel max-w-lg w-full max-h-[90vh] flex flex-col relative"
         onClick={(e) => e.stopPropagation()}

@@ -5,8 +5,13 @@ interface PrivacyPolicyProps {
 }
 
 const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onClose }) => {
+  // Dispatch event to close any open dropdowns
+  React.useEffect(() => {
+    window.dispatchEvent(new Event('modal-open'));
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 glass-modal" onClick={onClose}>
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 glass-modal" onClick={onClose}>
       <div 
         className="glass-panel max-w-3xl w-full max-h-[90vh] flex flex-col relative"
         onClick={(e) => e.stopPropagation()}

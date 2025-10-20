@@ -18,7 +18,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside or when modals open
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -26,9 +26,17 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
       }
     };
 
+    const handleModalOpen = () => {
+      setIsDropdownOpen(false);
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
+    // Listen for modal open events (custom event or focus trap)
+    window.addEventListener('modal-open', handleModalOpen);
+    
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('modal-open', handleModalOpen);
     };
   }, []);
 
@@ -65,7 +73,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
           
           {/* Dropdown Menu */}
           {isDropdownOpen && (
-            <div className="absolute top-full left-0 right-0 mt-3 bg-gray-800/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl overflow-hidden p-2" style={{ zIndex: 9999 }}>
+            <div className="absolute top-full left-0 right-0 mt-3 bg-gray-800/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl overflow-hidden p-2 z-[100]">
               {categories.map((category) => (
                 <button
                   key={category.name}
