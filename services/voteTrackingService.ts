@@ -9,6 +9,8 @@
 
 import { supabase } from '../utils/supabaseClient';
 import { getBrowserId } from '../utils/browserFingerprint';
+import { refinePrompt } from './geminiService';
+import { updatePrompt, updateNetFeedback } from './promptService';
 
 /**
  * Get user identifier - uses authenticated user ID if available, otherwise browser fingerprint
@@ -129,8 +131,9 @@ export async function hasUserVoted(filterName: string, generationId: string): Pr
 /**
  * Record a vote for a specific generation
  * UNLIMITED VOTING - No duplicate checks, users can vote as many times as they want
+ * Automatically triggers AI refinement when net feedback reaches -5
  */
-export async function recordVote(filterName: string, isPositive: boolean, generationId: string): Promise<boolean> {
+export async function recordVote(filterName: string, isPositive: boolean, generationId: string, filterId?: string, currentPrompt?: string): Promise<boolean> {
   try {
     const { userId, browserId } = await getUserIdentifier();
     const newVoteType = isPositive ? 'up' : 'down';
@@ -157,13 +160,19 @@ export async function recordVote(filterName: string, isPositive: boolean, genera
       .limit(1)
       .single();
     
+    let updatedThumbsUp = 0;
+    let updatedThumbsDown = 0;
+    
     if (styleVoteData) {
       // Update existing vote count
+      updatedThumbsUp = newVoteType === 'up' ? styleVoteData.thumbs_up + 1 : styleVoteData.thumbs_up;
+      updatedThumbsDown = newVoteType === 'down' ? styleVoteData.thumbs_down + 1 : styleVoteData.thumbs_down;
+      
       const { error: updateError } = await supabase
         .from('style_votes')
         .update({
-          thumbs_up: newVoteType === 'up' ? styleVoteData.thumbs_up + 1 : styleVoteData.thumbs_up,
-          thumbs_down: newVoteType === 'down' ? styleVoteData.thumbs_down + 1 : styleVoteData.thumbs_down,
+          thumbs_up: updatedThumbsUp,
+          thumbs_down: updatedThumbsDown,
           total_votes: styleVoteData.total_votes + 1,
           last_modified: new Date().toISOString(),
         })
@@ -172,16 +181,33 @@ export async function recordVote(filterName: string, isPositive: boolean, genera
       if (updateError) throw updateError;
     } else {
       // Create new vote record for this style
+      updatedThumbsUp = newVoteType === 'up' ? 1 : 0;
+      updatedThumbsDown = newVoteType === 'down' ? 1 : 0;
+      
       const { error: insertError } = await supabase
         .from('style_votes')
         .insert({
           filter_name: filterName,
-          thumbs_up: newVoteType === 'up' ? 1 : 0,
-          thumbs_down: newVoteType === 'down' ? 1 : 0,
+          thumbs_up: updatedThumbsUp,
+          thumbs_down: updatedThumbsDown,
           total_votes: 1,
         });
       
       if (insertError) throw insertError;
+    }
+    
+    // Update net feedback in style_prompts table
+    if (filterId) {
+      const delta = isPositive ? 1 : -1;
+      await updateNetFeedback(filterId, delta);
+      
+      // Check if automatic refinement is needed (net_feedback <= -5)
+      const netFeedback = updatedThumbsUp - updatedThumbsDown;
+      if (netFeedback <= -5 && filterId && currentPrompt) {
+        console.log(`🤖 Auto-refinement triggered for ${filterName} (net feedback: ${netFeedback})`);
+        // Trigger AI refinement in background (don't block vote recording)
+        triggerAutoRefinement(filterId, filterName, currentPrompt, updatedThumbsUp, updatedThumbsDown);
+      }
     }
     
     return true;
@@ -368,5 +394,49 @@ export async function clearAllVoteData(): Promise<void> {
     console.log('All vote data cleared');
   } catch (error) {
     console.error('Error clearing vote data:', error);
+  }
+}
+
+/**
+ * Trigger automatic AI refinement for a prompt with poor feedback
+ * Runs in background without blocking vote recording
+ */
+async function triggerAutoRefinement(
+  filterId: string,
+  filterName: string,
+  currentPrompt: string,
+  thumbsUp: number,
+  thumbsDown: number
+): Promise<void> {
+  try {
+    console.log(`🤖 Starting AI refinement for ${filterName}...`);
+    
+    // Call Gemini to refine the prompt
+    const refinedPrompt = await refinePrompt(filterName, currentPrompt, thumbsUp, thumbsDown);
+    
+    if (!refinedPrompt || refinedPrompt === currentPrompt) {
+      console.warn('AI returned no changes or same prompt');
+      return;
+    }
+    
+    // Update prompt in database
+    const netFeedback = thumbsUp - thumbsDown;
+    const refinementReason = `Net feedback reached ${netFeedback} (${thumbsUp} up, ${thumbsDown} down)`;
+    
+    const success = await updatePrompt(filterId, refinedPrompt, refinementReason);
+    
+    if (success) {
+      console.log(`✅ Successfully refined prompt for ${filterName}`);
+      console.log(`Old: ${currentPrompt.substring(0, 80)}...`);
+      console.log(`New: ${refinedPrompt.substring(0, 80)}...`);
+      
+      // Note: We're NOT resetting votes here - keeping historical data
+      // Net feedback is reset in the style_prompts table only
+    } else {
+      console.error('Failed to update refined prompt in database');
+    }
+  } catch (error) {
+    console.error('Error in auto-refinement:', error);
+    // Don't throw - we don't want to break vote recording
   }
 }

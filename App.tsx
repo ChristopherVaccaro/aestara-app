@@ -30,6 +30,12 @@ import {
   VOTE_THRESHOLD,
   NEGATIVE_RATIO_THRESHOLD,
 } from './services/voteTrackingService';
+import {
+  getPrompt,
+  refreshPromptCache,
+  seedAllPrompts,
+  incrementGenerationCount,
+} from './services/promptService';
 
 interface FilterCategory {
   name: string;
@@ -218,6 +224,30 @@ const App: React.FC = () => {
   // Vote tracking
   const [currentGenerationId, setCurrentGenerationId] = useState<string | null>(null);
   const [isRefiningPrompt, setIsRefiningPrompt] = useState<boolean>(false);
+  const [currentPromptUsed, setCurrentPromptUsed] = useState<string | null>(null);
+  
+  // Initialize prompts from database on mount
+  useEffect(() => {
+    const initializePrompts = async () => {
+      try {
+        await refreshPromptCache();
+        console.log('✅ Prompt cache initialized');
+        
+        // Auto-seed prompts on first load (runs once)
+        const hasSeeded = localStorage.getItem('prompts_seeded');
+        if (!hasSeeded) {
+          console.log('🌱 Seeding prompts to database...');
+          const allFilters = FILTER_CATEGORIES.flatMap(cat => cat.filters);
+          await seedAllPrompts(allFilters);
+          localStorage.setItem('prompts_seeded', 'true');
+          console.log('✅ Prompts seeded successfully!');
+        }
+      } catch (error) {
+        console.error('Error initializing prompts:', error);
+      }
+    };
+    initializePrompts();
+  }, []);
   
   const MAX_HISTORY = 15; // Limit history to prevent memory issues
 
@@ -337,11 +367,24 @@ const App: React.FC = () => {
         newImageUrl = originalImageUrl || '';
       } else {
         // Production mode: actual API call
-        // Check if there's a refined prompt override for this filter
-        const activePrompt = await getActivePrompt(filter.id, filter.prompt);
+        // Get prompt from database (falls back to hardcoded if not in DB yet)
+        let activePrompt = await getPrompt(filter.id);
+        
+        // Fallback to hardcoded prompt if not in database
+        if (!activePrompt) {
+          console.warn(`Prompt not in DB for ${filter.id}, using hardcoded version`);
+          activePrompt = filter.prompt;
+        }
+        
+        // Store the prompt used for this generation (needed for auto-refinement)
+        setCurrentPromptUsed(activePrompt);
+        
         const composedPrompt = `${STYLE_TRANSFER_CONSTRAINTS}\n\n${activePrompt}`;
         const base64Data = await applyImageFilter(imageFile, composedPrompt);
         newImageUrl = `data:image/png;base64,${base64Data}`;
+        
+        // Increment generation count for analytics
+        await incrementGenerationCount(filter.id);
       }
       
       // Start transition effect
@@ -700,6 +743,8 @@ const App: React.FC = () => {
             <GenerationFeedback
               filterName={activeFilter.id}
               generationId={currentGenerationId}
+              filterId={activeFilter.id}
+              currentPrompt={currentPromptUsed || undefined}
               onVoteRecorded={handleVoteRecorded}
             />
           )}
