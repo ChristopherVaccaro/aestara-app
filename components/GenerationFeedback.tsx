@@ -4,11 +4,13 @@ import { recordVote, getVoteStats, VOTE_THRESHOLD } from '../services/voteTracki
 
 interface GenerationFeedbackProps {
   filterName: string;
+  generationId: string;
   onVoteRecorded?: (isPositive: boolean) => void;
 }
 
 export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
   filterName,
+  generationId,
   onVoteRecorded,
 }) => {
   const [voted, setVoted] = useState<'up' | 'down' | null>(null);
@@ -21,13 +23,13 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
     setIsAnimating(true);
     
     // Record the vote
-    const success = await recordVote(filterName, isPositive);
+    const success = await recordVote(filterName, isPositive, generationId);
     
     if (!success) {
       // User already voted within 2 hours, reset UI
       setVoted(null);
       setIsAnimating(false);
-      alert('You have already voted for this style within the last 2 hours. You can vote again after 2 hours.');
+      alert('You have already voted for this generation. Apply the style again to vote on a new result.');
       return;
     }
     

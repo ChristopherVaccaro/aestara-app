@@ -4,14 +4,20 @@ interface ImageComparisonProps {
   originalImageUrl: string;
   generatedImageUrl: string;
   activeFilterName: string;
+  onOpenPreview: () => void;
+  onDownload: () => void;
+  onShare?: () => void;
 }
 
 const ImageComparison: React.FC<ImageComparisonProps> = ({
   originalImageUrl,
   generatedImageUrl,
   activeFilterName,
+  onOpenPreview,
+  onDownload,
+  onShare,
 }) => {
-  const [sliderPosition, setSliderPosition] = useState(50);
+  const [sliderPosition, setSliderPosition] = useState(25);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -95,29 +101,88 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
               </div>
             </div>
 
-        {/* Slider Line and Handle */}
-        <div
-          className="absolute top-0 bottom-0 w-1 bg-white shadow-lg z-10"
-          style={{ left: `${sliderPosition}%` }}
-        >
-          {/* Handle */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-2xl flex items-center justify-center border-4 border-gray-900">
-            <svg
-              className="w-6 h-6 text-gray-900"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+            {/* Slider Line and Handle */}
+            <div
+              className="absolute top-0 bottom-0 w-1 bg-white shadow-lg z-10"
+              style={{ left: `${sliderPosition}%` }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M8 7l-4 5 4 5M16 7l4 5-4 5"
-              />
-            </svg>
+              {/* Handle */}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-2xl flex items-center justify-center border-4 border-gray-900">
+                <svg
+                  className="w-6 h-6 text-gray-900"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M8 7l-4 5 4 5M16 7l4 5-4 5"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            {/* Circular Action Buttons - Top Right */}
+            <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
+              {/* Download Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDownload();
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onMouseUp={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
+                className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                title="Download Image"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+
+              {/* Share Button */}
+              {onShare && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShare();
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onMouseUp={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchEnd={(e) => e.stopPropagation()}
+                  className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                  title="Share Image"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+                  </svg>
+                </button>
+              )}
+
+              {/* Enlarge/Preview Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenPreview();
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onMouseUp={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
+                className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                title="Enlarge Image"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                </svg>
+              </button>
+            </div>
           </div>
-        </div>
-        </div>
         </div>
       </div>
     </div>
