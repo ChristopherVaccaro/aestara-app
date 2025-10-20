@@ -17,24 +17,19 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
   const [isAnimating, setIsAnimating] = useState(false);
 
   const handleVote = async (isPositive: boolean) => {
-    if (voted) return; // Only allow one vote per generation
-
+    // UNLIMITED VOTING - Allow multiple votes
     setVoted(isPositive ? 'up' : 'down');
     setIsAnimating(true);
     
-    // Record the vote
-    const success = await recordVote(filterName, isPositive, generationId);
-    
-    if (!success) {
-      // User already voted within 2 hours, reset UI
-      setVoted(null);
-      setIsAnimating(false);
-      alert('You have already voted for this generation. Apply the style again to vote on a new result.');
-      return;
-    }
+    // Record the vote (always succeeds now)
+    await recordVote(filterName, isPositive, generationId);
     
     // Trigger animation
-    setTimeout(() => setIsAnimating(false), 300);
+    setTimeout(() => {
+      setIsAnimating(false);
+      // Reset voted state after animation to allow re-voting
+      setTimeout(() => setVoted(null), 1000);
+    }, 300);
     
     // Notify parent component
     onVoteRecorded?.(isPositive);
