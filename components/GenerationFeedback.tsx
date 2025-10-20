@@ -57,17 +57,13 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
         
         <button
           onClick={() => handleVote(true)}
-          disabled={voted !== null}
           className={`
             p-2 rounded-lg transition-all duration-200
             ${voted === 'up' 
               ? 'bg-green-500/20 text-green-400 scale-110' 
-              : voted === 'down'
-              ? 'opacity-30 cursor-not-allowed'
               : 'hover:bg-white/10 text-white/70 hover:text-white hover:scale-110'
             }
             ${isAnimating && voted === 'up' ? 'animate-bounce' : ''}
-            disabled:cursor-not-allowed
           `}
           aria-label="Thumbs up"
         >
@@ -76,17 +72,13 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
 
         <button
           onClick={() => handleVote(false)}
-          disabled={voted !== null}
           className={`
             p-2 rounded-lg transition-all duration-200
             ${voted === 'down' 
               ? 'bg-red-500/20 text-red-400 scale-110' 
-              : voted === 'up'
-              ? 'opacity-30 cursor-not-allowed'
               : 'hover:bg-white/10 text-white/70 hover:text-white hover:scale-110'
             }
             ${isAnimating && voted === 'down' ? 'animate-bounce' : ''}
-            disabled:cursor-not-allowed
           `}
           aria-label="Thumbs down"
         >
