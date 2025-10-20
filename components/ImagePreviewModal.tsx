@@ -73,7 +73,8 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose
 
   return (
     <div
-      className="fixed inset-0 z-50 glass-modal"
+      className="fixed inset-0 glass-modal"
+      style={{ zIndex: 10000 }}
       onClick={onClose}
       aria-modal="true"
       role="dialog"
