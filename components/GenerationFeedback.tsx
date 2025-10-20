@@ -24,10 +24,10 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
     const success = await recordVote(filterName, isPositive);
     
     if (!success) {
-      // User already voted, reset UI
+      // User already voted within 2 hours, reset UI
       setVoted(null);
       setIsAnimating(false);
-      alert('You have already voted for this style!');
+      alert('You have already voted for this style within the last 2 hours. You can vote again after 2 hours.');
       return;
     }
     
@@ -56,7 +56,7 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
   return (
     <div className="flex items-center justify-center gap-4 mt-3">
       <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
-        <span className="text-sm text-white/60">Rate this generation:</span>
+        <span className="text-sm text-white/60">Rate this image:</span>
         
         <button
           onClick={() => handleVote(true)}

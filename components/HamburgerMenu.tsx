@@ -3,6 +3,7 @@ import { Menu, X, FileText, Shield, MessageCircle } from 'lucide-react';
 import FeedbackForm from './FeedbackForm';
 import TermsOfService from './TermsOfService';
 import PrivacyPolicy from './PrivacyPolicy';
+import { AuthButton } from './AuthButton';
 
 const HamburgerMenu: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -56,6 +57,11 @@ const HamburgerMenu: React.FC = () => {
         }`}
       >
         <div className="flex flex-col h-full pt-20 px-4">
+          {/* Auth Button */}
+          <div className="mb-4">
+            <AuthButton />
+          </div>
+
           {/* Menu Items */}
           <nav className="flex flex-col space-y-2">
             <button

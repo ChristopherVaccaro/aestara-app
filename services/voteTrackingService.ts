@@ -3,10 +3,23 @@
  * Tracks user feedback (thumbs up/down) for each art style generation
  * Uses Supabase for global voting system across all users
  * Automatically triggers prompt refinement when negative threshold is exceeded
+ * Supports both authenticated users (via user_id) and anonymous users (via browser_id)
  */
 
 import { supabase } from '../utils/supabaseClient';
 import { getBrowserId } from '../utils/browserFingerprint';
+
+/**
+ * Get user identifier - uses authenticated user ID if available, otherwise browser fingerprint
+ */
+export async function getUserIdentifier(): Promise<{ userId: string | null; browserId: string }> {
+  const browserId = getBrowserId();
+  const { data: { user } } = await supabase.auth.getUser();
+  return {
+    userId: user?.id || null,
+    browserId,
+  };
+}
 
 export interface StyleVotes {
   thumbsUp: number;
@@ -95,85 +108,190 @@ export async function loadPromptOverrides(): Promise<PromptOverrides> {
 }
 
 /**
- * Check if user has already voted for this filter
+ * Check if user has voted for this filter within the last 2 hours
+ * Returns the vote record if found and still within time window, null otherwise
  */
-export async function hasUserVoted(filterName: string): Promise<boolean> {
+export async function getRecentVote(filterName: string): Promise<{ id: string; vote_type: string; created_at: string } | null> {
   try {
-    const browserId = getBrowserId();
-    const { data, error } = await supabase
-      .from('user_votes')
-      .select('id')
-      .eq('browser_id', browserId)
-      .eq('filter_name', filterName)
-      .order('created_at', { ascending: false }) // Force fresh data
-      .limit(1)
-      .single();
+    const { userId, browserId } = await getUserIdentifier();
     
-    return !!data;
+    let query = supabase
+      .from('user_votes')
+      .select('id, vote_type, created_at')
+      .eq('filter_name', filterName)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    
+    // Check by user_id if authenticated, otherwise by browser_id
+    if (userId) {
+      query = query.eq('user_id', userId);
+    } else {
+      query = query.eq('browser_id', browserId);
+    }
+    
+    const { data } = await query.single();
+    
+    if (!data) return null;
+    
+    // Check if vote is within 2 hour window
+    const voteTime = new Date(data.created_at).getTime();
+    const now = Date.now();
+    const twoHoursInMs = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+    
+    if (now - voteTime < twoHoursInMs) {
+      return data;
+    }
+    
+    return null;
   } catch (error) {
-    return false;
+    return null;
   }
 }
 
 /**
+ * Check if user has already voted for this filter (within 2 hour window)
+ */
+export async function hasUserVoted(filterName: string): Promise<boolean> {
+  const recentVote = await getRecentVote(filterName);
+  return !!recentVote;
+}
+
+/**
  * Record a vote for a specific filter
+ * If user voted within 2 hours, prevents duplicate vote
+ * If user voted more than 2 hours ago, updates their vote
  */
 export async function recordVote(filterName: string, isPositive: boolean): Promise<boolean> {
   try {
-    const browserId = getBrowserId();
+    const { userId, browserId } = await getUserIdentifier();
     
-    // Check if user already voted
-    const alreadyVoted = await hasUserVoted(filterName);
-    if (alreadyVoted) {
-      console.log('User has already voted for this filter');
+    // Check if user has a recent vote (within 2 hours)
+    const recentVote = await getRecentVote(filterName);
+    
+    if (recentVote) {
+      console.log('User has already voted for this filter within the last 2 hours');
       return false;
     }
     
-    // Record the user's vote
-    const { error: userVoteError } = await supabase
+    // Check if user has an old vote (more than 2 hours ago)
+    let query = supabase
       .from('user_votes')
-      .insert({
-        browser_id: browserId,
-        filter_name: filterName,
-        vote_type: isPositive ? 'up' : 'down',
-      });
-    
-    if (userVoteError) throw userVoteError;
-    
-    // Update the global vote count
-    const { data: existingVote } = await supabase
-      .from('style_votes')
-      .select('*')
+      .select('id, vote_type')
       .eq('filter_name', filterName)
-      .order('last_modified', { ascending: false }) // Force fresh data
-      .limit(1)
-      .single();
+      .order('created_at', { ascending: false })
+      .limit(1);
     
-    if (existingVote) {
-      // Update existing vote count
+    if (userId) {
+      query = query.eq('user_id', userId);
+    } else {
+      query = query.eq('browser_id', browserId);
+    }
+    
+    const { data: oldVote } = await query.single();
+    
+    const newVoteType = isPositive ? 'up' : 'down';
+    
+    if (oldVote) {
+      // User has an old vote - update it and adjust global counts
+      const oldVoteType = oldVote.vote_type;
+      
+      // Update the user's vote record
       const { error: updateError } = await supabase
-        .from('style_votes')
+        .from('user_votes')
         .update({
-          thumbs_up: isPositive ? existingVote.thumbs_up + 1 : existingVote.thumbs_up,
-          thumbs_down: isPositive ? existingVote.thumbs_down : existingVote.thumbs_down + 1,
-          total_votes: existingVote.total_votes + 1,
-          last_modified: new Date().toISOString(),
+          vote_type: newVoteType,
+          created_at: new Date().toISOString(),
         })
-        .eq('filter_name', filterName);
+        .eq('id', oldVote.id);
       
       if (updateError) throw updateError;
-    } else {
-      // Create new vote record
-      const { error: insertError } = await supabase
+      
+      // Adjust global vote counts
+      const { data: existingVote } = await supabase
         .from('style_votes')
+        .select('*')
+        .eq('filter_name', filterName)
+        .order('last_modified', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (existingVote) {
+        let newThumbsUp = existingVote.thumbs_up;
+        let newThumbsDown = existingVote.thumbs_down;
+        
+        // Remove old vote
+        if (oldVoteType === 'up') {
+          newThumbsUp = Math.max(0, newThumbsUp - 1);
+        } else {
+          newThumbsDown = Math.max(0, newThumbsDown - 1);
+        }
+        
+        // Add new vote
+        if (newVoteType === 'up') {
+          newThumbsUp += 1;
+        } else {
+          newThumbsDown += 1;
+        }
+        
+        const { error: updateVoteError } = await supabase
+          .from('style_votes')
+          .update({
+            thumbs_up: newThumbsUp,
+            thumbs_down: newThumbsDown,
+            last_modified: new Date().toISOString(),
+          })
+          .eq('filter_name', filterName);
+        
+        if (updateVoteError) throw updateVoteError;
+      }
+    } else {
+      // User has never voted - create new vote
+      const { error: userVoteError } = await supabase
+        .from('user_votes')
         .insert({
+          user_id: userId,
+          browser_id: browserId,
           filter_name: filterName,
-          thumbs_up: isPositive ? 1 : 0,
-          thumbs_down: isPositive ? 0 : 1,
-          total_votes: 1,
+          vote_type: newVoteType,
         });
       
-      if (insertError) throw insertError;
+      if (userVoteError) throw userVoteError;
+      
+      // Update the global vote count
+      const { data: existingVote } = await supabase
+        .from('style_votes')
+        .select('*')
+        .eq('filter_name', filterName)
+        .order('last_modified', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (existingVote) {
+        // Update existing vote count
+        const { error: updateError } = await supabase
+          .from('style_votes')
+          .update({
+            thumbs_up: newVoteType === 'up' ? existingVote.thumbs_up + 1 : existingVote.thumbs_up,
+            thumbs_down: newVoteType === 'down' ? existingVote.thumbs_down + 1 : existingVote.thumbs_down,
+            total_votes: existingVote.total_votes + 1,
+            last_modified: new Date().toISOString(),
+          })
+          .eq('filter_name', filterName);
+        
+        if (updateError) throw updateError;
+      } else {
+        // Create new vote record
+        const { error: insertError } = await supabase
+          .from('style_votes')
+          .insert({
+            filter_name: filterName,
+            thumbs_up: newVoteType === 'up' ? 1 : 0,
+            thumbs_down: newVoteType === 'down' ? 1 : 0,
+            total_votes: 1,
+          });
+        
+        if (insertError) throw insertError;
+      }
     }
     
     return true;
