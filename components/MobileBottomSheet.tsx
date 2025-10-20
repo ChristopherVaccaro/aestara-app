@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import FilterSelector from './FilterSelector';
+import CategorySelector from './CategorySelector';
 import StyleHistory, { HistoryItem } from './StyleHistory';
 import { Filter } from '../types';
 
@@ -21,6 +22,8 @@ interface MobileBottomSheetProps {
   currentHistoryIndex: number;
   onSelectHistory: (index: number) => void;
   onClearHistory: () => void;
+  activeCategory: string;
+  onCategoryChange: (category: string) => void;
 }
 
 const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
@@ -36,6 +39,8 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
   currentHistoryIndex,
   onSelectHistory,
   onClearHistory,
+  activeCategory,
+  onCategoryChange,
 }) => {
   const sheetRef = useRef<HTMLDivElement>(null);
   const startY = useRef<number>(0);
@@ -146,9 +151,18 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
           <h3 className="text-lg font-semibold text-white text-center tracking-tight">Styles</h3>
         </div>
 
-        {/* Scrollable Content Area - Filters and History Only */}
+        {/* Scrollable Content Area - Category, Filters and History */}
         <div className="overflow-y-auto flex-1 landscape-compact-filters" style={{ maxHeight: 'calc(85vh - 240px)' }}>
-          {/* Filter Selector - First */}
+          {/* Category Selector - First */}
+          <div className="py-4 border-b border-white/10">
+            <CategorySelector
+              categories={categories}
+              activeCategory={activeCategory}
+              onCategoryChange={onCategoryChange}
+            />
+          </div>
+
+          {/* Filter Selector - Second */}
           <div className="py-4 border-b border-white/10">
             <div className="overflow-x-visible">
               <FilterSelector
@@ -161,6 +175,8 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
                 onClearFilter={onClearFilter}
                 isLoading={isLoading}
                 activeFilterId={activeFilterId}
+                activeCategory={activeCategory}
+                onCategoryChange={onCategoryChange}
               />
             </div>
           </div>

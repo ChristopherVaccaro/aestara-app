@@ -58,6 +58,68 @@ const simplifyPrompt = (prompt: string): string => {
   return simplified;
 };
 
+/**
+ * Refine a prompt that has received negative feedback
+ * Uses Gemini to analyze and improve the prompt based on common issues
+ */
+export const refinePrompt = async (
+  filterName: string,
+  originalPrompt: string,
+  thumbsUpCount: number,
+  thumbsDownCount: number
+): Promise<string> => {
+  try {
+    const refinementPrompt = `You are an expert at crafting prompts for Gemini's image generation API. 
+
+A user has been using this art style prompt but it has received negative feedback:
+
+FILTER NAME: ${filterName}
+CURRENT PROMPT: ${originalPrompt}
+
+FEEDBACK STATS:
+- Thumbs Up: ${thumbsUpCount}
+- Thumbs Down: ${thumbsDownCount}
+- Negative Ratio: ${((thumbsDownCount / (thumbsUpCount + thumbsDownCount)) * 100).toFixed(1)}%
+
+Your task is to refine this prompt to produce better, more consistent results. Consider:
+1. Is the prompt too complex or vague?
+2. Does it contain words that might trigger safety filters?
+3. Could the style description be more specific and clear?
+4. Are there conflicting instructions?
+5. Would simpler, more direct language work better?
+
+Provide ONLY the improved prompt text. Do not include explanations or meta-commentary. The prompt should:
+- Be clear and specific about the desired art style
+- Avoid potentially triggering words (people, person, face, body, transform, convert)
+- Use positive descriptions (what TO include) rather than negative (what to avoid)
+- Be concise but descriptive
+- Work well with the Gemini image generation API
+
+REFINED PROMPT:`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash-exp',
+      contents: { parts: [{ text: refinementPrompt }] },
+    });
+
+    const refinedPrompt = response?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    
+    if (!refinedPrompt) {
+      throw new Error('No refined prompt received');
+    }
+
+    logger.log(`✨ Prompt refined for ${filterName}:`, {
+      original: originalPrompt.substring(0, 100) + '...',
+      refined: refinedPrompt.substring(0, 100) + '...',
+    });
+
+    return refinedPrompt;
+  } catch (error) {
+    logger.error('Error refining prompt:', error);
+    throw error;
+  }
+};
+
 export const applyImageFilter = async (imageFile: File, prompt: string, retryCount: number = 0): Promise<string> => {
   try {
     const imagePart = await fileToGenerativePart(imageFile);

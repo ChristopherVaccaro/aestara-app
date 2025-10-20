@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import ImageUploader from './components/ImageUploader';
 import ImageDisplay from './components/ImageDisplay';
 import FilterSelector from './components/FilterSelector';
+import CategorySelector from './components/CategorySelector';
 import ImagePreviewModal from './components/ImagePreviewModal';
 import ParticleBackground from './components/ParticleBackground';
 import ImageComparison from './components/ImageComparison';
@@ -18,8 +19,15 @@ import MobileBottomSheet from './components/MobileBottomSheet';
 import MobileFloatingButton from './components/MobileFloatingButton';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Filter } from './types';
-import { applyImageFilter } from './services/geminiService';
+import { applyImageFilter, refinePrompt } from './services/geminiService';
 import { ImageProcessor } from './utils/imageProcessor';
+import { GenerationFeedback } from './components/GenerationFeedback';
+import {
+  needsRefinement,
+  getVoteStats,
+  savePromptOverride,
+  getActivePrompt,
+} from './services/voteTrackingService';
 
 interface FilterCategory {
   name: string;
@@ -137,7 +145,7 @@ const FILTER_CATEGORIES: FilterCategory[] = [
       { id: 'scene', name: 'Scene Kid', prompt: 'Apply 2000s scene aesthetic while preserving exact facial structure and identity: Teased voluminous hair with bright neon colors (pink, blue, green) and choppy layers. Heavy black eyeliner, bright eyeshadow. Skinny jeans, band tees, neon accessories, checkered patterns. Multiple colorful bracelets, bows, Hello Kitty items. Vibrant saturated colors with high contrast. Energetic playful rebellious mood. MySpace era vibes. Keep face shape, bone structure, features identical.' },
       { id: 'punk', name: 'Punk Rock', prompt: 'Apply punk rock aesthetic while preserving exact facial features and identity: Edgy punk hairstyle with bold colors or natural tones. Heavy dark makeup, safety pin accessories. Leather jackets, studded clothing, ripped fishnets, combat boots, band patches. Chains, spikes, safety pins. Bold graphic elements. Gritty urban textures. High contrast dramatic lighting. Rebellious anti-establishment attitude. Keep face shape, nose, eyes, mouth identical.' },
       { id: 'y2k', name: 'Y2K', prompt: 'Apply Y2K aesthetic (late 90s-early 2000s) while preserving exact facial structure and identity: Butterfly clips, zigzag parts, crimped hair, frosted tips. Glossy lips, blue eyeshadow, body glitter. Low-rise jeans, crop tops, velour tracksuits, platform shoes, tiny sunglasses. Metallic fabrics, holographic materials. Bright playful colors with chrome accents. Digital camera flash lighting. Optimistic futuristic pop culture mood. Keep face shape, bone structure, features identical.' },
-      { id: 'futuristic', name: 'Futuristic', prompt: 'Apply sleek futuristic aesthetic while preserving exact facial features and identity: Metallic hair colors (silver, platinum, white) with geometric cuts. Chrome lips, holographic highlights, geometric eyeliner. Sleek bodysuits, metallic fabrics, LED-embedded clothing. Futuristic eyewear, LED jewelry. Glossy metals, glass, holographic surfaces. Cool blue-white lighting with neon accents. Clean sophisticated sci-fi aesthetic. Keep face shape, nose, eyes, mouth identical.' },
+      { id: 'futuristic', name: 'Futuristic', prompt: 'Apply futuristic sci-fi cyberpunk aesthetic while preserving exact facial features and identity: Metallic hair colors (silver, platinum, electric blue) with geometric cuts or cyberpunk undercuts. Chrome lips, holographic highlights, geometric neon eyeliner, tech-inspired face markings. High-tech bodysuits with circuit patterns, metallic fabrics, LED-embedded clothing, cybernetic accessories. Futuristic AR/VR eyewear, neural interface headsets, LED jewelry, tech implants. Glossy metals, glass, holographic surfaces, carbon fiber textures. Neon lighting (cyan, magenta, purple) with dramatic shadows. Blade Runner meets Ghost in the Shell aesthetic. Advanced technology, cyberpunk dystopian vibe, sci-fi innovation. Keep face shape, nose, eyes, mouth identical.' },
       { id: 'retro80s', name: 'Retro 80s', prompt: 'Apply 1980s retro aesthetic while preserving exact facial structure and identity: Big voluminous hair, perms, crimped hair, side ponytails. Bright eyeshadow (electric blue, hot pink, purple), heavy blush, bold lipstick. Neon windbreakers, leg warmers, shoulder pads, acid wash denim. Scrunchies, large geometric earrings, aviator sunglasses. Vibrant neon colors. Memphis design patterns. Dramatic colored lighting with neon glow. MTV era energy. Keep face shape, bone structure, features identical.' },
       { id: 'rockabilly', name: 'Rockabilly', prompt: 'Apply 1950s rockabilly aesthetic while preserving exact facial features and identity: Victory rolls, pompadour, pin curls for hair. Red lipstick, winged eyeliner, defined brows. Polka dots, gingham, cherry prints, high-waisted jeans, leather jackets, bandanas. Vintage accessories, cat-eye sunglasses. Bold reds, blacks, whites. Classic 1950s rock and roll styling with retro diner vibes. Keep face shape, nose, eyes, mouth identical.' },
       { id: 'boho', name: 'Boho Chic', prompt: 'Apply bohemian aesthetic while preserving exact facial structure and identity: Loose flowing hair with braids, waves, or natural texture. Natural makeup with bronze tones. Flowing maxi dresses, fringe, crochet, embroidered fabrics, layered jewelry. Flower crowns, feathers, turquoise jewelry, leather accessories. Earthy warm palette (terracotta, mustard, cream, sage). Soft natural lighting. Free-spirited artistic mood. Keep face shape, bone structure, features identical.' },
@@ -164,7 +172,6 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isPeeking, setIsPeeking] = useState<boolean>(false);
-  const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [dragCounter, setDragCounter] = useState<number>(0);
   
@@ -187,6 +194,28 @@ const App: React.FC = () => {
   
   // Transition state for smooth reveal
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
+  
+  // Image preview modal
+  const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
+  
+  // Category selection
+  const [activeCategory, setActiveCategory] = useState<string>(FILTER_CATEGORIES[0]?.name || '');
+  
+  // Auto-update category when filter is selected
+  useEffect(() => {
+    if (activeFilter) {
+      const categoryWithFilter = FILTER_CATEGORIES.find(cat =>
+        cat.filters.some(filter => filter.id === activeFilter.id)
+      );
+      if (categoryWithFilter && categoryWithFilter.name !== activeCategory) {
+        setActiveCategory(categoryWithFilter.name);
+      }
+    }
+  }, [activeFilter]);
+  
+  // Vote tracking
+  const [currentGenerationId, setCurrentGenerationId] = useState<string | null>(null);
+  const [isRefiningPrompt, setIsRefiningPrompt] = useState<boolean>(false);
   
   const MAX_HISTORY = 15; // Limit history to prevent memory issues
 
@@ -306,7 +335,9 @@ const App: React.FC = () => {
         newImageUrl = originalImageUrl || '';
       } else {
         // Production mode: actual API call
-        const composedPrompt = `${STYLE_TRANSFER_CONSTRAINTS}\n\n${filter.prompt}`;
+        // Check if there's a refined prompt override for this filter
+        const activePrompt = await getActivePrompt(filter.id, filter.prompt);
+        const composedPrompt = `${STYLE_TRANSFER_CONSTRAINTS}\n\n${activePrompt}`;
         const base64Data = await applyImageFilter(imageFile, composedPrompt);
         newImageUrl = `data:image/png;base64,${base64Data}`;
       }
@@ -334,6 +365,9 @@ const App: React.FC = () => {
       const updatedHistory = [...newHistory, newHistoryItem].slice(-MAX_HISTORY);
       setHistory(updatedHistory);
       setCurrentHistoryIndex(updatedHistory.length - 1);
+      
+      // Set generation ID for voting (unique per generation)
+      setCurrentGenerationId(`${filter.id}_${Date.now()}`);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -361,6 +395,49 @@ const App: React.FC = () => {
     setIsLoading(false);
     setHistory([]);
     setCurrentHistoryIndex(-1);
+    setCurrentGenerationId(null);
+  };
+
+  // Handle vote feedback
+  const handleVoteRecorded = async (isPositive: boolean) => {
+    if (!activeFilter || isDevMode) return;
+
+    // Check if this filter needs refinement
+    if (!isPositive && await needsRefinement(activeFilter.id)) {
+      setIsRefiningPrompt(true);
+      
+      try {
+        const stats = await getVoteStats(activeFilter.id);
+        if (stats) {
+          console.log(`🔧 Refining prompt for ${activeFilter.name} due to ${stats.thumbsDown} negative votes...`);
+          
+          const refinedPrompt = await refinePrompt(
+            activeFilter.name,
+            activeFilter.prompt,
+            stats.thumbsUp,
+            stats.thumbsDown
+          );
+          
+          // Save the refined prompt
+          await savePromptOverride(
+            activeFilter.id,
+            activeFilter.prompt,
+            refinedPrompt,
+            `Auto-refined after receiving ${stats.thumbsDown}/${stats.totalVotes} negative votes`
+          );
+          
+          console.log(`✅ Prompt refined and saved for ${activeFilter.name}`);
+          
+          // Show notification to user
+          setError(`✨ We've improved the ${activeFilter.name} style based on your feedback! Try it again for better results.`);
+          setTimeout(() => setError(null), 5000);
+        }
+      } catch (err) {
+        console.error('Error refining prompt:', err);
+      } finally {
+        setIsRefiningPrompt(false);
+      }
+    }
   };
 
   // Handle file input trigger for mobile
@@ -612,6 +689,14 @@ const App: React.FC = () => {
               />
             </div>
           </div>
+          
+          {/* Generation Feedback - Only show after successful generation */}
+          {generatedImageUrl && !isLoading && activeFilter && currentGenerationId && (
+            <GenerationFeedback
+              filterName={activeFilter.id}
+              onVoteRecorded={handleVoteRecorded}
+            />
+          )}
         </div>
 
         {/* Right Column: Controls - Hidden on mobile, shown on desktop */}
@@ -626,6 +711,15 @@ const App: React.FC = () => {
              />
            )}
            
+           {/* Category Selector */}
+           <div className="glass-panel p-3 lg:p-4 mb-3 relative" style={{ zIndex: 100 }}>
+             <CategorySelector
+               categories={FILTER_CATEGORIES}
+               activeCategory={activeCategory}
+               onCategoryChange={setActiveCategory}
+             />
+           </div>
+           
            {/* Scrollable Filters Section */}
            <div className="flex-1 glass-panel p-3 lg:p-4 mb-3 overflow-hidden flex flex-col">
               <div className="flex-1 overflow-y-auto scrollable-filters">
@@ -635,6 +729,8 @@ const App: React.FC = () => {
                   onClearFilter={handleClearFilter}
                   isLoading={isLoading}
                   activeFilterId={activeFilter?.id || null}
+                  activeCategory={activeCategory}
+                  onCategoryChange={setActiveCategory}
                 />
               </div>
            </div>
@@ -719,6 +815,8 @@ const App: React.FC = () => {
             currentHistoryIndex={currentHistoryIndex}
             onSelectHistory={handleSelectHistory}
             onClearHistory={handleClearHistory}
+            activeCategory={activeCategory}
+            onCategoryChange={setActiveCategory}
           />
         </>
       )}

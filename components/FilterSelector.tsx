@@ -12,120 +12,22 @@ interface FilterSelectorProps {
   onClearFilter: () => void;
   isLoading: boolean;
   activeFilterId: string | null;
+  activeCategory: string;
+  onCategoryChange: (category: string) => void;
 }
 
 
-const FilterSelector: React.FC<FilterSelectorProps> = ({ categories, onSelectFilter, onClearFilter, isLoading, activeFilterId }) => {
-  const [activeCategory, setActiveCategory] = useState<string>(categories[0]?.name || '');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
-
-  // Update active category when activeFilterId changes
-  React.useEffect(() => {
-    if (activeFilterId) {
-      // Find which category contains the active filter
-      const categoryWithActiveFilter = categories.find(cat => 
-        cat.filters.some(filter => filter.id === activeFilterId)
-      );
-      if (categoryWithActiveFilter) {
-        setActiveCategory(categoryWithActiveFilter.name);
-      }
-    }
-  }, [activeFilterId, categories]);
-
-  // Close dropdown when clicking outside
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
+const FilterSelector: React.FC<FilterSelectorProps> = ({ 
+  categories, 
+  onSelectFilter, 
+  onClearFilter, 
+  isLoading, 
+  activeFilterId,
+  activeCategory,
+  onCategoryChange 
+}) => {
   return (
-    <div className="w-full flex flex-col space-y-6">
-      {/* Category Selection */}
-      <div className="relative">
-        {/* Desktop: Modern Dropdown */}
-        <div className="hidden lg:block">
-          <div className="relative" ref={dropdownRef}>
-            {/* Dropdown Trigger */}
-            <button 
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="group relative w-full overflow-hidden rounded-xl transition-all duration-300"
-            >
-              {/* Gradient Border */}
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50 group-hover:from-blue-500/70 group-hover:via-purple-500/70 group-hover:to-pink-500/70 p-[1px] rounded-xl transition-all">
-                <div className="h-full w-full rounded-xl bg-gray-900/95 backdrop-blur-xl" />
-              </div>
-              
-              {/* Content */}
-              <div className="relative z-10 px-5 py-4 flex items-center justify-between">
-                <div className="flex items-center">
-                  <span className="font-semibold text-white text-lg">{activeCategory}</span>
-                </div>
-                <svg 
-                  className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`}
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </button>
-            
-            {/* Dropdown Menu */}
-            {isDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-3 bg-gray-800 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl z-50 overflow-hidden">
-                <div className="max-h-[320px] overflow-y-auto p-2">
-                  {categories.map((category, index) => (
-                    <button
-                      key={category.name}
-                      onClick={() => {
-                        setActiveCategory(category.name);
-                        setIsDropdownOpen(false);
-                      }}
-                      className={`w-full px-4 py-3 text-left rounded-lg transition-colors duration-200 ${
-                        activeCategory === category.name
-                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                          : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                      }`}
-                    >
-                      <span className="font-medium">{category.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Mobile & Tablet: Horizontal Scroll Tabs */}
-        <div className="lg:hidden">
-          <div className="flex overflow-x-auto gap-2 pb-2 px-4" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
-            {categories.map((category) => (
-              <button
-                key={category.name}
-                onClick={() => setActiveCategory(category.name)}
-                className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
-                  activeCategory === category.name
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                    : 'bg-white/10 text-gray-300 hover:bg-white/15 hover:text-white'
-                }`}
-              >
-                {category.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
+    <div className="w-full flex flex-col">
       {/* Filters Display */}
       
       {/* Mobile & Tablet: Single horizontal row for selected category */}
