@@ -13,7 +13,10 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     schema: 'public',
   },
   auth: {
-    persistSession: false, // No auth needed for anonymous voting
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
   },
   global: {
     headers: {
