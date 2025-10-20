@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import ImageUploader from './components/ImageUploader';
 import ImageDisplay from './components/ImageDisplay';
 import FilterSelector from './components/FilterSelector';
+import CategorySelector from './components/CategorySelector';
 import ImagePreviewModal from './components/ImagePreviewModal';
 import ParticleBackground from './components/ParticleBackground';
 import ImageComparison from './components/ImageComparison';
@@ -196,6 +197,21 @@ const App: React.FC = () => {
   
   // Image preview modal
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
+  
+  // Category selection
+  const [activeCategory, setActiveCategory] = useState<string>(FILTER_CATEGORIES[0]?.name || '');
+  
+  // Auto-update category when filter is selected
+  useEffect(() => {
+    if (activeFilter) {
+      const categoryWithFilter = FILTER_CATEGORIES.find(cat =>
+        cat.filters.some(filter => filter.id === activeFilter.id)
+      );
+      if (categoryWithFilter && categoryWithFilter.name !== activeCategory) {
+        setActiveCategory(categoryWithFilter.name);
+      }
+    }
+  }, [activeFilter]);
   
   // Vote tracking
   const [currentGenerationId, setCurrentGenerationId] = useState<string | null>(null);
@@ -695,6 +711,15 @@ const App: React.FC = () => {
              />
            )}
            
+           {/* Category Selector */}
+           <div className="glass-panel p-3 lg:p-4 mb-3 relative" style={{ zIndex: 100 }}>
+             <CategorySelector
+               categories={FILTER_CATEGORIES}
+               activeCategory={activeCategory}
+               onCategoryChange={setActiveCategory}
+             />
+           </div>
+           
            {/* Scrollable Filters Section */}
            <div className="flex-1 glass-panel p-3 lg:p-4 mb-3 overflow-hidden flex flex-col">
               <div className="flex-1 overflow-y-auto scrollable-filters">
@@ -704,6 +729,8 @@ const App: React.FC = () => {
                   onClearFilter={handleClearFilter}
                   isLoading={isLoading}
                   activeFilterId={activeFilter?.id || null}
+                  activeCategory={activeCategory}
+                  onCategoryChange={setActiveCategory}
                 />
               </div>
            </div>
@@ -788,6 +815,8 @@ const App: React.FC = () => {
             currentHistoryIndex={currentHistoryIndex}
             onSelectHistory={handleSelectHistory}
             onClearHistory={handleClearHistory}
+            activeCategory={activeCategory}
+            onCategoryChange={setActiveCategory}
           />
         </>
       )}
