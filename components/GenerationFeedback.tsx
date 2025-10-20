@@ -5,12 +5,16 @@ import { recordVote, getVoteStats, VOTE_THRESHOLD } from '../services/voteTracki
 interface GenerationFeedbackProps {
   filterName: string;
   generationId: string;
+  filterId?: string;
+  currentPrompt?: string;
   onVoteRecorded?: (isPositive: boolean) => void;
 }
 
 export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
   filterName,
   generationId,
+  filterId,
+  currentPrompt,
   onVoteRecorded,
 }) => {
   const [voted, setVoted] = useState<'up' | 'down' | null>(null);
@@ -33,8 +37,8 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
     setVoted(isPositive ? 'up' : 'down');
     setIsAnimating(true);
     
-    // Record the vote
-    await recordVote(filterName, isPositive, generationId);
+    // Record the vote (with filterId and prompt for auto-refinement)
+    await recordVote(filterName, isPositive, generationId, filterId, currentPrompt);
     
     // Trigger animation
     setTimeout(() => setIsAnimating(false), 300);
