@@ -25,7 +25,14 @@ const LoadingProgress: React.FC<LoadingProgressProps> = ({
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const newProgress = Math.min((elapsed / estimatedTimeMs) * 100, 95);
-      setProgress(newProgress);
+      
+      setProgress(prev => {
+        // Don't decrease progress - only increase
+        if (newProgress > prev) {
+          return newProgress;
+        }
+        return prev;
+      });
 
       // Update tip based on progress
       if (newProgress > 75) setCurrentTip(3);
@@ -34,7 +41,11 @@ const LoadingProgress: React.FC<LoadingProgressProps> = ({
       else setCurrentTip(0);
     }, 100);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      // Set to 100% on unmount (when loading completes)
+      setProgress(100);
+    };
   }, [estimatedTimeMs]);
 
   return (

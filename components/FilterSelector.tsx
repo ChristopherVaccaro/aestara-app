@@ -30,9 +30,9 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({
     <div className="w-full flex flex-col">
       {/* Filters Display */}
       
-      {/* Mobile & Tablet: Single horizontal row for selected category */}
+      {/* Mobile & Tablet: Two horizontal rows that scroll together */}
       <div className="block lg:hidden w-full overflow-x-auto transition-opacity duration-150" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
-        <div className="inline-flex gap-2 pb-2 px-4" style={{whiteSpace: 'nowrap'}}>
+        <div className="grid grid-rows-2 grid-flow-col gap-2 pb-2 px-4 auto-cols-[110px]">
           {categories
             .find(category => category.name === activeCategory)
             ?.filters.map((filter) => (
@@ -40,8 +40,7 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({
                 key={filter.id}
                 onClick={() => onSelectFilter(filter)}
                 disabled={isLoading}
-                className="group relative inline-block min-w-[110px] h-[60px] rounded-xl transition-colors duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed overflow-hidden align-top"
-                style={{display: 'inline-flex', alignItems: 'center', justifyContent: 'center'}}
+                className="group relative h-[60px] rounded-xl transition-colors duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed overflow-hidden"
                 title={filter.name}
               >
                 {/* Background with gradient border effect */}
@@ -58,7 +57,7 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({
                 </div>
                 
                 {/* Content */}
-                <span className={`relative z-10 text-xs text-center px-2 leading-tight font-semibold ${
+                <span className={`relative z-10 text-xs text-center px-2 leading-tight font-semibold flex items-center justify-center h-full ${
                   filter.id === activeFilterId ? 'text-white' : 'text-gray-200'
                 }`}>
                   {filter.name}

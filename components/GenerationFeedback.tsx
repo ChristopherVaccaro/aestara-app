@@ -10,6 +10,7 @@ interface GenerationFeedbackProps {
   filterId?: string;
   currentPrompt?: string;
   onVoteRecorded?: (isPositive: boolean) => void;
+  onShowToast?: (message: string, type: 'success' | 'info') => void;
 }
 
 export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
@@ -18,6 +19,7 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
   filterId,
   currentPrompt,
   onVoteRecorded,
+  onShowToast,
 }) => {
   const [voted, setVoted] = useState<'up' | 'down' | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -119,6 +121,7 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
         }}
         onSubmit={handleTagsSubmit}
         filterName={filterName}
+        onShowToast={onShowToast}
       />
       
       <div className="flex items-center justify-center gap-4 mt-3">

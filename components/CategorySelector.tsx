@@ -16,6 +16,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
   onCategoryChange,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isFeedbackDrawerOpen, setIsFeedbackDrawerOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside or when modals open
@@ -28,15 +29,22 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
 
     const handleModalOpen = () => {
       setIsDropdownOpen(false);
+      setIsFeedbackDrawerOpen(true);
+    };
+
+    const handleModalClose = () => {
+      setIsFeedbackDrawerOpen(false);
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     // Listen for modal open events (custom event or focus trap)
     window.addEventListener('modal-open', handleModalOpen);
+    window.addEventListener('modal-close', handleModalClose);
     
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('modal-open', handleModalOpen);
+      window.removeEventListener('modal-close', handleModalClose);
     };
   }, []);
 
@@ -73,7 +81,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
           
           {/* Dropdown Menu */}
           {isDropdownOpen && (
-            <div className="absolute top-full left-0 right-0 mt-3 bg-gray-800/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl overflow-hidden p-2 z-[100]">
+            <div className={`absolute top-full left-0 right-0 mt-3 bg-gray-800/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl overflow-hidden p-2 ${isFeedbackDrawerOpen ? 'z-[1]' : 'z-10'}`}>
               {categories.map((category) => (
                 <button
                   key={category.name}

@@ -15,7 +15,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 glass-modal" onClick={onClose}>
+    <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 glass-modal" onClick={onClose}>
       <div 
         className="glass-panel max-w-lg w-full max-h-[90vh] flex flex-col relative"
         onClick={(e) => e.stopPropagation()}

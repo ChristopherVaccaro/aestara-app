@@ -81,7 +81,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
             <br />
             <span className="text-white">into Art with AI</span>
           </h1>
-          <p>The first system to learn from our feedback</p>
+          <p>The first system to learn from your feedback</p>
         </div>
 
         {/* Main Upload Area - Modern Glass Design */}

@@ -43,6 +43,7 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
   onCategoryChange,
 }) => {
   const sheetRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const startY = useRef<number>(0);
   const currentY = useRef<number>(0);
 
@@ -103,6 +104,13 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
     };
   }, [isOpen]);
 
+  // Reset scroll position when category changes
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [activeCategory]);
+
   return (
     <div
       className={`fixed inset-0 z-50 lg:hidden transition-opacity duration-300 ${
@@ -152,7 +160,7 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
         </div>
 
         {/* Scrollable Content Area - Category, Filters and History */}
-        <div className="overflow-y-auto flex-1 landscape-compact-filters" style={{ maxHeight: 'calc(85vh - 240px)' }}>
+        <div ref={scrollContainerRef} className="overflow-y-auto flex-1 landscape-compact-filters" style={{ maxHeight: 'calc(85vh - 240px)' }}>
           {/* Category Selector - First */}
           <div className="py-4 border-b border-white/10">
             <CategorySelector

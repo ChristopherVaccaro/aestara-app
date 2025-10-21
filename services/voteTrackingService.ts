@@ -12,6 +12,10 @@ import { getBrowserId } from '../utils/browserFingerprint';
 import { refinePrompt } from './geminiService';
 import { updatePrompt, updateNetFeedback } from './promptService';
 
+// Check if in development mode
+// @ts-ignore - Vite env variable
+const IS_DEV_MODE = import.meta.env?.DEV || window.location.hostname === 'localhost';
+
 /**
  * Get user identifier - uses authenticated user ID if available, otherwise browser fingerprint
  */
@@ -135,6 +139,13 @@ export async function hasUserVoted(filterName: string, generationId: string): Pr
  */
 export async function recordVote(filterName: string, isPositive: boolean, generationId: string, filterId?: string, currentPrompt?: string): Promise<string | null> {
   try {
+    // In dev mode, simulate vote recording without database write
+    if (IS_DEV_MODE) {
+      console.log(`🧪 [DEV MODE] Simulated vote: ${isPositive ? 'up' : 'down'} for ${filterName} (generation: ${generationId})`);
+      console.log('   Database write skipped in development');
+      return `dev-vote-${Date.now()}`; // Return mock ID
+    }
+
     const { userId, browserId } = await getUserIdentifier();
     const newVoteType = isPositive ? 'up' : 'down';
     
