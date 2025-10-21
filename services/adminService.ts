@@ -42,10 +42,10 @@ export const getStyleAnalytics = async (): Promise<StyleAnalytics[]> => {
     const analytics: StyleAnalytics[] = [];
 
     for (const prompt of prompts || []) {
-      // Get vote statistics
+      // Get vote statistics (include id for tag aggregation)
       const { data: votes, error: voteError } = await supabase
         .from('user_votes')
-        .select('vote_type')
+        .select('id, vote_type')
         .eq('filter_name', prompt.filter_name);
 
       if (voteError) {
@@ -58,35 +58,37 @@ export const getStyleAnalytics = async (): Promise<StyleAnalytics[]> => {
       const totalVotes = thumbsUp + thumbsDown;
       const approvalRate = totalVotes > 0 ? (thumbsUp / totalVotes) * 100 : 0;
 
-      // Get top feedback issues
-      const { data: feedbackData, error: feedbackError } = await supabase
-        .from('vote_feedback')
-        .select(`
-          feedback_tags (
-            tag_name,
-            category
-          )
-        `)
-        .in('vote_id', votes?.map(v => (v as any).id) || []);
+      // Get top feedback issues (join via user_vote_id)
+      let topIssues: Array<{ tag_name: string; count: number; category: string }> = [];
+      if (votes && votes.length > 0) {
+        const voteIds = (votes as any[]).map(v => v.id);
 
-      const topIssues: Array<{ tag_name: string; count: number; category: string }> = [];
-      if (!feedbackError && feedbackData) {
-        const tagCounts = new Map<string, { count: number; category: string }>();
-        feedbackData.forEach((item: any) => {
-          if (item.feedback_tags) {
-            const tag = item.feedback_tags.tag_name;
-            const category = item.feedback_tags.category;
-            const current = tagCounts.get(tag) || { count: 0, category };
-            tagCounts.set(tag, { count: current.count + 1, category });
-          }
-        });
+        const { data: feedbackData, error: feedbackError } = await supabase
+          .from('vote_feedback')
+          .select(`
+            feedback_tags (
+              tag_name,
+              category
+            )
+          `)
+          .in('user_vote_id', voteIds);
 
-        topIssues.push(
-          ...Array.from(tagCounts.entries())
+        if (!feedbackError && feedbackData) {
+          const tagCounts = new Map<string, { count: number; category: string }>();
+          feedbackData.forEach((item: any) => {
+            if (item.feedback_tags) {
+              const tag = item.feedback_tags.tag_name;
+              const category = item.feedback_tags.category;
+              const current = tagCounts.get(tag) || { count: 0, category };
+              tagCounts.set(tag, { count: current.count + 1, category });
+            }
+          });
+
+          topIssues = Array.from(tagCounts.entries())
             .map(([tag_name, { count, category }]) => ({ tag_name, count, category }))
             .sort((a, b) => b.count - a.count)
-            .slice(0, 5)
-        );
+            .slice(0, 5);
+        }
       }
 
       // Determine if style needs attention

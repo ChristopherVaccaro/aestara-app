@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, FileText, Shield, MessageCircle } from 'lucide-react';
+import { Menu, X, FileText, Shield, MessageCircle, BarChart3 } from 'lucide-react';
 import FeedbackForm from './FeedbackForm';
 import TermsOfService from './TermsOfService';
 import PrivacyPolicy from './PrivacyPolicy';
@@ -25,6 +25,18 @@ const HamburgerMenu: React.FC = () => {
 
   const handlePrivacyClick = () => {
     setShowPrivacy(true);
+  };
+
+  const handleAnalyticsClick = () => {
+    // Build URL to admin dashboard; in dev add dev=true for bypass
+    // @ts-ignore - Vite env var
+    const isDev = import.meta.env?.DEV || window.location.hostname === 'localhost';
+    const params = new URLSearchParams(window.location.search);
+    params.set('page', 'admin');
+    if (isDev) params.set('dev', 'true');
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.open(newUrl, '_blank', 'noopener,noreferrer');
+    setIsOpen(false);
   };
 
   return (
@@ -64,6 +76,13 @@ const HamburgerMenu: React.FC = () => {
 
           {/* Menu Items */}
           <nav className="flex flex-col space-y-2">
+            <button
+              onClick={handleAnalyticsClick}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg bg-black/30 hover:bg-black/50 transition-colors text-white text-left"
+            >
+              <BarChart3 className="w-5 h-5 text-white" />
+              <span>Analytics Dashboard</span>
+            </button>
             <button
               onClick={handleTermsClick}
               className="flex items-center gap-3 px-4 py-3 rounded-lg bg-black/30 hover:bg-black/50 transition-colors text-white text-left"

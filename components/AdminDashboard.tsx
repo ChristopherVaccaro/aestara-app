@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { isAdmin, getStyleAnalytics, getOverallStats, StyleAnalytics } from '../services/adminService';
 import { AlertTriangle, TrendingUp, TrendingDown, RefreshCw, BarChart3, Users, Zap, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import ParticleBackground from './ParticleBackground';
 
 type SortField = 'name' | 'votes' | 'approval' | 'net_score' | 'generations' | 'status';
 type SortDirection = 'asc' | 'desc';
@@ -88,8 +89,9 @@ export const AdminDashboard: React.FC = () => {
   // Check if user is admin (skip check in dev mode)
   if (!devMode && !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-        <div className="text-center">
+      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+        <ParticleBackground />
+        <div className="text-center relative z-10 flex items-center justify-center min-h-screen">
           <h1 className="text-2xl font-bold text-white mb-4">Admin Dashboard</h1>
           <p className="text-gray-300 mb-4">Please sign in to access the admin dashboard.</p>
           <p className="text-gray-500 text-sm">Or use dev mode: ?page=admin&dev=true</p>
@@ -100,8 +102,9 @@ export const AdminDashboard: React.FC = () => {
 
   if (!devMode && !isAdmin(user?.email)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-        <div className="text-center">
+      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+        <ParticleBackground />
+        <div className="text-center relative z-10 flex items-center justify-center min-h-screen">
           <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-white mb-4">Access Denied</h1>
           <p className="text-gray-300">You don't have permission to access this page.</p>
@@ -112,8 +115,9 @@ export const AdminDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-        <div className="text-center">
+      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+        <ParticleBackground />
+        <div className="text-center relative z-10 flex items-center justify-center min-h-screen">
           <RefreshCw className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
           <p className="text-gray-300">Loading analytics...</p>
         </div>
@@ -123,8 +127,9 @@ export const AdminDashboard: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-        <div className="text-center">
+      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+        <ParticleBackground />
+        <div className="text-center relative z-10 flex items-center justify-center min-h-screen">
           <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-white mb-4">Error</h1>
           <p className="text-gray-300 mb-4">{error}</p>
@@ -140,8 +145,9 @@ export const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+      <ParticleBackground />
+      <div className="max-w-7xl mx-auto p-6 relative z-10">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
