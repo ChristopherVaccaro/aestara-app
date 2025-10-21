@@ -5,6 +5,10 @@
 
 import { supabase } from '../utils/supabaseClient';
 
+// Check if in development mode
+// @ts-ignore - Vite env variable
+const IS_DEV_MODE = import.meta.env?.DEV || window.location.hostname === 'localhost';
+
 export interface FeedbackTag {
   id: string;
   tag_key: string;
@@ -77,6 +81,13 @@ export async function recordVoteFeedback(
   selectedTagIds: string[]
 ): Promise<boolean> {
   try {
+    // In dev mode, simulate feedback recording without database write
+    if (IS_DEV_MODE) {
+      console.log(`🧪 [DEV MODE] Simulated feedback tags: ${selectedTagIds.length} tags for vote ${userVoteId}`);
+      console.log('   Database write skipped in development');
+      return true;
+    }
+
     // Insert all selected tags
     const feedbackRecords = selectedTagIds.map(tagId => ({
       user_vote_id: userVoteId,

@@ -16,6 +16,7 @@ import FeedbackForm from './components/FeedbackForm';
 import DevModeToggle from './components/DevModeToggle';
 import MobileBottomSheet from './components/MobileBottomSheet';
 import MobileFloatingButton from './components/MobileFloatingButton';
+import { AdminDashboard } from './components/AdminDashboard';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Filter } from './types';
 import { applyImageFilter, refinePrompt } from './services/geminiService';
@@ -174,6 +175,30 @@ const FILTER_CATEGORIES: FilterCategory[] = [
 
 const App: React.FC = () => {
   const { toasts, addToast, removeToast } = useToast();
+  
+  // Check if we're on the admin page
+  const [currentPage, setCurrentPage] = useState<'main' | 'admin'>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('page') === 'admin' ? 'admin' : 'main';
+  });
+  
+  // Update URL when page changes
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (currentPage === 'admin') {
+      params.set('page', 'admin');
+    } else {
+      params.delete('page');
+    }
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+    window.history.replaceState({}, '', newUrl);
+  }, [currentPage]);
+  
+  // If admin page, render admin dashboard
+  if (currentPage === 'admin') {
+    return <AdminDashboard />;
+  }
+  
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
@@ -461,12 +486,6 @@ const App: React.FC = () => {
           console.log(`   Negative ratio: ${negativePercentage}% (threshold: ${NEGATIVE_RATIO_THRESHOLD * 100}%)`);
           console.log(`   Minimum votes: ${VOTE_THRESHOLD}`);
           
-          // Show notification about refinement starting
-          addToast(
-            `🔧 Refining "${activeFilter.name}" prompt based on ${stats.thumbsDown} negative votes (${negativePercentage}% negative feedback)...`,
-            'info'
-          );
-          
           const refinedPrompt = await refinePrompt(
             activeFilter.name,
             activeFilter.prompt,
@@ -502,42 +521,37 @@ const App: React.FC = () => {
 
   // Handle file input trigger for mobile
   const handleTriggerFileInput = () => {
-    // Close bottom sheet first to prevent iOS Safari issues
-    setIsMobileSheetOpen(false);
+    // Keep bottom sheet open while file picker is shown
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/avif';
     
-    // Small delay to ensure sheet is closed before opening file picker
-    setTimeout(() => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/avif';
-      
-      // Add to DOM for better iOS Safari compatibility
-      input.style.display = 'none';
-      document.body.appendChild(input);
-      
-      input.onchange = async (e) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (file) {
-          try {
-            const processed = await ImageProcessor.processImage(file);
-            handleImageUpload(processed.file);
-          } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Failed to process image';
-            setError(errorMessage);
-            console.error('Image processing error:', err);
-          }
+    // Add to DOM for better iOS Safari compatibility
+    input.style.display = 'none';
+    document.body.appendChild(input);
+    
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        try {
+          const processed = await ImageProcessor.processImage(file);
+          handleImageUpload(processed.file);
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : 'Failed to process image';
+          setError(errorMessage);
+          console.error('Image processing error:', err);
         }
-        // Clean up
-        document.body.removeChild(input);
-      };
-      
-      // Handle cancel (iOS Safari specific)
-      input.oncancel = () => {
-        document.body.removeChild(input);
-      };
-      
-      input.click();
-    }, 100);
+      }
+      // Clean up
+      document.body.removeChild(input);
+    };
+    
+    // Handle cancel (iOS Safari specific)
+    input.oncancel = () => {
+      document.body.removeChild(input);
+    };
+    
+    input.click();
   };
 
   const handleDownload = () => {
@@ -746,6 +760,7 @@ const App: React.FC = () => {
               filterId={activeFilter.id}
               currentPrompt={currentPromptUsed || undefined}
               onVoteRecorded={handleVoteRecorded}
+              onShowToast={addToast}
             />
           )}
         </div>

@@ -78,13 +78,13 @@ export const Toast: React.FC<ToastProps> = ({
 
   return (
     <div
-      className={`fixed top-4 right-4 z-[9999] flex items-center gap-3 px-4 py-3 rounded-lg border backdrop-blur-xl shadow-2xl transition-all duration-300 ${
+      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3 px-6 py-3 rounded-lg border backdrop-blur-xl shadow-2xl transition-all duration-300 max-w-xl w-auto ${
         styles[type]
-      } ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}
+      } ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}
       role="alert"
     >
       <div className="flex-shrink-0">{icons[type]}</div>
-      <p className="text-sm font-medium">{message}</p>
+      <p className="text-sm font-medium whitespace-nowrap">{message}</p>
       <button
         onClick={() => {
           setIsVisible(false);
@@ -116,7 +116,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
   removeToast,
 }) => {
   return (
-    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 items-center">
       {toasts.map((toast, index) => (
         <div
           key={toast.id}
