@@ -16,6 +16,7 @@ import FeedbackForm from './components/FeedbackForm';
 import DevModeToggle from './components/DevModeToggle';
 import MobileBottomSheet from './components/MobileBottomSheet';
 import MobileFloatingButton from './components/MobileFloatingButton';
+import { AdminDashboard } from './components/AdminDashboard';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Filter } from './types';
 import { applyImageFilter, refinePrompt } from './services/geminiService';
@@ -174,6 +175,30 @@ const FILTER_CATEGORIES: FilterCategory[] = [
 
 const App: React.FC = () => {
   const { toasts, addToast, removeToast } = useToast();
+  
+  // Check if we're on the admin page
+  const [currentPage, setCurrentPage] = useState<'main' | 'admin'>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('page') === 'admin' ? 'admin' : 'main';
+  });
+  
+  // Update URL when page changes
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (currentPage === 'admin') {
+      params.set('page', 'admin');
+    } else {
+      params.delete('page');
+    }
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+    window.history.replaceState({}, '', newUrl);
+  }, [currentPage]);
+  
+  // If admin page, render admin dashboard
+  if (currentPage === 'admin') {
+    return <AdminDashboard />;
+  }
+  
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);

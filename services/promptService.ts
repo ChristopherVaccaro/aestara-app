@@ -178,14 +178,14 @@ export async function incrementGenerationCount(filterId: string): Promise<void> 
       // If function doesn't exist, fall back to manual update
       const { data: current } = await supabase
         .from('style_prompts')
-        .select('total_generations')
+        .select('generation_count')
         .eq('filter_id', filterId)
         .single();
 
       if (current) {
         await supabase
           .from('style_prompts')
-          .update({ total_generations: current.total_generations + 1 })
+          .update({ generation_count: (current.generation_count || 0) + 1 })
           .eq('filter_id', filterId);
       }
     }
