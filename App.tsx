@@ -17,6 +17,7 @@ import DevModeToggle from './components/DevModeToggle';
 import MobileBottomSheet from './components/MobileBottomSheet';
 import MobileFloatingButton from './components/MobileFloatingButton';
 import { AdminDashboard } from './components/AdminDashboard';
+import ImageEditor from './components/ImageEditor';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Filter } from './types';
 import { applyImageFilter, refinePrompt } from './services/geminiService';
@@ -230,6 +231,10 @@ const App: React.FC = () => {
   
   // Image preview modal
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
+  
+  // Image editor
+  const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false);
+  const [imageToEdit, setImageToEdit] = useState<string | null>(null);
   
   // Category selection
   const [activeCategory, setActiveCategory] = useState<string>(FILTER_CATEGORIES[0]?.name || '');
@@ -571,6 +576,26 @@ const App: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  const handleOpenEditor = () => {
+    if (generatedImageUrl) {
+      setImageToEdit(generatedImageUrl);
+      setIsEditorOpen(true);
+    }
+  };
+  
+  const handleCloseEditor = () => {
+    setIsEditorOpen(false);
+    setImageToEdit(null);
+  };
+  
+  const handleSaveEditedImage = (editedImageUrl: string) => {
+    // Replace the generated image with the edited version
+    setGeneratedImageUrl(editedImageUrl);
+    setIsEditorOpen(false);
+    setImageToEdit(null);
+    addToast('Image saved successfully!', 'success');
+  };
+  
   const handleShare = async () => {
     if (!generatedImageUrl) return;
 
@@ -734,6 +759,7 @@ const App: React.FC = () => {
               onOpenPreview={handleOpenPreview}
               onDownload={handleDownload}
               onShare={handleShare}
+              onEdit={handleOpenEditor}
             />
           ) : (
             <ImageDisplay
@@ -853,6 +879,15 @@ const App: React.FC = () => {
           imageUrl={generatedImageUrl} 
           onClose={handleClosePreview}
           filterName={activeFilter?.name}
+        />
+      )}
+      
+      {/* Image Editor */}
+      {isEditorOpen && imageToEdit && (
+        <ImageEditor
+          imageUrl={imageToEdit}
+          onClose={handleCloseEditor}
+          onSave={handleSaveEditedImage}
         />
       )}
       
