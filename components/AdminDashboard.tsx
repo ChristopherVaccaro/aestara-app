@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { isAdmin, getStyleAnalytics, getOverallStats, StyleAnalytics } from '../services/adminService';
 import { AlertTriangle, TrendingUp, TrendingDown, RefreshCw, BarChart3, Users, Zap, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import ParticleBackground from './ParticleBackground';
+import { AuthButton } from './AuthButton';
 
 type SortField = 'name' | 'votes' | 'approval' | 'net_score' | 'generations' | 'status';
 type SortDirection = 'asc' | 'desc';
@@ -91,9 +92,15 @@ export const AdminDashboard: React.FC = () => {
     return (
       <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
         <ParticleBackground />
-        <div className="text-center relative z-10 flex items-center justify-center min-h-screen">
-          <h1 className="text-2xl font-bold text-white mb-4">Admin Dashboard</h1>
-          <p className="text-gray-300 mb-4">Please sign in to access the admin dashboard.</p>
+        <div className="text-center relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
+          <h1 className="text-3xl font-bold text-white mb-4">Admin Dashboard</h1>
+          <p className="text-gray-300 mb-8">Please sign in to access the admin dashboard.</p>
+          
+          {/* Sign In Button */}
+          <div className="mb-6">
+            <AuthButton />
+          </div>
+          
           <p className="text-gray-500 text-sm">Or use dev mode: ?page=admin&dev=true</p>
         </div>
       </div>

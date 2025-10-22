@@ -16,7 +16,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
   onCategoryChange,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isFeedbackDrawerOpen, setIsFeedbackDrawerOpen] = useState(false);
+  const [overlayOpen, setOverlayOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside or when modals open
@@ -29,22 +29,35 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
 
     const handleModalOpen = () => {
       setIsDropdownOpen(false);
-      setIsFeedbackDrawerOpen(true);
+      setOverlayOpen(true);
     };
 
     const handleModalClose = () => {
-      setIsFeedbackDrawerOpen(false);
+      setOverlayOpen(false);
+    };
+
+    const handleMenuOpen = () => {
+      setIsDropdownOpen(false);
+      setOverlayOpen(true);
+    };
+
+    const handleMenuClose = () => {
+      setOverlayOpen(false);
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     // Listen for modal open events (custom event or focus trap)
     window.addEventListener('modal-open', handleModalOpen);
     window.addEventListener('modal-close', handleModalClose);
+    window.addEventListener('menu-open', handleMenuOpen);
+    window.addEventListener('menu-close', handleMenuClose);
     
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('modal-open', handleModalOpen);
       window.removeEventListener('modal-close', handleModalClose);
+      window.removeEventListener('menu-open', handleMenuOpen);
+      window.removeEventListener('menu-close', handleMenuClose);
     };
   }, []);
 
@@ -80,8 +93,8 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
           </button>
           
           {/* Dropdown Menu */}
-          {isDropdownOpen && (
-            <div className={`absolute top-full left-0 right-0 mt-3 bg-gray-800/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl overflow-hidden p-2 ${isFeedbackDrawerOpen ? 'z-[1]' : 'z-10'}`}>
+          {isDropdownOpen && !overlayOpen && (
+            <div className="absolute top-full left-0 right-0 mt-3 bg-gray-800/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl overflow-hidden p-2 z-10">
               {categories.map((category) => (
                 <button
                   key={category.name}

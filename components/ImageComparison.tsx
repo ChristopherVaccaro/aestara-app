@@ -80,9 +80,6 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
                 className="w-full h-full object-contain"
                 draggable={false}
               />
-              <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium">
-                {activeFilterName}
-              </div>
             </div>
 
             {/* Original Image (Overlay with clip) */}
@@ -96,29 +93,54 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
                 className="w-full h-full object-contain"
                 draggable={false}
               />
-              <div className="absolute bottom-3 left-3 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium">
-                Original
-              </div>
+            </div>
+
+            {/* Labels - Always visible, outside clipped areas */}
+            <div className="absolute bottom-3 left-3 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium z-30 pointer-events-none">
+              Original
+            </div>
+            <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium z-30 pointer-events-none">
+              {activeFilterName}
             </div>
 
             {/* Slider Line and Handle */}
             <div
-              className="absolute top-0 bottom-0 w-1 bg-white shadow-lg z-10"
-              style={{ left: `${sliderPosition}%` }}
+              className="absolute top-0 bottom-0 w-[2px] z-10"
+              style={{ 
+                left: `${sliderPosition}%`,
+                backgroundColor: '#ffffff'
+              }}
             >
               {/* Handle */}
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-2xl flex items-center justify-center border-4 border-gray-900">
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full flex items-center justify-center backdrop-blur-xl bg-white/10 border border-white/30 shadow-2xl hover:bg-white/20 transition-all duration-200">
+                {/* Left Arrow */}
                 <svg
-                  className="w-6 h-6 text-gray-900"
+                  className="w-4 h-4 text-white absolute left-2"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  strokeWidth={2.5}
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2.5}
-                    d="M8 7l-4 5 4 5M16 7l4 5-4 5"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                
+              
+                {/* Right Arrow */}
+                <svg
+                  className="w-4 h-4 text-white absolute right-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 5l7 7-7 7"
                   />
                 </svg>
               </div>

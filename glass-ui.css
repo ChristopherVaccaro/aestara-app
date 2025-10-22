@@ -516,7 +516,7 @@ button, a, [role="button"] {
   
   /* Make mobile bottom sheet more compact in landscape */
   .landscape-compact-sheet {
-    max-height: 75vh !important;
+    max-height: 85vh !important;
   }
   
   /* Reduce filter button sizes in landscape */

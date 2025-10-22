@@ -38,6 +38,14 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
     }
   }, [generationId, currentGenerationId]);
 
+  const handleRefinementTriggered = (filterName: string) => {
+    // Show toast when AI refinement is triggered
+    onShowToast?.(
+      `✨ AI is improving "${filterName}" based on your feedback! The prompt is being refined for better results.`,
+      'info'
+    );
+  };
+
   const handleVote = async (isPositive: boolean) => {
     // Only allow one vote per generation
     if (voted) return;
@@ -47,7 +55,14 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
       setVoted('up');
       setIsAnimating(true);
       
-      const voteId = await recordVote(filterName, isPositive, generationId, filterId, currentPrompt);
+      const voteId = await recordVote(
+        filterName, 
+        isPositive, 
+        generationId, 
+        filterId, 
+        currentPrompt,
+        handleRefinementTriggered
+      );
       
       setTimeout(() => setIsAnimating(false), 300);
       onVoteRecorded?.(isPositive);
@@ -55,7 +70,14 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
       logVoteStats();
     } else {
       // Thumbs down: show tag selector first
-      const voteId = await recordVote(filterName, isPositive, generationId, filterId, currentPrompt);
+      const voteId = await recordVote(
+        filterName, 
+        isPositive, 
+        generationId, 
+        filterId, 
+        currentPrompt,
+        handleRefinementTriggered
+      );
       
       if (voteId) {
         setPendingVoteId(voteId);

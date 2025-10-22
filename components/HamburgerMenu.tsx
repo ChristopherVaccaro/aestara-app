@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Menu, X, FileText, Shield, MessageCircle, BarChart3 } from 'lucide-react';
 import FeedbackForm from './FeedbackForm';
 import TermsOfService from './TermsOfService';
@@ -12,8 +12,17 @@ const HamburgerMenu: React.FC = () => {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const currentYear = new Date().getFullYear();
 
-  const toggleMenu = () => setIsOpen(!isOpen);
+  const toggleMenu = () => setIsOpen(prev => !prev);
   const closeMenu = () => setIsOpen(false);
+
+  // Broadcast open/close so other components (e.g., CategorySelector) can react
+  useEffect(() => {
+    if (isOpen) {
+      window.dispatchEvent(new Event('menu-open'));
+    } else {
+      window.dispatchEvent(new Event('menu-close'));
+    }
+  }, [isOpen]);
 
   const handleFeedbackClick = () => {
     setShowFeedback(true);

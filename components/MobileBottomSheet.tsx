@@ -132,7 +132,7 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
           isOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{
-          maxHeight: '85vh',
+          maxHeight: '92vh',
           transitionTimingFunction: 'cubic-bezier(0.215, 0.61, 0.355, 1)',
           backdropFilter: isOpen ? 'blur(40px)' : 'blur(0px)',
           WebkitBackdropFilter: isOpen ? 'blur(40px)' : 'blur(0px)',
@@ -160,7 +160,7 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
         </div>
 
         {/* Scrollable Content Area - Category, Filters and History */}
-        <div ref={scrollContainerRef} className="overflow-y-auto flex-1 landscape-compact-filters" style={{ maxHeight: 'calc(85vh - 240px)' }}>
+        <div ref={scrollContainerRef} className="overflow-y-auto flex-1 landscape-compact-filters" style={{ maxHeight: 'calc(92vh - 180px)' }}>
           {/* Category Selector - First */}
           <div className="py-4 border-b border-white/10">
             <CategorySelector

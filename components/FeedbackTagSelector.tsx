@@ -285,10 +285,7 @@ export const FeedbackTagSelector: React.FC<FeedbackTagSelectorProps> = ({
               <div className="flex-1">
                 <h3 className="text-2xl font-bold text-white">
                   Help us improve "{filterName}"
-                </h3>
-                <p className="text-sm text-gray-400 mt-1">
-                  Select issues you noticed (optional)
-                </p>
+                </h3> 
               </div>
               <button
                 onClick={handleClose}

@@ -137,7 +137,14 @@ export async function hasUserVoted(filterName: string, generationId: string): Pr
  * UNLIMITED VOTING - No duplicate checks, users can vote as many times as they want
  * Automatically triggers AI refinement when net feedback reaches -5
  */
-export async function recordVote(filterName: string, isPositive: boolean, generationId: string, filterId?: string, currentPrompt?: string): Promise<string | null> {
+export async function recordVote(
+  filterName: string, 
+  isPositive: boolean, 
+  generationId: string, 
+  filterId?: string, 
+  currentPrompt?: string,
+  onRefinementTriggered?: (filterName: string) => void
+): Promise<string | null> {
   try {
     // In dev mode, simulate vote recording without database write
     if (IS_DEV_MODE) {
@@ -220,6 +227,8 @@ export async function recordVote(filterName: string, isPositive: boolean, genera
       const netFeedback = updatedThumbsUp - updatedThumbsDown;
       if (netFeedback <= -5 && filterId && currentPrompt) {
         console.log(`🤖 Auto-refinement triggered for ${filterName} (net feedback: ${netFeedback})`);
+        // Notify UI that refinement is being triggered
+        onRefinementTriggered?.(filterName);
         // Trigger AI refinement in background (don't block vote recording)
         triggerAutoRefinement(filterId, filterName, currentPrompt, updatedThumbsUp, updatedThumbsDown);
       }
