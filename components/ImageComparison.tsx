@@ -7,6 +7,7 @@ interface ImageComparisonProps {
   onOpenPreview: () => void;
   onDownload: () => void;
   onShare?: () => void;
+  onEdit?: () => void;
 }
 
 const ImageComparison: React.FC<ImageComparisonProps> = ({
@@ -16,6 +17,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
   onOpenPreview,
   onDownload,
   onShare,
+  onEdit,
 }) => {
   const [sliderPosition, setSliderPosition] = useState(25);
   const [isDragging, setIsDragging] = useState(false);
@@ -148,6 +150,26 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
 
             {/* Circular Action Buttons - Top Right */}
             <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
+              {/* Edit Button */}
+              {onEdit && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit();
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onMouseUp={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchEnd={(e) => e.stopPropagation()}
+                  className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                  title="Edit Image"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  </svg>
+                </button>
+              )}
+
               {/* Download Button */}
               <button
                 onClick={(e) => {

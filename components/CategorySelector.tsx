@@ -61,11 +61,20 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
     };
   }, []);
 
+  // Notify parent when dropdown open state changes (desktop)
+  useEffect(() => {
+    if (isDropdownOpen && !overlayOpen) {
+      window.dispatchEvent(new Event('category-dropdown-open'));
+    } else {
+      window.dispatchEvent(new Event('category-dropdown-close'));
+    }
+  }, [isDropdownOpen, overlayOpen]);
+
   return (
     <div className="w-full">
       {/* Desktop: Modern Dropdown */}
       <div className="hidden lg:block">
-        <div className="relative" ref={dropdownRef}>
+        <div className={`relative ${isDropdownOpen && !overlayOpen ? 'z-[50]' : 'z-0'}`} ref={dropdownRef}>
           {/* Dropdown Trigger */}
           <button 
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -94,7 +103,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
           
           {/* Dropdown Menu */}
           {isDropdownOpen && !overlayOpen && (
-            <div className="absolute top-full left-0 right-0 mt-3 bg-gray-800/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl overflow-hidden p-2 z-10">
+            <div className="absolute top-full left-0 right-0 mt-3 bg-gray-800/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl overflow-hidden p-2 z-[50]">
               {categories.map((category) => (
                 <button
                   key={category.name}
