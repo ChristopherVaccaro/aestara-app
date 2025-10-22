@@ -218,6 +218,8 @@ const App: React.FC = () => {
   const [showTerms, setShowTerms] = useState<boolean>(false);
   const [showPrivacy, setShowPrivacy] = useState<boolean>(false);
   const [showFeedback, setShowFeedback] = useState<boolean>(false);
+  // Track if a modal/drawer overlay is open to adjust z-index of Category panel
+  const [overlayOpen, setOverlayOpen] = useState<boolean>(false);
   
   // Dev mode (only available in development)
   const [isDevMode, setIsDevMode] = useState<boolean>(false);
@@ -238,6 +240,38 @@ const App: React.FC = () => {
   
   // Category selection
   const [activeCategory, setActiveCategory] = useState<string>(FILTER_CATEGORIES[0]?.name || '');
+  // Track category dropdown state to elevate its parent panel while open
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState<boolean>(false);
+
+  // Listen for global overlay events (modals and the hamburger side menu)
+  useEffect(() => {
+    const handleModalOpen = () => setOverlayOpen(true);
+    const handleModalClose = () => setOverlayOpen(false);
+    const handleMenuOpen = () => setOverlayOpen(true);
+    const handleMenuClose = () => setOverlayOpen(false);
+    window.addEventListener('modal-open', handleModalOpen);
+    window.addEventListener('modal-close', handleModalClose);
+    window.addEventListener('menu-open', handleMenuOpen);
+    window.addEventListener('menu-close', handleMenuClose);
+    return () => {
+      window.removeEventListener('modal-open', handleModalOpen);
+      window.removeEventListener('modal-close', handleModalClose);
+      window.removeEventListener('menu-open', handleMenuOpen);
+      window.removeEventListener('menu-close', handleMenuClose);
+    };
+  }, []);
+
+  // Listen for category dropdown open/close to adjust the panel stacking only while open
+  useEffect(() => {
+    const handleOpen = () => setIsCategoryDropdownOpen(true);
+    const handleClose = () => setIsCategoryDropdownOpen(false);
+    window.addEventListener('category-dropdown-open', handleOpen);
+    window.addEventListener('category-dropdown-close', handleClose);
+    return () => {
+      window.removeEventListener('category-dropdown-open', handleOpen);
+      window.removeEventListener('category-dropdown-close', handleClose);
+    };
+  }, []);
   
   // Auto-update category when filter is selected
   useEffect(() => {
@@ -793,41 +827,41 @@ const App: React.FC = () => {
 
         {/* Right Column: Controls - Hidden on mobile, shown on desktop */}
         <div className="hidden lg:flex w-full lg:w-1/3 mt-4 lg:mt-0 flex-col desktop-controls-column">
-           {/* Style History */}
-           {history.length > 0 && (
-             <StyleHistory
-               history={history}
-               currentIndex={currentHistoryIndex}
-               onSelectHistory={handleSelectHistory}
-               onClearHistory={handleClearHistory}
-             />
-           )}
-           
-           {/* Category Selector */}
-           <div className="glass-panel p-3 lg:p-4 mb-3 relative" style={{ zIndex: 100 }}>
-             <CategorySelector
-               categories={FILTER_CATEGORIES}
-               activeCategory={activeCategory}
-               onCategoryChange={setActiveCategory}
-             />
-           </div>
-           
-           {/* Scrollable Filters Section */}
-           <div className="flex-1 glass-panel p-3 lg:p-4 mb-3 overflow-hidden flex flex-col">
-              <div className="flex-1 overflow-y-auto scrollable-filters">
-                <FilterSelector
-                  categories={FILTER_CATEGORIES}
-                  onSelectFilter={handleApplyFilter}
-                  onClearFilter={handleClearFilter}
-                  isLoading={isLoading}
-                  activeFilterId={activeFilter?.id || null}
-                  activeCategory={activeCategory}
-                  onCategoryChange={setActiveCategory}
-                />
-              </div>
-           </div>
+          {/* Style History */}
+          {history.length > 0 && (
+            <StyleHistory
+              history={history}
+              currentIndex={currentHistoryIndex}
+              onSelectHistory={handleSelectHistory}
+              onClearHistory={handleClearHistory}
+            />
+          )}
 
-           {/* Upload New Image Button */}
+          {/* Category Selector */}
+          <div className={`glass-panel p-3 lg:p-4 mb-3 relative ${isCategoryDropdownOpen ? 'z-[50]' : ''}`}>
+            <CategorySelector
+              categories={FILTER_CATEGORIES}
+              activeCategory={activeCategory}
+              onCategoryChange={setActiveCategory}
+            />
+          </div>
+
+          {/* Scrollable Filters Section */}
+          <div className="flex-1 glass-panel p-3 lg:p-4 mb-3 overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto scrollable-filters">
+              <FilterSelector
+                categories={FILTER_CATEGORIES}
+                onSelectFilter={handleApplyFilter}
+                onClearFilter={handleClearFilter}
+                isLoading={isLoading}
+                activeFilterId={activeFilter?.id || null}
+                activeCategory={activeCategory}
+                onCategoryChange={setActiveCategory}
+              />
+            </div>
+          </div>
+
+          {/* Upload New Image Button */}
            <div className="glass-panel p-3 lg:p-4">
               <button
                 onClick={handleTriggerFileInput}
