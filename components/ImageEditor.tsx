@@ -267,6 +267,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
     if (isDrawingMode) return; // Don't drag in drawing mode
     
     e.stopPropagation();
+    e.preventDefault();
     setIsDragging(true);
     setDragType(type);
     setDragId(id);
@@ -291,6 +292,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
     
     if (!isDragging || !dragId || !dragType) return;
     
+    e.preventDefault();
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
     
@@ -517,14 +519,16 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Canvas Area */}
         <div 
-          className="flex-1 flex items-center justify-center p-2 lg:p-4 overflow-auto" 
+          className="flex-1 flex items-center justify-center p-2 lg:p-4 overflow-hidden" 
           ref={containerRef}
           onMouseMove={handleDragMove}
           onMouseUp={handleDragEnd}
           onTouchMove={handleDragMove}
           onTouchEnd={handleDragEnd}
+          onTouchCancel={handleDragEnd}
+          style={{ touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none' }}
         >
-          <div className="relative" ref={previewContainerRef}>
+          <div className="relative" ref={previewContainerRef} style={{ touchAction: 'none' }}>
             <img
               ref={imageRef}
               src={imageUrl}
@@ -533,6 +537,8 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
               style={getFilterStyle()}
               onMouseDown={isDrawingMode ? handleDrawingStart : undefined}
               onTouchStart={isDrawingMode ? handleDrawingStart : undefined}
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
             />
             
             {/* Drawing overlay - SVG for paths */}
@@ -609,6 +615,8 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                     opacity: text.opacity,
                     whiteSpace: 'pre-wrap',
                     wordBreak: 'break-word',
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
                   }}
                   onMouseDown={(e) => handleDragStart(e, 'text', text.id)}
                   onTouchStart={(e) => handleDragStart(e, 'text', text.id)}
@@ -639,6 +647,8 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                     transform: `translate(-50%, -50%) rotate(${sticker.rotation}deg)`,
                     fontSize: `${scaledSize}px`,
                     lineHeight: 1,
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
                   }}
                   onMouseDown={(e) => handleDragStart(e, 'sticker', sticker.id)}
                   onTouchStart={(e) => handleDragStart(e, 'sticker', sticker.id)}
