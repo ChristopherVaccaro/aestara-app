@@ -611,12 +611,13 @@ const App: React.FC = () => {
   };
 
   const handleOpenEditor = () => {
-    if (generatedImageUrl) {
-      setImageToEdit(generatedImageUrl);
+    const target = generatedImageUrl || originalImageUrl;
+    if (target) {
+      setImageToEdit(target);
       setIsEditorOpen(true);
     }
   };
-  
+
   const handleCloseEditor = () => {
     setIsEditorOpen(false);
     setImageToEdit(null);
@@ -806,6 +807,7 @@ const App: React.FC = () => {
               onOpenPreview={handleOpenPreview}
               onDownload={handleDownload}
               onShare={handleShare}
+              onEdit={handleOpenEditor}
               error={error}
               activeFilterName={activeFilter?.name || null}
               isDevMode={isDevMode}

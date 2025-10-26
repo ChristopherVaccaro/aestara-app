@@ -11,6 +11,7 @@ interface ImageDisplayProps {
   onOpenPreview: () => void;
   onDownload: () => void;
   onShare?: () => void;
+  onEdit?: () => void;
   error?: string | null;
   activeFilterName?: string | null;
   isDevMode?: boolean;
@@ -26,6 +27,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   onOpenPreview,
   onDownload,
   onShare,
+  onEdit,
   error,
   activeFilterName,
   isDevMode = false,
@@ -77,6 +79,24 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
               alt={isPeeking ? 'Original' : 'Stylized'}
               className="w-full h-full object-contain transition-all duration-300 rounded-lg"
             />
+            {/* Edit Button - Available when only original image is present */}
+            {onEdit && !generatedImageUrl && (
+              <div className="absolute top-3 right-3 z-20">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onEdit(); }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onMouseUp={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchEnd={(e) => e.stopPropagation()}
+                  className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                  title="Edit Image"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  </svg>
+                </button>
+              </div>
+            )}
             
             {/* Hold to Compare Label - Bottom Left */}
             {showPeekButton && (
