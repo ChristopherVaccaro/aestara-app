@@ -628,7 +628,6 @@ const App: React.FC = () => {
     setGeneratedImageUrl(editedImageUrl);
     setIsEditorOpen(false);
     setImageToEdit(null);
-    addToast('Image saved successfully!', 'success');
   };
   
   const handleShare = async () => {
@@ -906,7 +905,7 @@ const App: React.FC = () => {
         </div>
       )}
       
-      <Header onLogoClick={handleReset} />
+      <Header onLogoClick={handleReset} hideMenu={isEditorOpen} />
       <main className="w-full flex-1 flex items-start justify-center px-4 overflow-hidden pt-4 md:pt-8">
         {renderContent()}
       </main>

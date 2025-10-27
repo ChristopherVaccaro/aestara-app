@@ -4,9 +4,10 @@ import HamburgerMenu from './HamburgerMenu';
 
 interface HeaderProps {
   onLogoClick?: () => void;
+  hideMenu?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ onLogoClick }) => {
+const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false }) => {
   return (
     <>
       <header className="w-full py-4 md:py-6 flex-shrink-0">
@@ -20,7 +21,7 @@ const Header: React.FC<HeaderProps> = ({ onLogoClick }) => {
           </button>
         </div>
       </header>
-      <HamburgerMenu />
+      {!hideMenu && <HamburgerMenu />}
     </>
   );
 };
