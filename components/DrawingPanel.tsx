@@ -11,6 +11,8 @@ interface DrawingPanelProps {
   onColorChange: (color: string) => void;
   drawingWidth: number;
   onWidthChange: (width: number) => void;
+  isEraserMode?: boolean;
+  onToggleEraserMode?: (enabled: boolean) => void;
 }
 
 const DRAWING_COLORS = [
@@ -26,8 +28,14 @@ const DrawingPanel: React.FC<DrawingPanelProps> = ({
   drawingColor,
   onColorChange,
   drawingWidth,
-  onWidthChange
+  onWidthChange,
+  isEraserMode,
+  onToggleEraserMode
 }) => {
+  // Controlled eraser mode when provided; fallback to local state
+  const [localEraser, setLocalEraser] = useState(false);
+  const eraser = isEraserMode ?? localEraser;
+  const setEraser = onToggleEraserMode ?? setLocalEraser;
 
   const clearAllDrawings = () => {
     if (confirm('Clear all drawings?')) {
@@ -42,9 +50,12 @@ const DrawingPanel: React.FC<DrawingPanelProps> = ({
         <h3 className="text-sm font-medium text-white/60 mb-3">Drawing Tools</h3>
         <div className="grid grid-cols-2 gap-2">
           <button
-            onClick={() => onToggleDrawingMode(true)}
+            onClick={() => {
+              onToggleDrawingMode(true);
+              setEraser(false);
+            }}
             className={`px-4 py-3 border rounded-lg transition-all flex items-center justify-center gap-2 ${
-              isDrawingMode
+              isDrawingMode && !eraser
                 ? 'bg-blue-500 border-blue-500 text-white'
                 : 'bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-blue-500'
             }`}
@@ -53,41 +64,46 @@ const DrawingPanel: React.FC<DrawingPanelProps> = ({
             <span className="text-sm">Draw</span>
           </button>
           <button
-            onClick={() => onToggleDrawingMode(false)}
+            onClick={() => {
+              onToggleDrawingMode(true);
+              setEraser(true);
+            }}
             className={`px-4 py-3 border rounded-lg transition-all flex items-center justify-center gap-2 ${
-              !isDrawingMode
+              isDrawingMode && eraser
                 ? 'bg-blue-500 border-blue-500 text-white'
                 : 'bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-blue-500'
             }`}
           >
             <Eraser className="w-4 h-4" />
-            <span className="text-sm">Off</span>
+            <span className="text-sm">Erase</span>
           </button>
         </div>
       </div>
 
-      {/* Color Picker */}
-      <div>
-        <h3 className="text-sm font-medium text-white/60 mb-3">Color</h3>
-        <div className="flex gap-2 flex-wrap mb-2">
-          {DRAWING_COLORS.map(color => (
-            <button
-              key={color}
-              onClick={() => onColorChange(color)}
-              className={`w-10 h-10 rounded-lg border-2 transition-all ${
-                drawingColor === color ? 'border-blue-500 scale-110' : 'border-white/20'
-              }`}
-              style={{ backgroundColor: color }}
-            />
-          ))}
+      {/* Color Picker - Only show when not in eraser mode */}
+      {!eraser && (
+        <div>
+          <h3 className="text-sm font-medium text-white/60 mb-3">Color</h3>
+          <div className="flex gap-2 flex-wrap mb-2">
+            {DRAWING_COLORS.map(color => (
+              <button
+                key={color}
+                onClick={() => onColorChange(color)}
+                className={`w-10 h-10 rounded-lg border-2 transition-all ${
+                  drawingColor === color ? 'border-blue-500 scale-110' : 'border-white/20'
+                }`}
+                style={{ backgroundColor: color }}
+              />
+            ))}
+          </div>
+          <input
+            type="color"
+            value={drawingColor}
+            onChange={(e) => onColorChange(e.target.value)}
+            className="w-full h-10 rounded-lg cursor-pointer"
+          />
         </div>
-        <input
-          type="color"
-          value={drawingColor}
-          onChange={(e) => onColorChange(e.target.value)}
-          className="w-full h-10 rounded-lg cursor-pointer"
-        />
-      </div>
+      )}
 
       {/* Brush Size */}
       <div>
@@ -137,7 +153,7 @@ const DrawingPanel: React.FC<DrawingPanelProps> = ({
         </p>
         <ul className="text-xs text-blue-300 space-y-1 list-disc list-inside">
           <li>Click and drag on the image to draw</li>
-          <li>Use the eraser to remove drawings</li>
+          <li>Switch to Erase mode to remove parts of drawings</li>
           <li>Adjust brush size and color</li>
           <li>Clear all to start over</li>
         </ul>

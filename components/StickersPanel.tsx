@@ -51,29 +51,36 @@ const StickersPanel: React.FC<StickersPanelProps> = ({
       </div>
 
       {/* Categories */}
-      <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-thin">
-        {Object.keys(EMOJI_CATEGORIES).map(category => (
-          <button
-            key={category}
-            onClick={() => setActiveCategory(category)}
-            className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
-              activeCategory === category
-                ? 'bg-blue-500 text-white'
-                : 'bg-white/5 text-white/60 hover:bg-white/10'
-            }`}
-          >
-            {category}
-          </button>
-        ))}
+      <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-thin -mx-3 px-3">
+        <div className="flex gap-1 min-w-max">
+          {Object.keys(EMOJI_CATEGORIES).map(category => (
+            <button
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
+                activeCategory === category
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-white/5 text-white/60 hover:bg-white/10'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Emoji Grid */}
-      <div className="grid grid-cols-5 gap-2 max-h-64 overflow-y-auto">
+      <div className="grid grid-cols-5 gap-2 max-h-64 overflow-y-auto -mx-3 px-3">
         {EMOJI_CATEGORIES[activeCategory as keyof typeof EMOJI_CATEGORIES].map((emoji, index) => (
           <button
             key={index}
             onClick={() => onAddSticker(emoji)}
             className="aspect-square flex items-center justify-center text-3xl hover:bg-white/10 rounded-lg transition-all hover:scale-110"
+            draggable="true"
+            onDragStart={(e) => {
+              e.dataTransfer.setData('text/plain', emoji);
+              e.dataTransfer.effectAllowed = 'copy';
+            }}
           >
             {emoji}
           </button>
