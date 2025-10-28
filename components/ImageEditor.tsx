@@ -120,6 +120,9 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
   const sheetDragStartY = useRef<number | null>(null);
   const moveListenerRef = useRef<(e: MouseEvent | TouchEvent) => void>();
   const upListenerRef = useRef<(e: MouseEvent | TouchEvent) => void>();
+  const sheetStartY = useRef<number>(0);
+  const sheetCurrentY = useRef<number>(0);
+  const sheetScrollRef = useRef<HTMLDivElement>(null);
   
   // Track displayed image dimensions for proper scaling
   const [displayedImageSize, setDisplayedImageSize] = useState({ width: 0, height: 0 });
@@ -156,6 +159,21 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
       setIsEraserMode(false);
     }
   }, [activeTab]);
+  
+  useEffect(() => {
+    if (isSheetOpen) {
+      document.body.style.overflow = 'hidden';
+      if (sheetRef.current) {
+        sheetRef.current.style.transform = '';
+        sheetRef.current.style.transition = '';
+      }
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isSheetOpen]);
   
   // Update displayed image size and position for proper scaling and dragging
   useEffect(() => {
@@ -493,19 +511,34 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
     }
   };
 
-  // Bottom sheet gesture: pull down to close from header area when scrolled to top
   const handleSheetTouchStart = (e: React.TouchEvent) => {
-    const y = e.touches[0].clientY;
-    const scrollTop = sheetRef.current?.scrollTop ?? 0;
-    if (scrollTop <= 0) sheetDragStartY.current = y;
+    sheetStartY.current = e.touches[0].clientY;
   };
-  const handleSheetTouchEnd = (e: React.TouchEvent) => {
-    if (sheetDragStartY.current !== null) {
-      const y = e.changedTouches[0].clientY;
-      if (y - sheetDragStartY.current > 60) {
+
+  const handleSheetTouchMove = (e: React.TouchEvent) => {
+    sheetCurrentY.current = e.touches[0].clientY;
+    const diff = sheetCurrentY.current - sheetStartY.current;
+    if (diff > 0 && sheetRef.current) {
+      sheetRef.current.style.transition = 'none';
+      sheetRef.current.style.transform = `translateY(${diff}px)`;
+    }
+  };
+
+  const handleSheetTouchEnd = () => {
+    const diff = sheetCurrentY.current - sheetStartY.current;
+    if (sheetRef.current) {
+      sheetRef.current.style.transition = '';
+      if (diff > 100) {
         setIsSheetOpen(false);
+      } else {
+        sheetRef.current.style.transform = '';
       }
-      sheetDragStartY.current = null;
+    }
+  };
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setIsSheetOpen(false);
     }
   };
 
@@ -1355,82 +1388,121 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
           </div>
         )}
 
-        {/* Mobile bottom sheet overlay */}
-        {isMobile && isSheetOpen && (
-          <div className="absolute inset-0 z-50">
-            <div className="absolute inset-0 bg-black/40 pointer-events-none" />
-            <div ref={sheetRef} className="absolute bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-2xl border-t border-white/10 rounded-t-2xl max-h-[75svh] overflow-hidden pointer-events-auto">
+        {isMobile && (
+          <div
+            className={`fixed inset-0 z-50 transition-opacity duration-300 ${
+              isSheetOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+          >
+            <div
+              className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+                isSheetOpen ? 'opacity-100' : 'opacity-0'
+              }`}
+              onClick={handleBackdropClick}
+            />
+
+            <div
+              ref={sheetRef}
+              className={`absolute bottom-0 left-0 right-0 bg-gray-900/60 rounded-t-3xl shadow-2xl transition-all duration-300 landscape-compact-sheet ${
+                isSheetOpen ? 'translate-y-0' : 'translate-y-full'
+              }`}
+              style={{
+                maxHeight: '92vh',
+                transitionTimingFunction: 'cubic-bezier(0.215, 0.61, 0.355, 1)',
+                backdropFilter: isSheetOpen ? 'blur(40px)' : 'blur(0px)',
+                WebkitBackdropFilter: isSheetOpen ? 'blur(40px)' : 'blur(0px)',
+                willChange: 'transform, backdrop-filter',
+              }}
+            >
               <div
-                className="sticky top-0 z-10 bg-gray-900/95 border-b border-white/10 px-4 pt-3 pb-2"
+                className="flex justify-center pt-2 pb-1 cursor-grab active:cursor-grabbing"
                 onTouchStart={handleSheetTouchStart}
+                onTouchMove={handleSheetTouchMove}
                 onTouchEnd={handleSheetTouchEnd}
               >
-                <div className="flex items-center justify-between">
-                  <div className="relative w-full flex items-center justify-center">
-                    <div className="absolute left-1/2 -translate-x-1/2 -top-2 h-1.5 w-10 rounded-full bg-white/20" />
-                    <span className="text-white/90 text-sm font-semibold">Edit</span>
+                <div className="w-9 h-1 bg-white/40 rounded-full" />
+              </div>
+              <div
+                className="px-4 py-3 border-b border-white/10 cursor-grab active:cursor-grabbing"
+                onTouchStart={handleSheetTouchStart}
+                onTouchMove={handleSheetTouchMove}
+                onTouchEnd={handleSheetTouchEnd}
+              >
+                <h3 className="text-lg font-semibold text-white text-center tracking-tight">Edit</h3>
+              </div>
+              <div className="overflow-y-auto flex-1" style={{ maxHeight: 'calc(92vh - 180px)' }}>
+                <div className="py-3 border-b border-white/10 px-4">
+                  <div className="flex gap-2 overflow-x-auto">
+                    {tabs.map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap ${
+                          activeTab === tab.id ? 'bg-white text-black' : 'bg-white/10 text-white/80'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
                   </div>
-                  <button
-                    onClick={() => setIsSheetOpen(false)}
-                    className="ml-2 p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10"
-                    aria-label="Close"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
                 </div>
-                <div className="mt-2 flex gap-2 overflow-x-auto no-scrollbar">
-                  {tabs.map(tab => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap ${activeTab === tab.id ? 'bg-white text-black' : 'bg-white/10 text-white/80'}`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
+                <div className="p-3">
+                  {activeTab === 'text' && (
+                    <TextEditorPanel
+                      textOverlays={textOverlays}
+                      selectedTextId={selectedTextId}
+                      onAddText={() => {
+                        setIsSheetOpen(false);
+                        addTextOverlay();
+                      }}
+                      onUpdateText={updateTextOverlay}
+                      onDeleteText={deleteTextOverlay}
+                      onSelectText={setSelectedTextId}
+                    />
+                  )}
+                  {activeTab === 'filters' && (
+                    <FiltersPanel filters={filters} onUpdateFilters={setFilters} />
+                  )}
+                  {activeTab === 'adjustments' && (
+                    <AdjustmentsPanel adjustments={adjustments} onUpdateAdjustments={setAdjustments} />
+                  )}
+                  {activeTab === 'stickers' && (
+                    <StickersPanel
+                      stickers={stickers}
+                      selectedStickerId={selectedStickerId}
+                      onAddSticker={(e) => {
+                        addSticker(e);
+                        setIsSheetOpen(false);
+                      }}
+                      onUpdateSticker={updateSticker}
+                      onDeleteSticker={deleteSticker}
+                      onSelectSticker={setSelectedStickerId}
+                    />
+                  )}
+                  {activeTab === 'drawing' && (
+                    <DrawingPanel
+                      drawingPaths={drawingPaths}
+                      onUpdatePaths={setDrawingPaths}
+                      isDrawingMode={isDrawingMode}
+                      onToggleDrawingMode={setIsDrawingMode}
+                      drawingColor={drawingColor}
+                      onColorChange={setDrawingColor}
+                      drawingWidth={drawingWidth}
+                      onWidthChange={setDrawingWidth}
+                      isEraserMode={isEraserMode}
+                      onToggleEraserMode={setIsEraserMode}
+                    />
+                  )}
                 </div>
               </div>
-              <div className="overflow-y-auto p-3">
-                {activeTab === 'text' && (
-                  <TextEditorPanel
-                    textOverlays={textOverlays}
-                    selectedTextId={selectedTextId}
-                    onAddText={() => { setIsSheetOpen(false); addTextOverlay(); }}
-                    onUpdateText={updateTextOverlay}
-                    onDeleteText={deleteTextOverlay}
-                    onSelectText={setSelectedTextId}
-                  />
-                )}
-                {activeTab === 'filters' && (
-                  <FiltersPanel filters={filters} onUpdateFilters={setFilters} />
-                )}
-                {activeTab === 'adjustments' && (
-                  <AdjustmentsPanel adjustments={adjustments} onUpdateAdjustments={setAdjustments} />
-                )}
-                {activeTab === 'stickers' && (
-                  <StickersPanel
-                    stickers={stickers}
-                    selectedStickerId={selectedStickerId}
-                    onAddSticker={(e) => { addSticker(e); setIsSheetOpen(false); }}
-                    onUpdateSticker={updateSticker}
-                    onDeleteSticker={deleteSticker}
-                    onSelectSticker={setSelectedStickerId}
-                  />
-                )}
-                {activeTab === 'drawing' && (
-                  <DrawingPanel
-                    drawingPaths={drawingPaths}
-                    onUpdatePaths={setDrawingPaths}
-                    isDrawingMode={isDrawingMode}
-                    onToggleDrawingMode={setIsDrawingMode}
-                    drawingColor={drawingColor}
-                    onColorChange={setDrawingColor}
-                    drawingWidth={drawingWidth}
-                    onWidthChange={setDrawingWidth}
-                    isEraserMode={isEraserMode}
-                    onToggleEraserMode={setIsEraserMode}
-                  />
-                )}
+              <div className="absolute top-3 right-3">
+                <button
+                  onClick={() => setIsSheetOpen(false)}
+                  className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 transition-colors duration-150 flex items-center justify-center"
+                  aria-label="Close"
+                >
+                  <X className="w-5 h-5 text-white" />
+                </button>
               </div>
             </div>
           </div>
