@@ -28,10 +28,14 @@ const DrawingPanel: React.FC<DrawingPanelProps> = ({
   drawingColor,
   onColorChange,
   drawingWidth,
-  onWidthChange
+  onWidthChange,
+  isEraserMode,
+  onToggleEraserMode
 }) => {
-  // Track eraser mode separately from drawing mode
-  const [isEraserMode, setIsEraserMode] = useState(false);
+  // Controlled eraser mode when provided; fallback to local state
+  const [localEraser, setLocalEraser] = useState(false);
+  const eraser = isEraserMode ?? localEraser;
+  const setEraser = onToggleEraserMode ?? setLocalEraser;
 
   const clearAllDrawings = () => {
     if (confirm('Clear all drawings?')) {
@@ -48,10 +52,10 @@ const DrawingPanel: React.FC<DrawingPanelProps> = ({
           <button
             onClick={() => {
               onToggleDrawingMode(true);
-              setIsEraserMode(false);
+              setEraser(false);
             }}
             className={`px-4 py-3 border rounded-lg transition-all flex items-center justify-center gap-2 ${
-              isDrawingMode && !isEraserMode
+              isDrawingMode && !eraser
                 ? 'bg-blue-500 border-blue-500 text-white'
                 : 'bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-blue-500'
             }`}
@@ -62,10 +66,10 @@ const DrawingPanel: React.FC<DrawingPanelProps> = ({
           <button
             onClick={() => {
               onToggleDrawingMode(true);
-              setIsEraserMode(true);
+              setEraser(true);
             }}
             className={`px-4 py-3 border rounded-lg transition-all flex items-center justify-center gap-2 ${
-              isDrawingMode && isEraserMode
+              isDrawingMode && eraser
                 ? 'bg-blue-500 border-blue-500 text-white'
                 : 'bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-blue-500'
             }`}
@@ -77,7 +81,7 @@ const DrawingPanel: React.FC<DrawingPanelProps> = ({
       </div>
 
       {/* Color Picker - Only show when not in eraser mode */}
-      {!isEraserMode && (
+      {!eraser && (
         <div>
           <h3 className="text-sm font-medium text-white/60 mb-3">Color</h3>
           <div className="flex gap-2 flex-wrap mb-2">

@@ -145,6 +145,17 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
       mq.removeEventListener?.('change', handleMq as any);
     };
   }, [imageUrl]);
+
+  // Tie drawing mode to tab: on drawing tab => drawing true (eraser off). Otherwise disable drawing.
+  useEffect(() => {
+    if (activeTab === 'drawing') {
+      setIsDrawingMode(true);
+      setIsEraserMode(false);
+    } else {
+      setIsDrawingMode(false);
+      setIsEraserMode(false);
+    }
+  }, [activeTab]);
   
   // Update displayed image size and position for proper scaling and dragging
   useEffect(() => {
@@ -180,11 +191,11 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
       text: 'Placeholder',
       x: 50,
       y: 50,
-      fontSize: 16,
+      fontSize: 6,
       fontFamily: 'Arial',
       color: '#ffffff',
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      padding: 10,
+      padding: 2,
       rotation: 0,
       textAlign: 'center',
       fontWeight: 'bold',
@@ -302,30 +313,45 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
   
   // Eraser functionality
   const handleEraserAction = (x: number, y: number) => {
-    // Calculate the eraser radius in percentage of image dimensions
-    const eraserRadius = drawingWidth;
-    
-    // Filter out paths that intersect with the eraser
-    const remainingPaths = drawingPaths.filter(path => {
-      // Check if any point in the path is within the eraser radius
-      return !path.points.some(point => {
-        const distance = Math.sqrt(
-          Math.pow(point.x - x, 2) + Math.pow(point.y - y, 2)
-        );
-        return distance <= eraserRadius;
-      });
-    });
-    
-    // Update paths if any were erased
-    if (remainingPaths.length < drawingPaths.length) {
-      setDrawingPaths(remainingPaths);
+    // Erase only portions under the eraser by splitting paths into remaining segments
+    const r = drawingWidth; // radius in same % coordinate system as points
+    const r2 = r * r;
+    const newPaths: typeof drawingPaths = [];
+
+    for (const path of drawingPaths) {
+      if (path.points.length < 2) continue;
+      let segment: { x: number; y: number }[] = [];
+      const flushSegment = () => {
+        if (segment.length >= 2) {
+          newPaths.push({
+            id: `path-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+            color: path.color,
+            width: path.width,
+            points: segment,
+          });
+        }
+        segment = [];
+      };
+
+      for (const p of path.points) {
+        const dx = p.x - x;
+        const dy = p.y - y;
+        const inside = dx * dx + dy * dy <= r2;
+        if (inside) {
+          // Cut here
+          flushSegment();
+        } else {
+          segment.push(p);
+        }
+      }
+      flushSegment();
     }
+
+    setDrawingPaths(newPaths);
   };
 
   // Drag handlers
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent, type: 'text' | 'sticker', id: string) => {
-    if (isDrawingMode) return; // Don't drag in drawing mode
-    
     e.stopPropagation();
     e.preventDefault();
     setIsDragging(true);
@@ -358,7 +384,8 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
   };
 
   const handleDragMove = (e: React.MouseEvent | React.TouchEvent) => {
-    if (isDrawingMode) {
+    // If we're not dragging an overlay and drawing mode is active, route to drawing
+    if (isDrawingMode && !isDragging) {
       handleDrawingMove(e);
       return;
     }
@@ -373,32 +400,29 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
       const deltaX = clientX - dragStart.x;
       const deltaY = clientY - dragStart.y;
       
-      // Calculate size change based on corner and movement
+      // For width resizing, use horizontal movement; direction depends on corner
       let sizeDelta = 0;
       switch (resizeCorner) {
-        case 'br': // Bottom right - positive in both directions
-          sizeDelta = Math.max(deltaX, deltaY) / 2;
+        case 'br':
+        case 'tr':
+          sizeDelta = deltaX; // dragging right increases width
           break;
-        case 'bl': // Bottom left - negative X, positive Y
-          sizeDelta = Math.max(-deltaX, deltaY) / 2;
-          break;
-        case 'tr': // Top right - positive X, negative Y
-          sizeDelta = Math.max(deltaX, -deltaY) / 2;
-          break;
-        case 'tl': // Top left - negative in both directions
-          sizeDelta = Math.max(-deltaX, -deltaY) / 2;
+        case 'bl':
+        case 'tl':
+          sizeDelta = -deltaX; // dragging left increases width from left corners
           break;
       }
-      
-      // Scale the size delta based on the image size
+
+      // Scale the size delta based on the image width to get percentage
       const scaledSizeDelta = (sizeDelta / displayedImageSize.width) * 100;
-      
+
       if (dragType === 'text') {
         const text = textOverlays.find(t => t.id === dragId);
         if (text) {
-          // Calculate new font size, with minimum of 4 and maximum of 120
-          const newSize = Math.max(4, Math.min(120, initialSize.width + scaledSizeDelta));
-          updateTextOverlay(dragId, { fontSize: newSize });
+          // Determine starting width percent: existing width or current element width
+          const startWidthPercent = initialSize.width;
+          const newWidth = Math.max(5, Math.min(100, startWidthPercent + scaledSizeDelta));
+          updateTextOverlay(dragId, { width: newWidth });
         }
       } else if (dragType === 'sticker') {
         const sticker = stickers.find(s => s.id === dragId);
@@ -426,10 +450,9 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
       if (dragType === 'text') {
         const text = textOverlays.find(t => t.id === dragId);
         if (text) {
-          updateTextOverlay(dragId, {
-            x: text.x + deltaXPercent,
-            y: text.y + deltaYPercent,
-          });
+          const newX = Math.max(0, Math.min(100, text.x + deltaXPercent));
+          const newY = Math.max(0, Math.min(100, text.y + deltaYPercent));
+          updateTextOverlay(dragId, { x: newX, y: newY });
         }
       } else {
         const sticker = stickers.find(s => s.id === dragId);
@@ -545,68 +568,105 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     ctx.restore();
 
-    // Draw text overlays
+    // Draw text overlays with wrapping based on overlay width
     textOverlays.forEach(text => {
       ctx.save();
       const x = (text.x / 100) * canvas.width;
       const y = (text.y / 100) * canvas.height;
       const fontSize = (text.fontSize / 100) * canvas.width;
+      const padding = (text.padding / 100) * canvas.width;
+      const maxWidth = text.width ? (text.width / 100) * canvas.width : undefined;
 
       ctx.translate(x, y);
       ctx.rotate((text.rotation * Math.PI) / 180);
 
       ctx.font = `${text.fontStyle} ${text.fontWeight} ${fontSize}px ${text.fontFamily}`;
       ctx.textAlign = text.textAlign;
-      ctx.globalAlpha = text.opacity;
+      ctx.textBaseline = 'middle';
+      const currentAlpha = text.opacity;
+      ctx.globalAlpha = currentAlpha;
 
-      // Draw background
+      // Word-wrap the text into lines if width is specified
+      const wrapText = (t: string, maxW?: number) => {
+        if (!maxW) return { lines: t.split('\n'), maxLineWidth: ctx.measureText(t).width };
+        const words = t.split(/\s+/);
+        const lines: string[] = [];
+        let line = '';
+        let maxLineWidth = 0;
+        for (let i = 0; i < words.length; i++) {
+          const test = line ? line + ' ' + words[i] : words[i];
+          const w = ctx.measureText(test).width;
+          if (w <= maxW) {
+            line = test;
+            maxLineWidth = Math.max(maxLineWidth, w);
+          } else {
+            if (line) lines.push(line);
+            line = words[i];
+            maxLineWidth = Math.max(maxLineWidth, ctx.measureText(line).width);
+          }
+        }
+        if (line) lines.push(line);
+        // Respect manual line breaks within width wrapping
+        const finalLines: string[] = [];
+        lines.forEach(l => {
+          const parts = l.split('\n');
+          parts.forEach(p => finalLines.push(p));
+        });
+        return { lines: finalLines, maxLineWidth: maxLineWidth };
+      };
+
+      const { lines, maxLineWidth } = wrapText(text.text, maxWidth);
+      const lineHeight = fontSize * 1.2;
+      const contentWidth = maxWidth ?? maxLineWidth;
+      const totalHeight = lines.length * lineHeight;
+
+      // Draw background (respect rgba alpha by multiplying with current opacity)
       if (text.backgroundColor !== 'transparent') {
-        const metrics = ctx.measureText(text.text);
-        const padding = (text.padding / 100) * canvas.width;
-        
-        // Save current global alpha before drawing background
-        const currentAlpha = ctx.globalAlpha;
-        
-        // Parse the background color to extract alpha if it's in rgba format
         let bgColor = text.backgroundColor;
         let bgAlpha = currentAlpha;
-        
         if (bgColor.startsWith('rgba')) {
           const parts = bgColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
           if (parts && parts.length === 5) {
-            const [_, r, g, b, a] = parts;
+            const [_, r, g, b, a] = parts as unknown as [string, string, string, string, string];
             bgColor = `rgb(${r}, ${g}, ${b})`;
             bgAlpha = parseFloat(a) * currentAlpha;
           }
         }
-        
-        // Set alpha for background only
+        ctx.save();
         ctx.globalAlpha = bgAlpha;
         ctx.fillStyle = bgColor;
-        ctx.fillRect(
-          -padding,
-          -fontSize - padding,
-          metrics.width + padding * 2,
-          fontSize + padding * 2
-        );
-        
-        // Restore original alpha for text
-        ctx.globalAlpha = currentAlpha;
+        const rectWidth = contentWidth + padding * 2;
+        const rectHeight = totalHeight + padding * 2;
+        let rectX = 0;
+        if (text.textAlign === 'center') rectX = -rectWidth / 2;
+        else if (text.textAlign === 'left') rectX = -rectWidth / 2; // center box to match preview centering
+        else if (text.textAlign === 'right') rectX = -rectWidth / 2; // keep centered box, align text via textAlign
+        const rectY = -rectHeight / 2;
+        ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+        ctx.restore();
       }
 
-      // Draw text
+      // Draw text lines
       ctx.fillStyle = text.color;
-      ctx.fillText(text.text, 0, 0);
-
-      if (text.textDecoration === 'underline') {
-        const metrics = ctx.measureText(text.text);
-        ctx.strokeStyle = text.color;
-        ctx.lineWidth = fontSize * 0.05;
-        ctx.beginPath();
-        ctx.moveTo(0, fontSize * 0.1);
-        ctx.lineTo(metrics.width, fontSize * 0.1);
-        ctx.stroke();
-      }
+      lines.forEach((line, idx) => {
+        const yOffset = -((lines.length - 1) / 2) * lineHeight + idx * lineHeight;
+        let xPos = 0;
+        if (text.textAlign === 'left') xPos = -contentWidth / 2 + padding;
+        else if (text.textAlign === 'right') xPos = contentWidth / 2 - padding;
+        else xPos = 0; // center
+        ctx.fillText(line, xPos, yOffset);
+        if (text.textDecoration === 'underline') {
+          const w = ctx.measureText(line).width;
+          ctx.strokeStyle = text.color;
+          ctx.lineWidth = fontSize * 0.05;
+          ctx.beginPath();
+          const underlineY = yOffset + fontSize * 0.4;
+          const startX = xPos + (text.textAlign === 'center' ? -w / 2 : text.textAlign === 'right' ? -w : 0);
+          ctx.moveTo(startX, underlineY);
+          ctx.lineTo(startX + w, underlineY);
+          ctx.stroke();
+        }
+      });
 
       ctx.restore();
     });
@@ -890,11 +950,12 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                     textDecoration: text.textDecoration,
                     textAlign: text.textAlign,
                     opacity: text.opacity,
+                    width: text.width ? `${(text.width / 100) * displayedImageSize.width}px` : undefined,
+                    boxSizing: 'border-box',
                     whiteSpace: 'pre-wrap',
                     wordBreak: 'break-word',
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
-                    position: 'relative',
                   }}
                   onMouseDown={(e) => handleDragStart(e, 'text', text.id)}
                   onTouchStart={(e) => handleDragStart(e, 'text', text.id)}
@@ -968,7 +1029,10 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                           setDragType('text');
                           setDragId(text.id);
                           setDragStart({ x: e.clientX, y: e.clientY });
-                          setInitialSize({ width: text.fontSize, height: 0 });
+                          const parent = (e.currentTarget.parentElement as HTMLDivElement) || undefined;
+                          const rect = parent ? parent.getBoundingClientRect() : { width: 0 } as DOMRect;
+                          const startWidth = text.width ?? (displayedImageSize.width > 0 ? (rect.width / displayedImageSize.width) * 100 : 30);
+                          setInitialSize({ width: startWidth, height: 0 });
                           setResizeCorner('tl');
                         }}
                         onTouchStart={(e) => {
@@ -978,7 +1042,10 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                           setDragType('text');
                           setDragId(text.id);
                           setDragStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
-                          setInitialSize({ width: text.fontSize, height: 0 });
+                          const parent = (e.currentTarget.parentElement as HTMLDivElement) || undefined;
+                          const rect = parent ? parent.getBoundingClientRect() : { width: 0 } as DOMRect;
+                          const startWidth = text.width ?? (displayedImageSize.width > 0 ? (rect.width / displayedImageSize.width) * 100 : 30);
+                          setInitialSize({ width: startWidth, height: 0 });
                           setResizeCorner('tl');
                         }}
                       />
@@ -991,7 +1058,10 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                           setDragType('text');
                           setDragId(text.id);
                           setDragStart({ x: e.clientX, y: e.clientY });
-                          setInitialSize({ width: text.fontSize, height: 0 });
+                          const parent = (e.currentTarget.parentElement as HTMLDivElement) || undefined;
+                          const rect = parent ? parent.getBoundingClientRect() : { width: 0 } as DOMRect;
+                          const startWidth = text.width ?? (displayedImageSize.width > 0 ? (rect.width / displayedImageSize.width) * 100 : 30);
+                          setInitialSize({ width: startWidth, height: 0 });
                           setResizeCorner('tr');
                         }}
                         onTouchStart={(e) => {
@@ -1001,7 +1071,10 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                           setDragType('text');
                           setDragId(text.id);
                           setDragStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
-                          setInitialSize({ width: text.fontSize, height: 0 });
+                          const parent = (e.currentTarget.parentElement as HTMLDivElement) || undefined;
+                          const rect = parent ? parent.getBoundingClientRect() : { width: 0 } as DOMRect;
+                          const startWidth = text.width ?? (displayedImageSize.width > 0 ? (rect.width / displayedImageSize.width) * 100 : 30);
+                          setInitialSize({ width: startWidth, height: 0 });
                           setResizeCorner('tr');
                         }}
                       />
@@ -1014,7 +1087,10 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                           setDragType('text');
                           setDragId(text.id);
                           setDragStart({ x: e.clientX, y: e.clientY });
-                          setInitialSize({ width: text.fontSize, height: 0 });
+                          const parent = (e.currentTarget.parentElement as HTMLDivElement) || undefined;
+                          const rect = parent ? parent.getBoundingClientRect() : { width: 0 } as DOMRect;
+                          const startWidth = text.width ?? (displayedImageSize.width > 0 ? (rect.width / displayedImageSize.width) * 100 : 30);
+                          setInitialSize({ width: startWidth, height: 0 });
                           setResizeCorner('bl');
                         }}
                         onTouchStart={(e) => {
@@ -1024,7 +1100,10 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                           setDragType('text');
                           setDragId(text.id);
                           setDragStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
-                          setInitialSize({ width: text.fontSize, height: 0 });
+                          const parent = (e.currentTarget.parentElement as HTMLDivElement) || undefined;
+                          const rect = parent ? parent.getBoundingClientRect() : { width: 0 } as DOMRect;
+                          const startWidth = text.width ?? (displayedImageSize.width > 0 ? (rect.width / displayedImageSize.width) * 100 : 30);
+                          setInitialSize({ width: startWidth, height: 0 });
                           setResizeCorner('bl');
                         }}
                       />
@@ -1037,7 +1116,10 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                           setDragType('text');
                           setDragId(text.id);
                           setDragStart({ x: e.clientX, y: e.clientY });
-                          setInitialSize({ width: text.fontSize, height: 0 });
+                          const parent = (e.currentTarget.parentElement as HTMLDivElement) || undefined;
+                          const rect = parent ? parent.getBoundingClientRect() : { width: 0 } as DOMRect;
+                          const startWidth = text.width ?? (displayedImageSize.width > 0 ? (rect.width / displayedImageSize.width) * 100 : 30);
+                          setInitialSize({ width: startWidth, height: 0 });
                           setResizeCorner('br');
                         }}
                         onTouchStart={(e) => {
@@ -1047,7 +1129,10 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                           setDragType('text');
                           setDragId(text.id);
                           setDragStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
-                          setInitialSize({ width: text.fontSize, height: 0 });
+                          const parent = (e.currentTarget.parentElement as HTMLDivElement) || undefined;
+                          const rect = parent ? parent.getBoundingClientRect() : { width: 0 } as DOMRect;
+                          const startWidth = text.width ?? (displayedImageSize.width > 0 ? (rect.width / displayedImageSize.width) * 100 : 30);
+                          setInitialSize({ width: startWidth, height: 0 });
                           setResizeCorner('br');
                         }}
                       />

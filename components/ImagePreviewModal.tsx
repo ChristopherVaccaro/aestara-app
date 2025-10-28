@@ -16,6 +16,8 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose
     
     const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        // Signal close so listeners (e.g., CategorySelector) can resume
+        window.dispatchEvent(new Event('modal-close'));
         onClose();
       }
     };
@@ -23,6 +25,8 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose
 
     return () => {
       window.removeEventListener('keydown', handleEscKey);
+      // On unmount, signal modal close in case it wasn't signaled yet
+      window.dispatchEvent(new Event('modal-close'));
     };
   }, [onClose]);
 
@@ -62,8 +66,14 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose
     
     // Close modal if swiped down significantly
     if (swipeDistance > minSwipeDistance) {
+      window.dispatchEvent(new Event('modal-close'));
       onClose();
     }
+  };
+
+  const handleCloseClick = () => {
+    window.dispatchEvent(new Event('modal-close'));
+    onClose();
   };
 
   const handleDownloadClick = () => {
@@ -79,7 +89,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose
     <div
       className="fixed inset-0 glass-modal"
       style={{ zIndex: 10000 }}
-      onClick={onClose}
+      onClick={handleCloseClick}
       aria-modal="true"
       role="dialog"
       onTouchStart={handleTouchStart}
@@ -101,7 +111,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ imageUrl, onClose
           />
           <div className="absolute top-3 right-3">
             <button
-              onClick={onClose}
+              onClick={handleCloseClick}
               className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
               aria-label="Close preview"
             >
