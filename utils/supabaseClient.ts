@@ -21,6 +21,8 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   global: {
     headers: {
       'x-client-info': 'ai-image-stylizer',
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
     },
   },
   // Disable query caching for real-time vote updates

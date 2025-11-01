@@ -79,7 +79,7 @@ const BlurredImageLoading: React.FC<BlurredImageLoadingProps> = ({
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes shimmer {
           0% {
             background-position: -200% 0;
