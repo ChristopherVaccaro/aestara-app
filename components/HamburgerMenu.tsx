@@ -53,7 +53,7 @@ const HamburgerMenu: React.FC = () => {
       {/* Hamburger Button */}
       <button
         onClick={toggleMenu}
-        className="fixed top-4 md:top-[26px] right-4 md:right-6 z-[70] p-2 hover:opacity-70 transition-opacity duration-200"
+        className="fixed top-4 md:top-6 right-4 md:right-6 z-[70] p-2 hover:opacity-70 transition-opacity duration-200"
         aria-label="Menu"
       >
         {isOpen ? (

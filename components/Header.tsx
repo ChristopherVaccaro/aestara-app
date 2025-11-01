@@ -10,7 +10,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false }) => {
   return (
     <>
-      <header className="w-full py-4 md:py-6 flex-shrink-0">
+      <header className="w-full pt-4 md:pt-0 pb-4 md:pb-6 flex-shrink-0">
         <div className="flex items-center justify-center">
           <button
             onClick={onLogoClick}
