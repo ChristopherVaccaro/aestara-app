@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { LogIn, LogOut, User } from 'lucide-react';
+import { SignIn, SignOut, User } from '@phosphor-icons/react';
 import { useAuth } from '../contexts/AuthContext';
 
 export const AuthButton: React.FC = () => {
@@ -59,7 +59,7 @@ export const AuthButton: React.FC = () => {
           disabled={isSigningOut}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <LogOut className="w-4 h-4" />
+          <SignOut className="w-4 h-4" />
           <span className="text-sm">
             {isSigningOut ? 'Signing out...' : 'Sign Out'}
           </span>
@@ -74,7 +74,7 @@ export const AuthButton: React.FC = () => {
       disabled={isSigningIn}
       className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 border border-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
     >
-      <LogIn className="w-4 h-4" />
+      <SignIn className="w-4 h-4" />
       <span className="text-sm font-medium">
         {isSigningIn ? 'Signing in...' : 'Sign in with Google'}
       </span>

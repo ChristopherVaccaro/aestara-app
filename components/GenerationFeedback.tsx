@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ThumbsUp, ThumbsDown } from '@phosphor-icons/react';
 import { recordVote, getVoteStats, VOTE_THRESHOLD } from '../services/voteTrackingService';
 import { FeedbackTagSelector } from './FeedbackTagSelector';
 import { recordVoteFeedback, updateFeedbackSummary } from '../services/feedbackTagService';

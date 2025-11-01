@@ -1,13 +1,11 @@
 /* Glass UI CSS with fallbacks */
 
 /* Global elegant thin font styling */
-body {
-  font-family: arial, system-ui, -apple-system, "Segoe UI", sans-serif;
+html, body {
+  font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   font-weight: 300;
   letter-spacing: 0.02em;
-  /* Prevent overscroll bounce for native app feel */
   overscroll-behavior: none;
-  /* Fix height for mobile browsers with collapsing address bars */
   min-height: 100vh;
   min-height: -webkit-fill-available;
 }
@@ -27,6 +25,7 @@ html {
 
 /* Headings maintain hierarchy with slightly bolder weight */
 h1, h2, h3, h4, h5, h6 {
+  font-family: 'Mona Sans', 'Mona-Sans', 'Inter', system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   font-weight: 400;
   letter-spacing: 0.03em;
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { RotateCcw } from 'lucide-react';
+import { ArrowCounterClockwise } from '@phosphor-icons/react';
 import { ImageFilters } from './ImageEditor';
 
 interface FiltersPanelProps {
@@ -42,7 +42,7 @@ const FiltersPanel: React.FC<FiltersPanelProps> = ({ filters, onUpdateFilters })
         onClick={resetFilters}
         className="w-full px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-all flex items-center justify-center gap-2 text-sm"
       >
-        <RotateCcw className="w-4 h-4" />
+        <ArrowCounterClockwise className="w-4 h-4" />
         Reset All
       </button>
 

@@ -2,7 +2,7 @@
 
 /* iOS San Francisco Font System */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-family: inherit;
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -212,7 +212,7 @@ body {
   border-radius: 10px;
   color: white;
   transition: all 0.15s ease;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  font-family: inherit;
 }
 
 .ios-input:focus {

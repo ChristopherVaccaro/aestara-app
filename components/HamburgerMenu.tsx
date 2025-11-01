@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Menu, X, FileText, Shield, MessageCircle, BarChart3 } from 'lucide-react';
+import { List, X, FileText, Shield, ChatCircle, ChartBar } from '@phosphor-icons/react';
 import FeedbackForm from './FeedbackForm';
 import TermsOfService from './TermsOfService';
 import PrivacyPolicy from './PrivacyPolicy';
@@ -53,13 +53,13 @@ const HamburgerMenu: React.FC = () => {
       {/* Hamburger Button */}
       <button
         onClick={toggleMenu}
-        className="fixed top-4 md:top-[26px] right-4 md:right-6 z-[70] p-2 hover:opacity-70 transition-opacity duration-200"
+        className="fixed top-4 md:top-6 right-4 md:right-6 z-[70] p-2 hover:opacity-70 transition-opacity duration-200"
         aria-label="Menu"
       >
         {isOpen ? (
           <X className="w-6 h-6 md:w-7 md:h-7 text-gray-400" />
         ) : (
-          <Menu className="w-6 h-6 md:w-7 md:h-7 text-gray-400" />
+          <List className="w-6 h-6 md:w-7 md:h-7 text-gray-400" />
         )}
       </button>
 
@@ -89,7 +89,7 @@ const HamburgerMenu: React.FC = () => {
               onClick={handleAnalyticsClick}
               className="flex items-center gap-3 px-4 py-3 rounded-lg bg-black/30 hover:bg-black/50 transition-colors text-white text-left"
             >
-              <BarChart3 className="w-5 h-5 text-white" />
+              <ChartBar className="w-5 h-5 text-white" />
               <span>Analytics Dashboard</span>
             </button>
             <button
@@ -112,7 +112,7 @@ const HamburgerMenu: React.FC = () => {
               onClick={handleFeedbackClick}
               className="flex items-center gap-3 px-4 py-3 rounded-lg bg-black/30 hover:bg-black/50 transition-colors text-white text-left"
             >
-              <MessageCircle className="w-5 h-5 text-white" />
+              <ChatCircle className="w-5 h-5 text-white" />
               <span>Feedback</span>
             </button>
           </nav>

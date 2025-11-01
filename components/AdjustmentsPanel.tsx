@@ -1,5 +1,5 @@
 import React from 'react';
-import { RotateCw, FlipHorizontal, FlipVertical, Crop } from 'lucide-react';
+import { ArrowClockwise, ArrowsLeftRight, ArrowsDownUp, Crop } from '@phosphor-icons/react';
 import { ImageAdjustments } from './ImageEditor';
 
 interface AdjustmentsPanelProps {
@@ -48,14 +48,14 @@ const AdjustmentsPanel: React.FC<AdjustmentsPanelProps> = ({ adjustments, onUpda
             onClick={() => rotate(-90)}
             className="px-4 py-3 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 hover:border-blue-500 transition-all flex items-center justify-center gap-2"
           >
-            <RotateCw className="w-4 h-4 transform scale-x-[-1]" />
+            <ArrowClockwise className="w-4 h-4 transform scale-x-[-1]" />
             <span className="text-sm">90° Left</span>
           </button>
           <button
             onClick={() => rotate(90)}
             className="px-4 py-3 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 hover:border-blue-500 transition-all flex items-center justify-center gap-2"
           >
-            <RotateCw className="w-4 h-4" />
+            <ArrowClockwise className="w-4 h-4" />
             <span className="text-sm">90° Right</span>
           </button>
         </div>
@@ -89,7 +89,7 @@ const AdjustmentsPanel: React.FC<AdjustmentsPanelProps> = ({ adjustments, onUpda
                 : 'bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-blue-500'
             }`}
           >
-            <FlipHorizontal className="w-4 h-4" />
+            <ArrowsLeftRight className="w-4 h-4" />
             <span className="text-sm">Horizontal</span>
           </button>
           <button
@@ -100,7 +100,7 @@ const AdjustmentsPanel: React.FC<AdjustmentsPanelProps> = ({ adjustments, onUpda
                 : 'bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-blue-500'
             }`}
           >
-            <FlipVertical className="w-4 h-4" />
+            <ArrowsDownUp className="w-4 h-4" />
             <span className="text-sm">Vertical</span>
           </button>
         </div>
