@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, Search } from 'lucide-react';
+import { Trash, MagnifyingGlass } from '@phosphor-icons/react';
 import { Sticker } from './ImageEditor';
 
 interface StickersPanelProps {
@@ -40,7 +40,7 @@ const StickersPanel: React.FC<StickersPanelProps> = ({
     <div className="space-y-4">
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
+        <MagnifyingGlass className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
         <input
           type="text"
           placeholder="Search emojis..."
@@ -110,7 +110,7 @@ const StickersPanel: React.FC<StickersPanelProps> = ({
                   }}
                   className="p-1 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded transition-all"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash className="w-4 h-4" />
                 </button>
               </div>
             </div>

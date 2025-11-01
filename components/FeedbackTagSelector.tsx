@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, AlertCircle, Sparkles, Eye, Zap } from 'lucide-react';
+import { X, WarningCircle, Sparkle, Eye, Lightning } from '@phosphor-icons/react';
 import { FeedbackTag, getAllFeedbackTags } from '../services/feedbackTagService';
 
 interface FeedbackTagSelectorProps {
@@ -11,10 +11,10 @@ interface FeedbackTagSelectorProps {
 }
 
 const CATEGORY_ICONS = {
-  quality: AlertCircle,
-  style: Sparkles,
+  quality: WarningCircle,
+  style: Sparkle,
   preservation: Eye,
-  technical: Zap,
+  technical: Lightning,
 };
 
 const CATEGORY_LABELS = {

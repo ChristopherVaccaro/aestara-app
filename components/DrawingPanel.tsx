@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pencil, Eraser, Trash2 } from 'lucide-react';
+import { Pencil, Eraser, Trash } from '@phosphor-icons/react';
 import { DrawingPath } from './ImageEditor';
 
 interface DrawingPanelProps {
@@ -140,7 +140,7 @@ const DrawingPanel: React.FC<DrawingPanelProps> = ({
             onClick={clearAllDrawings}
             className="w-full px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/20 transition-all flex items-center justify-center gap-2 text-sm"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash className="w-4 h-4" />
             Clear All Drawings
           </button>
         </div>

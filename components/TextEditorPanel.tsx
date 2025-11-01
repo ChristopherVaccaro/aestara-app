@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Trash2, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Underline } from 'lucide-react';
+import { Plus, Trash, TextAlignLeft, TextAlignCenter, TextAlignRight, TextB, TextItalic, TextUnderline } from '@phosphor-icons/react';
 import { TextOverlay } from './ImageEditor';
 
 interface TextEditorPanelProps {
@@ -75,7 +75,7 @@ const TextEditorPanel: React.FC<TextEditorPanelProps> = ({
                   }}
                   className="p-1 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded transition-all"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -144,7 +144,7 @@ const TextEditorPanel: React.FC<TextEditorPanelProps> = ({
                     : 'bg-white/5 text-white/60 hover:bg-white/10'
                 }`}
               >
-                <Bold className="w-4 h-4 mx-auto" />
+                <TextB className="w-4 h-4 mx-auto" />
               </button>
               <button
                 onClick={() => onUpdateText(selectedText.id, {
@@ -156,7 +156,7 @@ const TextEditorPanel: React.FC<TextEditorPanelProps> = ({
                     : 'bg-white/5 text-white/60 hover:bg-white/10'
                 }`}
               >
-                <Italic className="w-4 h-4 mx-auto" />
+                <TextItalic className="w-4 h-4 mx-auto" />
               </button>
               <button
                 onClick={() => onUpdateText(selectedText.id, {
@@ -168,7 +168,7 @@ const TextEditorPanel: React.FC<TextEditorPanelProps> = ({
                     : 'bg-white/5 text-white/60 hover:bg-white/10'
                 }`}
               >
-                <Underline className="w-4 h-4 mx-auto" />
+                <TextUnderline className="w-4 h-4 mx-auto" />
               </button>
             </div>
           </div>
@@ -185,7 +185,7 @@ const TextEditorPanel: React.FC<TextEditorPanelProps> = ({
                     : 'bg-white/5 text-white/60 hover:bg-white/10'
                 }`}
               >
-                <AlignLeft className="w-4 h-4 mx-auto" />
+                <TextAlignLeft className="w-4 h-4 mx-auto" />
               </button>
               <button
                 onClick={() => onUpdateText(selectedText.id, { textAlign: 'center' })}
@@ -195,7 +195,7 @@ const TextEditorPanel: React.FC<TextEditorPanelProps> = ({
                     : 'bg-white/5 text-white/60 hover:bg-white/10'
                 }`}
               >
-                <AlignCenter className="w-4 h-4 mx-auto" />
+                <TextAlignCenter className="w-4 h-4 mx-auto" />
               </button>
               <button
                 onClick={() => onUpdateText(selectedText.id, { textAlign: 'right' })}
@@ -205,7 +205,7 @@ const TextEditorPanel: React.FC<TextEditorPanelProps> = ({
                     : 'bg-white/5 text-white/60 hover:bg-white/10'
                 }`}
               >
-                <AlignRight className="w-4 h-4 mx-auto" />
+                <TextAlignRight className="w-4 h-4 mx-auto" />
               </button>
             </div>
           </div>

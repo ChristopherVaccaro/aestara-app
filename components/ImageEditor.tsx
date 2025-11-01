@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Type, Sliders, Crop, Rotate3D, Sticker, Pencil, Download, Image as ImageIcon, RefreshCw, MoreVertical, Maximize2, Minimize2 } from 'lucide-react';
+import { X, TextT, Sliders, Crop, Cube, Sticker, Pencil, Download, Image as ImageIcon, ArrowClockwise, DotsThreeVertical, ArrowsOut, ArrowsIn } from '@phosphor-icons/react';
 import TextEditorPanel from './TextEditorPanel';
 import FiltersPanel from './FiltersPanel';
 import AdjustmentsPanel from './AdjustmentsPanel';
@@ -752,9 +752,9 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
   };
 
   const tabs = [
-    { id: 'text' as EditorTab, icon: Type, label: 'Text' },
+    { id: 'text' as EditorTab, icon: TextT, label: 'Text' },
     { id: 'filters' as EditorTab, icon: Sliders, label: 'Filters' },
-    { id: 'adjustments' as EditorTab, icon: Rotate3D, label: 'Adjust' },
+    { id: 'adjustments' as EditorTab, icon: Cube, label: 'Adjust' },
     { id: 'stickers' as EditorTab, icon: Sticker, label: 'Stickers' },
     { id: 'drawing' as EditorTab, icon: Pencil, label: 'Draw' },
   ];
@@ -775,7 +775,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                 className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg"
                 aria-label="Toggle Fit/Fill"
               >
-                {fitMode === 'fit' ? <Maximize2 className="w-5 h-5" /> : <Minimize2 className="w-5 h-5" />}
+                {fitMode === 'fit' ? <ArrowsOut className="w-5 h-5" /> : <ArrowsIn className="w-5 h-5" />}
               </button>
               <button
                 onClick={handleExport}
@@ -789,7 +789,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                 className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg"
                 aria-label="More"
               >
-                <MoreVertical className="w-5 h-5" />
+                <DotsThreeVertical className="w-5 h-5" />
               </button>
               {showOverflow && (
                 <div className="absolute right-0 top-full mt-2 bg-gray-900/95 border border-white/10 rounded-lg shadow-lg p-1 z-50">
@@ -809,7 +809,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                     }}
                     className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/10 text-white text-sm"
                   >
-                    <RefreshCw className="w-4 h-4" /> Reset
+                    <ArrowClockwise className="w-4 h-4" /> Reset
                   </button>
                   <button
                     onClick={onClose}
@@ -836,7 +836,7 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                 }}
                 className="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-all flex items-center gap-2"
               >
-                <RefreshCw className="w-4 h-4" /> Reset
+                <ArrowClockwise className="w-4 h-4" /> Reset
               </button>
               <button
                 onClick={handleExport}
