@@ -71,7 +71,7 @@ export async function getPrompt(filterId: string): Promise<string | null> {
       .from('style_prompts')
       .select('current_prompt')
       .eq('filter_id', filterId)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       console.warn(`Prompt not found for filter_id: ${filterId}`);
@@ -99,7 +99,7 @@ export async function getPromptVersion(filterId: string): Promise<number> {
       .from('style_prompts')
       .select('version')
       .eq('filter_id', filterId)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       return 1; // Default version
@@ -126,7 +126,7 @@ export async function updatePrompt(
       .from('style_prompts')
       .select('version, net_feedback')
       .eq('filter_id', filterId)
-      .single();
+      .maybeSingle();
 
     if (fetchError || !current) {
       console.error('Error fetching current prompt data:', fetchError);
@@ -180,7 +180,7 @@ export async function incrementGenerationCount(filterId: string): Promise<void> 
         .from('style_prompts')
         .select('generation_count')
         .eq('filter_id', filterId)
-        .single();
+        .maybeSingle();
 
       if (current) {
         await supabase
@@ -206,7 +206,7 @@ export async function updateNetFeedback(
       .from('style_prompts')
       .select('net_feedback')
       .eq('filter_id', filterId)
-      .single();
+      .maybeSingle();
 
     if (current) {
       await supabase

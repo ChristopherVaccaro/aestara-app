@@ -180,7 +180,7 @@ export async function recordVote(
       .eq('filter_name', filterName)
       .order('last_modified', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
     
     let updatedThumbsUp = 0;
     let updatedThumbsDown = 0;
@@ -252,7 +252,7 @@ export async function needsRefinement(filterName: string): Promise<boolean> {
       .eq('filter_name', filterName)
       .order('last_modified', { ascending: false }) // Force fresh data
       .limit(1)
-      .single();
+      .maybeSingle();
     
     if (error || !data) return false;
     
@@ -312,7 +312,7 @@ export async function savePromptOverride(
       .eq('filter_name', filterName)
       .order('updated_at', { ascending: false }) // Force fresh data
       .limit(1)
-      .single();
+      .maybeSingle();
     
     if (existing) {
       // Update existing override
@@ -359,7 +359,7 @@ export async function getActivePrompt(filterName: string, originalPrompt: string
       .eq('filter_name', filterName)
       .order('updated_at', { ascending: false }) // Force fresh data
       .limit(1)
-      .single();
+      .maybeSingle();
     
     if (error || !data) return originalPrompt;
     

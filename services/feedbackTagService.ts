@@ -119,7 +119,7 @@ export async function getFeedbackSummary(filterId: string): Promise<FeedbackSumm
       .from('style_prompts')
       .select('feedback_summary')
       .eq('filter_id', filterId)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       return {};
