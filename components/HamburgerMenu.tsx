@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { List, X, FileText, Shield, ChatCircle, ChartBar, User } from '@phosphor-icons/react';
+import { List, X, FileText, Shield, ChatCircle, ChartBar } from '@phosphor-icons/react';
 import FeedbackForm from './FeedbackForm';
 import TermsOfService from './TermsOfService';
 import PrivacyPolicy from './PrivacyPolicy';
-import ProfilePage from './ProfilePage';
 import { AuthButton } from './AuthButton';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -13,7 +12,6 @@ const HamburgerMenu: React.FC = () => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
   const currentYear = new Date().getFullYear();
 
   const toggleMenu = () => setIsOpen(prev => !prev);
@@ -38,10 +36,6 @@ const HamburgerMenu: React.FC = () => {
 
   const handlePrivacyClick = () => {
     setShowPrivacy(true);
-  };
-
-  const handleProfileClick = () => {
-    setShowProfile(true);
   };
 
   const handleAnalyticsClick = () => {
@@ -86,26 +80,16 @@ const HamburgerMenu: React.FC = () => {
         }`}
       >
         <div className="flex flex-col h-full pt-24 px-4">
-          {/* Auth Button */}
-          <div className="mb-4">
-            <AuthButton />
-          </div>
+          {/* Auth Button - only when logged out */}
+          {!user && (
+            <div className="mb-4">
+              <AuthButton />
+            </div>
+          )}
 
           {/* Menu Items */}
           <nav className="flex flex-col space-y-2">
-            {user && (
-              <>
-                <button
-                  onClick={handleProfileClick}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg bg-black/30 hover:bg-black/50 transition-colors text-white text-left"
-                >
-                  <User className="w-5 h-5 text-white" />
-                  <span>Profile</span>
-                </button>
-                {/* Divider */}
-                <div className="h-px bg-white/10 my-2" />
-              </>
-            )}
+            
             <button
               onClick={handleAnalyticsClick}
               className="flex items-center gap-3 px-4 py-3 rounded-lg bg-black/30 hover:bg-black/50 transition-colors text-white text-left"
@@ -146,7 +130,6 @@ const HamburgerMenu: React.FC = () => {
       </div>
 
       {/* Modals */}
-      {showProfile && <ProfilePage onClose={() => setShowProfile(false)} />}
       {showTerms && <TermsOfService onClose={() => setShowTerms(false)} />}
       {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
       {showFeedback && <FeedbackForm onClose={() => setShowFeedback(false)} />}

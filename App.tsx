@@ -624,8 +624,8 @@ const App: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  const handleOpenEditor = () => {
-    const target = generatedImageUrl || originalImageUrl;
+  const handleOpenEditor = (imageUrl?: string) => {
+    const target = imageUrl || generatedImageUrl || originalImageUrl;
     if (target) {
       setImageToEdit(target);
       setIsEditorOpen(true);

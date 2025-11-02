@@ -1,4 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { MagicWand } from '@phosphor-icons/react';
+import CustomPromptEditor from './CustomPromptEditor';
+import { manipulateImage } from '../services/imageManipulationService';
 
 interface ImageComparisonProps {
   originalImageUrl: string;
@@ -7,7 +10,7 @@ interface ImageComparisonProps {
   onOpenPreview: () => void;
   onDownload: () => void;
   onShare?: () => void;
-  onEdit?: () => void;
+  onEdit?: (imageUrl?: string) => void;
 }
 
 const ImageComparison: React.FC<ImageComparisonProps> = ({
@@ -22,6 +25,19 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
   const [sliderPosition, setSliderPosition] = useState(25);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Custom prompt editor state
+  const [isPromptEditorOpen, setIsPromptEditorOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [currentDisplayImage, setCurrentDisplayImage] = useState(generatedImageUrl);
+  const [originalGeneratedImage] = useState(generatedImageUrl);
+  const [manipulationHistory, setManipulationHistory] = useState<string[]>([]);
+
+  // Update display image when generated image changes
+  useEffect(() => {
+    setCurrentDisplayImage(generatedImageUrl);
+    setManipulationHistory([]);
+  }, [generatedImageUrl]);
 
   const handleMove = (clientX: number) => {
     if (!containerRef.current) return;
@@ -62,6 +78,42 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
     };
   }, [isDragging]);
 
+  // Custom prompt editor handlers
+  const handleCustomPromptSubmit = async (prompt: string) => {
+    setIsProcessing(true);
+    try {
+      const result = await manipulateImage(currentDisplayImage, prompt);
+      
+      if (result.success && result.imageUrl) {
+        // Save current image to history before updating
+        setManipulationHistory(prev => [...prev, currentDisplayImage]);
+        setCurrentDisplayImage(result.imageUrl);
+        // Close the modal on successful edit
+        setIsPromptEditorOpen(false);
+      } else {
+        console.error(result.error || 'Failed to manipulate image');
+      }
+    } catch (error: any) {
+      console.error(error?.message || 'Failed to manipulate image');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleUndo = () => {
+    if (manipulationHistory.length > 0) {
+      const previousImage = manipulationHistory[manipulationHistory.length - 1];
+      setCurrentDisplayImage(previousImage);
+      setManipulationHistory(prev => prev.slice(0, -1));
+    }
+  };
+
+  const handleSaveChanges = () => {
+    // Clear history to "commit" the changes
+    setManipulationHistory([]);
+    setIsPromptEditorOpen(false);
+  };
+
   return (
     <div className="w-full flex flex-col items-center">
       <div className="w-full responsive-image-container">
@@ -74,10 +126,10 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
             onMouseDown={handleStart}
             onTouchStart={handleStart}
           >
-            {/* Generated Image (Behind) */}
+            {/* Generated Image (Behind) - Use currentDisplayImage to show manipulated version */}
             <div className="absolute inset-0">
               <img
-                src={generatedImageUrl}
+                src={currentDisplayImage}
                 alt="Stylized"
                 className="w-full h-full object-contain"
                 draggable={false}
@@ -150,12 +202,28 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
 
             {/* Circular Action Buttons - Top Right */}
             <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
+              {/* Custom AI Edit Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsPromptEditorOpen(true);
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onMouseUp={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
+                className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                title="AI Custom Edit"
+              >
+                <MagicWand className="h-5 w-5" weight="bold" />
+              </button>
+
               {/* Edit Button */}
               {onEdit && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEdit();
+                    onEdit(currentDisplayImage);
                   }}
                   onMouseDown={(e) => e.stopPropagation()}
                   onMouseUp={(e) => e.stopPropagation()}
@@ -229,6 +297,17 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Custom Prompt Editor Overlay */}
+      <CustomPromptEditor
+        isOpen={isPromptEditorOpen}
+        onClose={() => setIsPromptEditorOpen(false)}
+        onSubmit={handleCustomPromptSubmit}
+        onUndo={handleUndo}
+        onSave={handleSaveChanges}
+        canUndo={manipulationHistory.length > 0}
+        isProcessing={isProcessing}
+      />
     </div>
   );
 };
