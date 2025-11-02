@@ -28,7 +28,7 @@ const fileToGenerativePart = async (file: File) => {
   };
 };
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY as string });
 
 // Helper function to simplify prompt by removing potentially triggering phrases
 // while preserving structured prompt content

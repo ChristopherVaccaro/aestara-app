@@ -11,7 +11,7 @@ interface ImageDisplayProps {
   onOpenPreview: () => void;
   onDownload: () => void;
   onShare?: () => void;
-  onEdit?: () => void;
+  onEdit?: (imageUrl?: string) => void;
   error?: string | null;
   activeFilterName?: string | null;
   isDevMode?: boolean;

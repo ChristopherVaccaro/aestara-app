@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Logo from './Logo';
 import HamburgerMenu from './HamburgerMenu';
 import UserAvatar from './UserAvatar';
 import { useAuth } from '../contexts/AuthContext';
+import ProfilePage from './ProfilePage';
+import { User, SignOut } from '@phosphor-icons/react';
 
 interface HeaderProps {
   onLogoClick?: () => void;
@@ -10,7 +12,20 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false }) => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    if (menuOpen) document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, [menuOpen]);
 
   return (
     <>
@@ -28,13 +43,39 @@ const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false }) => {
             <Logo className="h-8 md:h-10 w-auto" />
           </button>
           
-          {/* Right side - User avatar or spacer */}
-          <div className="w-10 md:w-12 flex items-center justify-end">
-            {user && <UserAvatar email={user.email || ''} size="md" />}
+          {/* Right side - User avatar with tooltip menu */}
+          <div className="w-10 md:w-12 flex items-center justify-end mr-8 md:mr-8 relative">
+            {user && (
+              <>
+                <div onClick={() => setMenuOpen((v) => !v)}>
+                  <UserAvatar email={user.email || ''} size="md" />
+                </div>
+                {menuOpen && (
+                  <div ref={menuRef} className="absolute top-12 right-0 min-w-[180px] rounded-xl bg-gray-900/95 border border-white/10 shadow-xl backdrop-blur-xl z-50">
+                    <button
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left text-white hover:bg-white/10 rounded-t-xl"
+                      onClick={() => { setShowProfile(true); setMenuOpen(false); }}
+                    >
+                      <User className="w-5 h-5" />
+                      <span>Profile</span>
+                    </button>
+                    <div className="h-px bg-white/10" />
+                    <button
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-400 hover:bg-white/10 rounded-b-xl"
+                      onClick={async () => { setMenuOpen(false); await signOut(); }}
+                    >
+                      <SignOut className="w-5 h-5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </header>
       {!hideMenu && <HamburgerMenu />}
+      {showProfile && <ProfilePage onClose={() => setShowProfile(false)} />}
     </>
   );
 };
