@@ -11,6 +11,7 @@ interface ImageComparisonProps {
   onDownload: () => void;
   onShare?: () => void;
   onEdit?: (imageUrl?: string) => void;
+  onSaveAIEdit?: (editedImageUrl: string) => void;
 }
 
 const ImageComparison: React.FC<ImageComparisonProps> = ({
@@ -21,6 +22,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
   onDownload,
   onShare,
   onEdit,
+  onSaveAIEdit,
 }) => {
   const [sliderPosition, setSliderPosition] = useState(25);
   const [isDragging, setIsDragging] = useState(false);
@@ -109,6 +111,10 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
   };
 
   const handleSaveChanges = () => {
+    // Notify parent component of the saved AI-edited image
+    if (onSaveAIEdit && currentDisplayImage !== generatedImageUrl) {
+      onSaveAIEdit(currentDisplayImage);
+    }
     // Clear history to "commit" the changes
     setManipulationHistory([]);
     setIsPromptEditorOpen(false);

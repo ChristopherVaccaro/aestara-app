@@ -658,6 +658,24 @@ const App: React.FC = () => {
     setImageToEdit(null);
   };
   
+  const handleSaveAIEdit = async (editedImageUrl: string) => {
+    // Update the generated image with the AI-edited version
+    setGeneratedImageUrl(editedImageUrl);
+    
+    // Also update the original so future filters use this version
+    setOriginalImageUrl(editedImageUrl);
+    
+    // Convert to File object for future filter applications
+    try {
+      const response = await fetch(editedImageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], imageFile?.name || 'ai-edited-image.png', { type: 'image/png' });
+      setImageFile(file);
+    } catch (error) {
+      console.error('Error converting AI-edited image to file:', error);
+    }
+  };
+  
   const handleShare = async () => {
     if (!generatedImageUrl) return;
 
@@ -822,6 +840,7 @@ const App: React.FC = () => {
               onDownload={handleDownload}
               onShare={handleShare}
               onEdit={handleOpenEditor}
+              onSaveAIEdit={handleSaveAIEdit}
             />
           ) : (
             <ImageDisplay
