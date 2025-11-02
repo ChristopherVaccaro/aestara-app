@@ -16,7 +16,10 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+    flowType: 'pkce', // Use PKCE flow for better security
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    storageKey: 'ai-stylizer-auth',
+    debug: true, // Enable debug logging for auth issues
   },
   global: {
     headers: {

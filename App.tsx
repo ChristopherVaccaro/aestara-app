@@ -18,6 +18,7 @@ import MobileBottomSheet from './components/MobileBottomSheet';
 import MobileFloatingButton from './components/MobileFloatingButton';
 import { AdminDashboard } from './components/AdminDashboard';
 import ImageEditor from './components/ImageEditor';
+import AuthDebug from './components/AuthDebug';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Filter } from './types';
 import { applyImageFilter, refinePrompt } from './services/geminiService';
@@ -38,6 +39,8 @@ import {
   seedAllPrompts,
   incrementGenerationCount,
 } from './services/promptService';
+import { recordPromptUsage } from './services/userPromptUsageService';
+import { useAuth } from './contexts/AuthContext';
 
 interface FilterCategory {
   name: string;
@@ -178,6 +181,7 @@ const FILTER_CATEGORIES: FilterCategory[] = [
 
 const App: React.FC = () => {
   const { toasts, addToast, removeToast } = useToast();
+  const { user } = useAuth();
   
   // Check if we're on the admin page
   const [currentPage, setCurrentPage] = useState<'main' | 'admin'>(() => {
@@ -451,6 +455,11 @@ const App: React.FC = () => {
         
         // Increment generation count for analytics
         await incrementGenerationCount(filter.id);
+        
+        // Track prompt usage for authenticated users
+        if (user?.id) {
+          await recordPromptUsage(user.id, filter.id, filter.name);
+        }
       }
       
       // Start transition effect
@@ -938,6 +947,9 @@ const App: React.FC = () => {
       
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+      
+      {/* Auth Debug (dev only) */}
+      <AuthDebug />
       
       {/* Mobile Bottom Sheet */}
       {originalImageUrl && (
