@@ -637,9 +637,23 @@ const App: React.FC = () => {
     setImageToEdit(null);
   };
   
-  const handleSaveEditedImage = (editedImageUrl: string) => {
+  const handleSaveEditedImage = async (editedImageUrl: string) => {
     // Replace the generated image with the edited version
     setGeneratedImageUrl(editedImageUrl);
+    
+    // Update the original image URL so future filters use the edited version
+    setOriginalImageUrl(editedImageUrl);
+    
+    // Convert the edited image back to a File object for future filter applications
+    try {
+      const response = await fetch(editedImageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], imageFile?.name || 'edited-image.png', { type: 'image/png' });
+      setImageFile(file);
+    } catch (error) {
+      console.error('Error converting edited image to file:', error);
+    }
+    
     setIsEditorOpen(false);
     setImageToEdit(null);
   };
