@@ -32,16 +32,19 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
   const loadUsageStats = async () => {
     if (!user?.id) return;
 
+    console.log('📈 Loading profile usage stats for user:', user.id);
     setLoading(true);
     try {
       const [stats, total] = await Promise.all([
         getUserPromptUsage(user.id),
         getTotalPromptUsage(user.id),
       ]);
+      console.log('✅ Loaded usage stats:', { statsCount: stats.length, total });
+      console.log('Stats details:', stats);
       setUsageStats(stats);
       setTotalUsage(total);
     } catch (error) {
-      console.error('Error loading usage stats:', error);
+      console.error('❌ Error loading usage stats:', error);
     } finally {
       setLoading(false);
     }

@@ -458,7 +458,10 @@ const App: React.FC = () => {
         
         // Track prompt usage for authenticated users
         if (user?.id) {
+          console.log('👤 User is authenticated, tracking prompt usage...');
           await recordPromptUsage(user.id, filter.id, filter.name);
+        } else {
+          console.log('👻 User is anonymous, skipping prompt usage tracking');
         }
       }
       

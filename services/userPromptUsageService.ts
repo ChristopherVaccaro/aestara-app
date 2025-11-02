@@ -25,36 +25,45 @@ export async function recordPromptUsage(
   filterName: string
 ): Promise<void> {
   try {
+    console.log('📊 Recording prompt usage:', { userId, filterId, filterName });
+
     // Try to get existing record
     const { data: existing, error: fetchError } = await supabase
       .from('user_prompt_usage')
       .select('*')
       .eq('user_id', userId)
       .eq('filter_id', filterId)
-      .single();
+      .maybeSingle(); // Use maybeSingle instead of single to avoid error on no results
 
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      // PGRST116 is "not found" error, which is expected for first use
-      console.error('Error fetching prompt usage:', fetchError);
+    if (fetchError) {
+      console.error('❌ Error fetching prompt usage:', fetchError);
       return;
     }
 
+    const now = new Date().toISOString();
+
     if (existing) {
       // Increment existing record
+      console.log(`✅ Found existing record, incrementing from ${existing.usage_count} to ${existing.usage_count + 1}`);
+      
       const { error: updateError } = await supabase
         .from('user_prompt_usage')
         .update({
           usage_count: existing.usage_count + 1,
-          last_used_at: new Date().toISOString(),
+          last_used_at: now,
         })
         .eq('user_id', userId)
         .eq('filter_id', filterId);
 
       if (updateError) {
-        console.error('Error updating prompt usage:', updateError);
+        console.error('❌ Error updating prompt usage:', updateError);
+      } else {
+        console.log('✅ Successfully updated prompt usage');
       }
     } else {
       // Create new record
+      console.log('✅ Creating new usage record');
+      
       const { error: insertError } = await supabase
         .from('user_prompt_usage')
         .insert({
@@ -62,16 +71,19 @@ export async function recordPromptUsage(
           filter_id: filterId,
           filter_name: filterName,
           usage_count: 1,
-          first_used_at: new Date().toISOString(),
-          last_used_at: new Date().toISOString(),
+          first_used_at: now,
+          last_used_at: now,
         });
 
       if (insertError) {
-        console.error('Error inserting prompt usage:', insertError);
+        console.error('❌ Error inserting prompt usage:', insertError);
+        console.error('Error details:', insertError.message, insertError.details);
+      } else {
+        console.log('✅ Successfully created prompt usage record');
       }
     }
   } catch (error) {
-    console.error('Error recording prompt usage:', error);
+    console.error('❌ Error recording prompt usage:', error);
   }
 }
 
