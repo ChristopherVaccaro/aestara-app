@@ -47,24 +47,16 @@ export const AuthButton: React.FC = () => {
 
   if (user) {
     return (
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
-          <User className="w-4 h-4 text-blue-400" />
-          <span className="text-sm text-white/80 max-w-[150px] truncate">
-            {user.email || user.user_metadata?.full_name || 'User'}
-          </span>
-        </div>
-        <button
-          onClick={handleSignOut}
-          disabled={isSigningOut}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <SignOut className="w-4 h-4" />
-          <span className="text-sm">
-            {isSigningOut ? 'Signing out...' : 'Sign Out'}
-          </span>
-        </button>
-      </div>
+      <button
+        onClick={handleSignOut}
+        disabled={isSigningOut}
+        className="w-full flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-red-400"
+      >
+        <SignOut className="w-4 h-4" />
+        <span className="text-sm">
+          {isSigningOut ? 'Signing out...' : 'Sign Out'}
+        </span>
+      </button>
     );
   }
 
