@@ -1,6 +1,4 @@
-import { GoogleGenAI, Modality } from '@google/genai';
-
-const genAI = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY as string });
+ 
 
 export interface ManipulationResult {
   success: boolean;
@@ -39,44 +37,33 @@ export async function manipulateImage(
 
 Please generate a new version of this image that incorporates the requested changes while maintaining the overall style and quality of the original image. Make the changes as natural and seamless as possible.`;
 
-    // Generate the manipulated image using the same API structure as geminiService
-    const result = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash-image',
-      contents: {
-        parts: [
-          {
-            inlineData: {
-              data: base64Image.split(',')[1],
-              mimeType: mimeType
-            }
-          },
-          { text: fullPrompt }
-        ]
-      },
-      config: {
-        responseModalities: [Modality.IMAGE, Modality.TEXT]
-      }
+    // Call serverless API to avoid exposing API keys on the client
+    const res = await fetch('/api/apply-image-filter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        imageBase64: base64Image.split(',')[1],
+        mimeType,
+        prompt: fullPrompt,
+      }),
     });
 
-    // Extract image from response
-    const candidate = result?.candidates?.[0];
-    if (candidate?.content?.parts) {
-      for (const part of candidate.content.parts) {
-        if (part.inlineData?.data) {
-          const manipulatedImageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-          return {
-            success: true,
-            imageUrl: manipulatedImageUrl
-          };
-        }
-      }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        error: err?.error || 'Failed to manipulate image.'
+      };
     }
 
-    // If no image was generated, return error
-    return {
-      success: false,
-      error: 'No image was generated. Please try a different prompt.'
-    };
+    const data = await res.json();
+    const base64Out: string | undefined = data?.imageBase64;
+    if (!base64Out) {
+      return { success: false, error: 'No image was generated. Please try a different prompt.' };
+    }
+
+    const manipulatedImageUrl = `data:${mimeType};base64,${base64Out}`;
+    return { success: true, imageUrl: manipulatedImageUrl };
 
   } catch (error: any) {
     console.error('Image manipulation error:', error);

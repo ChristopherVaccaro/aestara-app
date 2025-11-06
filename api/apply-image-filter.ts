@@ -59,9 +59,9 @@ export default async function handler(req: any, res: any) {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // Updated to use the newer Gemini 2.5 Flash model
+    // Use Gemini 2.5 Flash Image model (Nano Banana) for image generation
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.5-flash-image',
       contents: {
         parts: [
           { inlineData: { data: imageBase64, mimeType } },

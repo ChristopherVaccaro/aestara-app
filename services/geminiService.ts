@@ -1,16 +1,16 @@
-import { GoogleGenAI, Modality } from "@google/genai";
 import { logger } from "../utils/logger";
+const API_BASE = (typeof import.meta !== 'undefined' ? (import.meta as any).env?.VITE_API_BASE : '') || '';
 
 const fileToGenerativePart = async (file: File) => {
   const base64EncodedDataPromise = new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = () => {
-        const result = reader.result as string;
-        if (result && result.includes(',')) {
-            resolve(result.split(',')[1]);
-        } else {
-            reject(new Error("Failed to read file data correctly."));
-        }
+      const result = reader.result as string;
+      if (result && result.includes(',')) {
+        resolve(result.split(',')[1]);
+      } else {
+        reject(new Error("Failed to read file data correctly."));
+      }
     };
     reader.onerror = () => reject(new Error("Error reading file."));
     reader.readAsDataURL(file);
@@ -27,8 +27,6 @@ const fileToGenerativePart = async (file: File) => {
     inlineData: { data: await base64EncodedDataPromise, mimeType },
   };
 };
-
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY as string });
 
 // Helper function to simplify prompt by removing potentially triggering phrases
 // while preserving structured prompt content
@@ -71,53 +69,30 @@ export const refinePrompt = async (
   feedbackContext: string = ''
 ): Promise<string> => {
   try {
-    const refinementPrompt = `You are an expert at crafting prompts for Gemini's image generation API. 
-
-A user has been using this art style prompt but it has received negative feedback:
-
-FILTER NAME: ${filterName}
-CURRENT PROMPT: ${originalPrompt}
-
-FEEDBACK STATS:
-- Thumbs Up: ${thumbsUpCount}
-- Thumbs Down: ${thumbsDownCount}
-- Negative Ratio: ${((thumbsDownCount / (thumbsUpCount + thumbsDownCount)) * 100).toFixed(1)}%
-${feedbackContext}
-
-Your task is to refine this prompt to produce better, more consistent results. Consider:
-1. Is the prompt too complex or vague?
-2. Does it contain words that might trigger safety filters?
-3. Could the style description be more specific and clear?
-4. Are there conflicting instructions?
-5. Would simpler, more direct language work better?
-${feedbackContext ? '6. Address the specific user-reported issues listed above' : ''}
-
-Provide ONLY the improved prompt text. Do not include explanations or meta-commentary. The prompt should:
-- Be clear and specific about the desired art style
-- Avoid potentially triggering words (people, person, face, body, transform, convert)
-- Use positive descriptions (what TO include) rather than negative (what to avoid)
-- Be concise but descriptive
-- Work well with the Gemini image generation API
-${feedbackContext ? '- Specifically address the user-reported issues' : ''}
-
-REFINED PROMPT:`;
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
-      contents: { parts: [{ text: refinementPrompt }] },
+    const res = await fetch(`${API_BASE}/api/refine-prompt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filterName,
+        originalPrompt,
+        thumbsUpCount,
+        thumbsDownCount,
+        feedbackContext,
+      }),
     });
-
-    const refinedPrompt = response?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error || 'Failed to refine prompt');
+    }
+    const data = await res.json();
+    const refinedPrompt = (data?.prompt || '').trim();
     if (!refinedPrompt) {
       throw new Error('No refined prompt received');
     }
-
     logger.log(`✨ Prompt refined for ${filterName}:`, {
       original: originalPrompt.substring(0, 100) + '...',
       refined: refinedPrompt.substring(0, 100) + '...',
     });
-
     return refinedPrompt;
   } catch (error) {
     logger.error('Error refining prompt:', error);
@@ -135,49 +110,29 @@ export const applyImageFilter = async (imageFile: File, prompt: string, retryCou
       logger.log('Using simplified prompt due to safety filter:', finalPrompt);
     }
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
-      contents: {
-        parts: [
-          imagePart,
-          { text: finalPrompt },
-        ],
-      },
-      config: {
-        responseModalities: [Modality.IMAGE, Modality.TEXT],
-      },
+    const res = await fetch(`${API_BASE}/api/apply-image-filter`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        imageBase64: (imagePart.inlineData as any).data,
+        mimeType: (imagePart.inlineData as any).mimeType,
+        prompt: finalPrompt,
+      }),
     });
 
-    const candidate = response?.candidates?.[0];
-
-    // Safely access parts and check for image data
-    if (candidate?.content?.parts) {
-      for (const part of candidate.content.parts) {
-        if (part.inlineData) {
-          return part.inlineData.data; // Return base64 image data
-        }
-      }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      // Retry path on safety/prohibited errors is handled server-side; here we only surface message
+      throw new Error(err?.error || 'Failed to apply filter');
     }
 
-    // If no image is returned, check if we should retry
-    if (candidate?.finishReason) {
-        const reason = candidate.finishReason;
-        if ((reason === 'SAFETY' || reason === 'PROHIBITED_CONTENT') && retryCount === 0) {
-            logger.warn('⚠️ Safety filter triggered on first attempt. Retrying with simplified prompt...');
-            return applyImageFilter(imageFile, prompt, 1); // Retry once with simplified prompt
-        } else if (reason === 'SAFETY' || reason === 'PROHIBITED_CONTENT') {
-            throw new Error("This image cannot be styled with the selected filter due to content restrictions. Try: 1) A different art style, 2) A different image, or 3) A simpler photo without people.");
-        } else if (reason === 'RECITATION') {
-            throw new Error("Content flagged for copyright concerns. Try a different style.");
-        } else if (reason === 'OTHER') {
-            throw new Error("The AI was unable to transform this image. Try a different photo or style.");
-        } else {
-            throw new Error(`Image transformation failed. Reason: ${reason}. Try a different image or style.`);
-        }
+    const data = await res.json();
+    const out = data?.imageBase64 as string | undefined;
+    if (!out) {
+      logger.warn('⚠️ API returned no image data');
+      throw new Error("The style could not be applied to this image. This may happen with: 1) Images containing people/faces for certain styles, 2) Low quality images, 3) Complex compositions.");
     }
-    
-    logger.warn('⚠️ API returned no image data - content may have been silently blocked');
-    throw new Error("The style could not be applied to this image. This may happen with: 1) Images containing people/faces for certain styles, 2) Low quality images, 3) Complex compositions. Try a different image or simpler style.");
+    return out;
 
   } catch (error) {
     logger.error("Error applying filter with Gemini API:", error);
