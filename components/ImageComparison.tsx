@@ -7,7 +7,7 @@ interface ImageComparisonProps {
   originalImageUrl: string;
   generatedImageUrl: string;
   activeFilterName: string;
-  onOpenPreview: () => void;
+  onOpenPreview: (url?: string) => void;
   onDownload: () => void;
   onShare?: () => void;
   onEdit?: (imageUrl?: string) => void;
@@ -286,7 +286,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onOpenPreview();
+                  onOpenPreview(currentDisplayImage);
                 }}
                 onMouseDown={(e) => e.stopPropagation()}
                 onMouseUp={(e) => e.stopPropagation()}

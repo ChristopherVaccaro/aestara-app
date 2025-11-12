@@ -239,6 +239,7 @@ const App: React.FC = () => {
   
   // Image preview modal
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   
   // Image editor
   const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false);
@@ -716,12 +717,17 @@ const App: React.FC = () => {
   const handlePeekStart = () => setIsPeeking(true);
   const handlePeekEnd = () => setIsPeeking(false);
 
-  const handleOpenPreview = () => {
-    if (generatedImageUrl) {
+  const handleOpenPreview = (url?: string) => {
+    const targetUrl = url || generatedImageUrl;
+    if (targetUrl) {
+      setPreviewImageUrl(targetUrl);
       setIsPreviewOpen(true);
     }
   };
-  const handleClosePreview = () => setIsPreviewOpen(false);
+  const handleClosePreview = () => {
+    setIsPreviewOpen(false);
+    setPreviewImageUrl(null);
+  };
   
   // History navigation handlers
   const handleSelectHistory = (index: number) => {
@@ -956,9 +962,9 @@ const App: React.FC = () => {
       <main className="w-full flex-1 flex items-start justify-center px-4 overflow-hidden pt-4 md:pt-8">
         {renderContent()}
       </main>
-      {isPreviewOpen && generatedImageUrl && (
+      {isPreviewOpen && previewImageUrl && (
         <ImagePreviewModal 
-          imageUrl={generatedImageUrl} 
+          imageUrl={previewImageUrl} 
           onClose={handleClosePreview}
           filterName={activeFilter?.name}
         />

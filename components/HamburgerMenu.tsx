@@ -90,13 +90,13 @@ const HamburgerMenu: React.FC = () => {
           {/* Menu Items */}
           <nav className="flex flex-col space-y-2">
             
-            <button
+            {/* <button
               onClick={handleAnalyticsClick}
               className="flex items-center gap-3 px-4 py-3 rounded-lg bg-black/30 hover:bg-black/50 transition-colors text-white text-left"
             >
               <ChartBar className="w-5 h-5 text-white" />
               <span>Analytics Dashboard</span>
-            </button>
+            </button> */}
             <button
               onClick={handleTermsClick}
               className="flex items-center gap-3 px-4 py-3 rounded-lg bg-black/30 hover:bg-black/50 transition-colors text-white text-left"
