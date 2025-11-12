@@ -847,6 +847,7 @@ const App: React.FC = () => {
               onShare={handleShare}
               onEdit={handleOpenEditor}
               onSaveAIEdit={handleSaveAIEdit}
+              previousImageUrl={currentHistoryIndex > 0 ? history[currentHistoryIndex - 1]?.imageUrl : undefined}
             />
           ) : (
             <ImageDisplay

@@ -12,6 +12,7 @@ interface ImageComparisonProps {
   onShare?: () => void;
   onEdit?: (imageUrl?: string) => void;
   onSaveAIEdit?: (editedImageUrl: string) => void;
+  previousImageUrl?: string;
 }
 
 const ImageComparison: React.FC<ImageComparisonProps> = ({
@@ -23,6 +24,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
   onShare,
   onEdit,
   onSaveAIEdit,
+  previousImageUrl,
 }) => {
   const [sliderPosition, setSliderPosition] = useState(25);
   const [isDragging, setIsDragging] = useState(false);
@@ -34,6 +36,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
   const [currentDisplayImage, setCurrentDisplayImage] = useState(generatedImageUrl);
   const [originalGeneratedImage] = useState(generatedImageUrl);
   const [manipulationHistory, setManipulationHistory] = useState<string[]>([]);
+  const [compareBaseline, setCompareBaseline] = useState<'original' | 'previous'>('original');
 
   // Update display image when generated image changes
   useEffect(() => {
@@ -142,14 +145,14 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
               />
             </div>
 
-            {/* Original Image (Overlay with clip) */}
+            {/* Baseline Image (Overlay with clip) - Original or Previous */}
             <div
               className="absolute inset-0 overflow-hidden"
               style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
             >
               <img
-                src={originalImageUrl}
-                alt="Original"
+                src={compareBaseline === 'previous' && previousImageUrl ? previousImageUrl : originalImageUrl}
+                alt={compareBaseline === 'previous' ? 'Previous' : 'Original'}
                 className="w-full h-full object-contain"
                 draggable={false}
               />
@@ -157,7 +160,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
 
             {/* Labels - Always visible, outside clipped areas */}
             <div className="absolute bottom-3 left-3 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium z-30 pointer-events-none">
-              Original
+              {compareBaseline === 'previous' ? 'Previous' : 'Original'}
             </div>
             <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium z-30 pointer-events-none">
               {activeFilterName}
@@ -205,6 +208,26 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
                 </svg>
               </div>
             </div>
+
+            {/* Compare Baseline Toggle (shows only if previous exists) */}
+            {previousImageUrl && (
+              <div className="absolute bottom-16 left-3 z-30">
+                <div className="flex items-center gap-1 bg-black/60 border border-white/20 backdrop-blur-sm rounded-full p-1">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setCompareBaseline('original'); }}
+                    className={`text-[11px] px-2 py-0.5 rounded-full transition ${compareBaseline === 'original' ? 'bg-white/20 text-white' : 'text-gray-300 hover:text-white'}`}
+                  >
+                    Original
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setCompareBaseline('previous'); }}
+                    className={`text-[11px] px-2 py-0.5 rounded-full transition ${compareBaseline === 'previous' ? 'bg-white/20 text-white' : 'text-gray-300 hover:text-white'}`}
+                  >
+                    Previous
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Circular Action Buttons - Top Right */}
             <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
