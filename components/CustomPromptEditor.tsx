@@ -1,13 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MagicWand, X, ArrowCounterClockwise, FloppyDisk, CircleNotch } from '@phosphor-icons/react';
+import { MagicWand, X, CircleNotch } from '@phosphor-icons/react';
 
 interface CustomPromptEditorProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (prompt: string) => Promise<void>;
-  onUndo: () => void;
-  onSave: () => void;
-  canUndo: boolean;
   isProcessing: boolean;
   error?: string | null;
   onClearError?: () => void;
@@ -17,9 +14,6 @@ export default function CustomPromptEditor({
   isOpen,
   onClose,
   onSubmit,
-  onUndo,
-  onSave,
-  canUndo,
   isProcessing,
   error,
   onClearError
@@ -131,59 +125,32 @@ export default function CustomPromptEditor({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                {canUndo && (
-                  <button
-                    type="button"
-                    onClick={onUndo}
-                    disabled={isProcessing}
-                    className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ArrowCounterClockwise className="w-4 h-4" weight="bold" />
-                    Undo
-                  </button>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={handleClose}
+                disabled={isProcessing}
+                className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isProcessing || !prompt.trim()}
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isProcessing ? (
+                  <>
+                    <CircleNotch className="w-4 h-4 animate-spin" weight="bold" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <MagicWand className="w-4 h-4" weight="bold" />
+                    Apply Changes
+                  </>
                 )}
-                {canUndo && (
-                  <button
-                    type="button"
-                    onClick={onSave}
-                    disabled={isProcessing}
-                    className="px-4 py-2.5 rounded-xl bg-green-500/20 hover:bg-green-500/30 text-green-400 font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <FloppyDisk className="w-4 h-4" weight="bold" />
-                    Save Changes
-                  </button>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  disabled={isProcessing}
-                  className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isProcessing || !prompt.trim()}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {isProcessing ? (
-                    <>
-                      <CircleNotch className="w-4 h-4 animate-spin" weight="bold" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <MagicWand className="w-4 h-4" weight="bold" />
-                      Apply Changes
-                    </>
-                  )}
-                </button>
-              </div>
+              </button>
             </div>
           </form>
         </div>

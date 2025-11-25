@@ -38,71 +38,60 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
   const [manipulationHistory, setManipulationHistory] = useState<string[]>([]);
   const [compareBaseline, setCompareBaseline] = useState<'original' | 'previous'>('original');
   const [showAIComparison, setShowAIComparison] = useState(false);
-  const [aiComparePosition, setAIComparePosition] = useState(50);
   const [aiEditError, setAIEditError] = useState<string | null>(null);
   const [beforeAIEditImage, setBeforeAIEditImage] = useState<string | null>(null);
+  const [hasAcceptedAIEdit, setHasAcceptedAIEdit] = useState(false); // Track if user has kept an AI edit
 
   // Update display image when generated image changes
   useEffect(() => {
     setCurrentDisplayImage(generatedImageUrl);
     setManipulationHistory([]);
     setShowAIComparison(false);
+    setHasAcceptedAIEdit(false); // Reset when new style is applied
   }, [generatedImageUrl]);
 
-  const handleMove = (clientX: number) => {
-    if (!containerRef.current) return;
+  // Slider interaction handlers
+  const getPositionFromEvent = (clientX: number): number => {
+    if (!containerRef.current) return sliderPosition;
     const rect = containerRef.current.getBoundingClientRect();
     const x = clientX - rect.left;
-    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    setSliderPosition(percentage);
-  };
-  
-  // AI comparison slider handler (defined early for use in handleMouseMove)
-  const handleAICompareMove = (clientX: number) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    setAIComparePosition(percentage);
+    return Math.max(0, Math.min(100, (x / rect.width) * 100));
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
-      if (showAIComparison) {
-        handleAICompareMove(e.clientX);
-      } else {
-        handleMove(e.clientX);
-      }
+  const handlePointerDown = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    const clientX = 'touches' in e ? e.touches[0]?.clientX : e.clientX;
+    if (clientX !== undefined) {
+      setSliderPosition(getPositionFromEvent(clientX));
+    }
+    setIsDragging(true);
+  };
+
+  const handlePointerMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDragging) return;
+    const clientX = 'touches' in e 
+      ? (e as unknown as TouchEvent).touches[0]?.clientX 
+      : (e as unknown as MouseEvent).clientX;
+    if (clientX !== undefined) {
+      setSliderPosition(getPositionFromEvent(clientX));
     }
   };
 
-  const handleTouchMove = (e: TouchEvent) => {
-    if (isDragging && e.touches[0]) {
-      if (showAIComparison) {
-        handleAICompareMove(e.touches[0].clientX);
-      } else {
-        handleMove(e.touches[0].clientX);
-      }
-    }
+  const handlePointerUp = () => {
+    setIsDragging(false);
   };
 
-  const handleStart = () => setIsDragging(true);
-  const handleEnd = () => setIsDragging(false);
-
+  // Attach global listeners for mouse/touch up (for when pointer leaves container)
   useEffect(() => {
     if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleEnd);
-      window.addEventListener('touchmove', handleTouchMove);
-      window.addEventListener('touchend', handleEnd);
+      const handleGlobalUp = () => setIsDragging(false);
+      window.addEventListener('mouseup', handleGlobalUp);
+      window.addEventListener('touchend', handleGlobalUp);
+      return () => {
+        window.removeEventListener('mouseup', handleGlobalUp);
+        window.removeEventListener('touchend', handleGlobalUp);
+      };
     }
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleEnd);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleEnd);
-    };
   }, [isDragging]);
 
   // Custom prompt editor handlers
@@ -122,7 +111,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
         // NOTE: Don't call onSaveAIEdit here - wait until user clicks "Keep"
         setIsPromptEditorOpen(false);
         setShowAIComparison(true);
-        setAIComparePosition(50);
+        setSliderPosition(25); // Reset to same initial position as normal slider
         setAIEditError(null);
       } else {
         const errorMsg = result.error || 'Failed to apply AI edit. Please try again with a different prompt.';
@@ -165,20 +154,11 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
   // Get the before image for AI comparison - use the stored before image
   const beforeAIImage = beforeAIEditImage || generatedImageUrl;
 
-  const handleSaveChanges = () => {
-    // Notify parent component of the saved AI-edited image
-    if (onSaveAIEdit && currentDisplayImage !== generatedImageUrl) {
-      onSaveAIEdit(currentDisplayImage);
-    }
-    // Clear history to "commit" the changes
-    setManipulationHistory([]);
-    setIsPromptEditorOpen(false);
-  };
-  
   // Handle keeping the AI enhancement
   const handleKeepAIEdit = () => {
     setShowAIComparison(false);
     setBeforeAIEditImage(null);
+    setHasAcceptedAIEdit(true); // Mark that user has accepted, hide slider
     // Now save the AI edit to parent
     if (onSaveAIEdit) {
       onSaveAIEdit(currentDisplayImage);
@@ -192,14 +172,106 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
         <div className="relative rounded-2xl overflow-hidden p-[2px] bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50 hover:from-blue-500/70 hover:via-purple-500/70 hover:to-pink-500/70 transition-all duration-300 h-full">
           <div
             ref={containerRef}
-            className="w-full h-full relative overflow-hidden rounded-2xl bg-gray-900/95 backdrop-blur-xl cursor-ew-resize select-none"
+            className={`w-full h-full relative overflow-hidden rounded-2xl bg-gray-900/95 backdrop-blur-xl select-none ${hasAcceptedAIEdit ? 'cursor-default' : 'cursor-ew-resize'}`}
             style={{ touchAction: 'none' }}
-            onMouseDown={showAIComparison ? undefined : handleStart}
-            onTouchStart={showAIComparison ? undefined : handleStart}
-            onMouseMove={showAIComparison && isDragging ? (e) => handleAICompareMove(e.clientX) : undefined}
-            onTouchMove={showAIComparison && isDragging ? (e) => e.touches[0] && handleAICompareMove(e.touches[0].clientX) : undefined}
+            onMouseDown={hasAcceptedAIEdit ? undefined : handlePointerDown}
+            onTouchStart={hasAcceptedAIEdit ? undefined : handlePointerDown}
+            onMouseMove={hasAcceptedAIEdit ? undefined : handlePointerMove}
+            onTouchMove={hasAcceptedAIEdit ? undefined : handlePointerMove}
+            onMouseUp={hasAcceptedAIEdit ? undefined : handlePointerUp}
+            onTouchEnd={hasAcceptedAIEdit ? undefined : handlePointerUp}
           >
-            {showAIComparison && beforeAIEditImage ? (
+            {hasAcceptedAIEdit ? (
+              <>
+                {/* Final image view - no slider, just the accepted AI enhanced image */}
+                <img
+                  src={currentDisplayImage}
+                  alt="AI Enhanced"
+                  className="w-full h-full object-contain"
+                  draggable={false}
+                />
+                
+                {/* Label showing this is AI Enhanced */}
+                <div className="absolute bottom-3 right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-3 py-1.5 rounded-full font-medium z-30 pointer-events-none">
+                  AI Enhanced
+                </div>
+                
+                {/* Circular Action Buttons - Top Right */}
+                <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
+                  {/* Custom AI Edit Button - Can edit more */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsPromptEditorOpen(true);
+                    }}
+                    className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                    title="AI Custom Edit"
+                  >
+                    <MagicWand className="h-5 w-5" weight="bold" />
+                  </button>
+
+                  {/* Edit Button */}
+                  {onEdit && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(currentDisplayImage);
+                      }}
+                      className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                      title="Edit Image"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
+                    </button>
+                  )}
+
+                  {/* Download Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDownload(currentDisplayImage);
+                    }}
+                    className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                    title="Download Image"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+
+                  {/* Share Button */}
+                  {onShare && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onShare();
+                      }}
+                      className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                      title="Share Image"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+                      </svg>
+                    </button>
+                  )}
+
+                  {/* Enlarge/Preview Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenPreview(currentDisplayImage);
+                    }}
+                    className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                    title="Enlarge Image"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                    </svg>
+                  </button>
+                </div>
+              </>
+            ) : showAIComparison && beforeAIEditImage ? (
               <>
                 {/* AI Enhancement Comparison View */}
                 {/* After AI Image (Full - shown on right) */}
@@ -215,7 +287,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
                 {/* Before AI Image (Clipped - shown on left) */}
                 <div
                   className="absolute inset-0 overflow-hidden"
-                  style={{ clipPath: `inset(0 ${100 - aiComparePosition}% 0 0)` }}
+                  style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
                 >
                   <img
                     src={beforeAIImage}
@@ -225,33 +297,61 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
                   />
                 </div>
                 
-                {/* Labels */}
-                <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full z-30">
+                {/* Labels - Same position and styling as normal slider */}
+                <div className="absolute bottom-3 left-3 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium z-30 pointer-events-none">
                   Before
                 </div>
-                <div className="absolute top-3 right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full z-30">
+                <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium z-30 pointer-events-none">
                   AI Enhanced
                 </div>
                 
-                {/* AI Comparison Slider */}
+                {/* AI Comparison Slider - Matches main slider styling */}
                 <div
-                  className="absolute top-0 bottom-0 w-1 bg-white shadow-lg cursor-ew-resize z-10"
-                  style={{ left: `${aiComparePosition}%`, transform: 'translateX(-50%)' }}
-                  onMouseDown={(e) => { e.stopPropagation(); setIsDragging(true); }}
-                  onTouchStart={(e) => { e.stopPropagation(); setIsDragging(true); }}
+                  className="absolute top-0 bottom-0 w-[2px] z-10"
+                  style={{ 
+                    left: `${sliderPosition}%`,
+                    backgroundColor: '#ffffff'
+                  }}
                 >
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center border-2 border-gray-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M18 8L22 12L18 16" />
-                      <path d="M6 8L2 12L6 16" />
+                  {/* Handle - Same as main slider */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full flex items-center justify-center backdrop-blur-xl bg-white/10 border border-white/30 shadow-2xl hover:bg-white/20 transition-all duration-200">
+                    {/* Left Arrow */}
+                    <svg
+                      className="w-4 h-4 text-white absolute left-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                    {/* Right Arrow */}
+                    <svg
+                      className="w-4 h-4 text-white absolute right-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   </div>
                 </div>
                 
-                {/* Action buttons */}
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-30">
+                {/* Action buttons - positioned above the labels */}
+                <div className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-2 z-30">
                   <button
                     onClick={(e) => { e.stopPropagation(); handleKeepAIEdit(); }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
                     className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-full shadow-lg transition-all flex items-center gap-2"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -261,6 +361,8 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleUndo(); }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
                     className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm rounded-full shadow-lg transition-all flex items-center gap-2 border border-white/20"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -270,6 +372,8 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); setIsPromptEditorOpen(true); }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
                     className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm rounded-full shadow-lg transition-all flex items-center gap-2"
                   >
                     <MagicWand className="w-4 h-4" weight="bold" />
@@ -479,9 +583,6 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
         isOpen={isPromptEditorOpen}
         onClose={() => setIsPromptEditorOpen(false)}
         onSubmit={handleCustomPromptSubmit}
-        onUndo={handleUndo}
-        onSave={handleSaveChanges}
-        canUndo={manipulationHistory.length > 0}
         isProcessing={isProcessing}
         error={aiEditError}
         onClearError={() => setAIEditError(null)}
