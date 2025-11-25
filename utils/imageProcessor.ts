@@ -18,8 +18,11 @@ export class ImageProcessor {
     'image/avif'
   ];
 
-  // Maximum file size (10MB)
-  private static readonly MAX_FILE_SIZE = 10 * 1024 * 1024;
+  // Maximum file size for upload (10MB)
+  private static readonly MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
+
+  // Target max size for API payload safety (3.5MB to be safe under 4.5MB limit after base64)
+  private static readonly TARGET_MAX_SIZE = 3.5 * 1024 * 1024;
 
   // Maximum dimensions
   private static readonly MAX_DIMENSION = 4096;
@@ -29,7 +32,7 @@ export class ImageProcessor {
    */
   static async processImage(file: File): Promise<ProcessedImage> {
     // Validate file size
-    if (file.size > this.MAX_FILE_SIZE) {
+    if (file.size > this.MAX_UPLOAD_SIZE) {
       throw new Error('Image file is too large. Please use an image smaller than 10MB.');
     }
 
@@ -58,7 +61,35 @@ export class ImageProcessor {
 
     // Handle EXIF orientation and resize if needed
     const canvas = await this.loadImageToCanvas(processedFile);
-    const optimizedFile = await this.canvasToFile(canvas, finalMimeType, 0.9, file.name);
+    
+    // Initial optimization
+    let quality = 0.9;
+    let optimizedFile = await this.canvasToFile(canvas, finalMimeType, quality, file.name);
+
+    // Aggressive compression if still too large for API
+    // We need the final base64 payload to be under ~4.5MB (Vercel limit)
+    // Base64 adds ~33%, so file size must be under ~3.3MB
+    while (optimizedFile.size > this.TARGET_MAX_SIZE && quality > 0.5) {
+      quality -= 0.1;
+      optimizedFile = await this.canvasToFile(canvas, finalMimeType, quality, file.name);
+    }
+
+    // If still too large after quality reduction, scale down dimensions
+    if (optimizedFile.size > this.TARGET_MAX_SIZE) {
+      let scale = 0.9;
+      while (optimizedFile.size > this.TARGET_MAX_SIZE && scale > 0.4) {
+        const scaledCanvas = document.createElement('canvas');
+        scaledCanvas.width = Math.round(canvas.width * scale);
+        scaledCanvas.height = Math.round(canvas.height * scale);
+        const ctx = scaledCanvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+          optimizedFile = await this.canvasToFile(scaledCanvas, finalMimeType, 0.8, file.name); // Use 0.8 quality with scaled image
+        }
+        scale -= 0.1;
+      }
+    }
+
     const dataUrl = await this.fileToDataUrl(optimizedFile);
 
     return {

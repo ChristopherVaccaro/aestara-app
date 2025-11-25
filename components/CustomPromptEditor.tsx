@@ -9,6 +9,8 @@ interface CustomPromptEditorProps {
   onSave: () => void;
   canUndo: boolean;
   isProcessing: boolean;
+  error?: string | null;
+  onClearError?: () => void;
 }
 
 export default function CustomPromptEditor({
@@ -18,7 +20,9 @@ export default function CustomPromptEditor({
   onUndo,
   onSave,
   canUndo,
-  isProcessing
+  isProcessing,
+  error,
+  onClearError
 }: CustomPromptEditorProps) {
   const [prompt, setPrompt] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -84,13 +88,39 @@ export default function CustomPromptEditor({
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Error Message */}
+            {error && (
+              <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <div className="flex-1">
+                  <p className="text-red-300 text-sm font-medium">AI Edit Failed</p>
+                  <p className="text-red-400/80 text-xs mt-1">{error}</p>
+                </div>
+                {onClearError && (
+                  <button
+                    onClick={onClearError}
+                    className="text-red-400 hover:text-red-300 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Textarea */}
             <div>
               <textarea
                 value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+                onChange={(e) => {
+                  setPrompt(e.target.value);
+                  if (error && onClearError) onClearError();
+                }}
                 placeholder="Example: Make the sky more dramatic with sunset colors, Add a smile to the person's face, Change the background to a beach scene..."
-                className="w-full h-32 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent resize-none"
+                className={`w-full h-32 px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent resize-none ${
+                  error ? 'border-red-500/50' : 'border-white/10'
+                }`}
                 disabled={isProcessing}
                 ref={textareaRef}
                 autoFocus

@@ -45,7 +45,7 @@ export default async function handler(req: any, res: any) {
       try { body = raw ? JSON.parse(raw) : {}; } catch { body = {}; }
     }
 
-    const { imageBase64, mimeType, prompt } = body || {};
+    const { imageBase64, mimeType, prompt, model } = body || {};
 
     if (!imageBase64 || typeof imageBase64 !== 'string') {
       return sendJson(400, { error: 'Missing imageBase64' });
@@ -59,9 +59,11 @@ export default async function handler(req: any, res: any) {
 
     const ai = new GoogleGenAI({ apiKey });
 
+    const selectedModel = model || 'gemini-2.5-flash-image';
+
     // Use Gemini 2.5 Flash Image model (Nano Banana) for image generation
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
+      model: selectedModel,
       contents: {
         parts: [
           { inlineData: { data: imageBase64, mimeType } },

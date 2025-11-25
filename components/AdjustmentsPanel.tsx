@@ -1,13 +1,37 @@
 import React from 'react';
-import { ArrowClockwise, ArrowsLeftRight, ArrowsDownUp, Crop } from '@phosphor-icons/react';
+import { ArrowClockwise, ArrowsLeftRight, ArrowsDownUp, Crop, Check, X } from '@phosphor-icons/react';
 import { ImageAdjustments } from './ImageEditor';
 
 interface AdjustmentsPanelProps {
   adjustments: ImageAdjustments;
   onUpdateAdjustments: (adjustments: ImageAdjustments) => void;
+  isCropMode: boolean;
+  onToggleCropMode: (enabled: boolean) => void;
+  onApplyCrop: () => void;
+  onCancelCrop: () => void;
+  onSetAspectRatio: (ratio: number | null) => void;
+  selectedAspectRatio: number | null;
 }
 
-const AdjustmentsPanel: React.FC<AdjustmentsPanelProps> = ({ adjustments, onUpdateAdjustments }) => {
+const ASPECT_RATIOS = [
+  { label: 'Free', value: null },
+  { label: '1:1', value: 1 },
+  { label: '4:3', value: 4/3 },
+  { label: '3:4', value: 3/4 },
+  { label: '16:9', value: 16/9 },
+  { label: '9:16', value: 9/16 },
+];
+
+const AdjustmentsPanel: React.FC<AdjustmentsPanelProps> = ({ 
+  adjustments, 
+  onUpdateAdjustments,
+  isCropMode,
+  onToggleCropMode,
+  onApplyCrop,
+  onCancelCrop,
+  onSetAspectRatio,
+  selectedAspectRatio,
+}) => {
   const rotate = (degrees: number) => {
     onUpdateAdjustments({
       ...adjustments,
@@ -106,16 +130,66 @@ const AdjustmentsPanel: React.FC<AdjustmentsPanelProps> = ({ adjustments, onUpda
         </div>
       </div>
 
-      {/* Crop (Coming Soon) */}
+      {/* Crop */}
       <div className="pt-4 border-t border-white/10">
         <h3 className="text-sm font-medium text-white/60 mb-3">Crop</h3>
-        <button
-          disabled
-          className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white/40 rounded-lg cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          <Crop className="w-4 h-4" />
-          <span className="text-sm">Coming Soon</span>
-        </button>
+        
+        {isCropMode ? (
+          <div className="space-y-3">
+            {/* Aspect Ratio Selection */}
+            <div>
+              <label className="text-xs text-white/60 mb-2 block">Aspect Ratio</label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {ASPECT_RATIOS.map((ratio) => (
+                  <button
+                    key={ratio.label}
+                    onClick={() => onSetAspectRatio(ratio.value)}
+                    className={`px-2 py-1.5 text-xs rounded-md transition-all ${
+                      selectedAspectRatio === ratio.value
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-white/5 text-white/80 hover:bg-white/10'
+                    }`}
+                  >
+                    {ratio.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Crop Actions */}
+            <div className="flex gap-2">
+              <button
+                onClick={onApplyCrop}
+                className="flex-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all flex items-center justify-center gap-2"
+              >
+                <Check className="w-4 h-4" />
+                <span className="text-sm">Apply</span>
+              </button>
+              <button
+                onClick={() => {
+                  onCancelCrop();
+                  onSetAspectRatio(null);
+                }}
+                className="flex-1 px-3 py-2 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                <span className="text-sm">Cancel</span>
+              </button>
+            </div>
+            
+            <p className="text-xs text-white/40 text-center">
+              Drag the corners or edges to adjust the crop area
+            </p>
+          </div>
+        ) : (
+          <button
+            onClick={() => onToggleCropMode(true)}
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 hover:border-blue-500 transition-all flex items-center justify-center gap-2"
+          >
+            <Crop className="w-4 h-4" />
+            <span className="text-sm">Start Cropping</span>
+          </button>
+        )}
       </div>
 
       {/* Reset */}

@@ -35,6 +35,19 @@ const FiltersPanel: React.FC<FiltersPanelProps> = ({ filters, onUpdateFilters })
     });
   };
 
+  // Check if current filters match a preset
+  const isPresetActive = (presetFilters: typeof filters) => {
+    return (
+      filters.brightness === presetFilters.brightness &&
+      filters.contrast === presetFilters.contrast &&
+      filters.saturation === presetFilters.saturation &&
+      filters.blur === presetFilters.blur &&
+      filters.sepia === presetFilters.sepia &&
+      filters.grayscale === presetFilters.grayscale &&
+      filters.hueRotate === presetFilters.hueRotate
+    );
+  };
+
   return (
     <div className="space-y-4">
       {/* Reset Button */}
@@ -50,15 +63,22 @@ const FiltersPanel: React.FC<FiltersPanelProps> = ({ filters, onUpdateFilters })
       <div>
         <h3 className="text-sm font-medium text-white/60 mb-3">Presets</h3>
         <div className="grid grid-cols-2 gap-2">
-          {FILTER_PRESETS.map(preset => (
-            <button
-              key={preset.name}
-              onClick={() => onUpdateFilters(preset.filters)}
-              className="px-3 py-2 bg-white/5 border border-white/10 text-white text-xs rounded-lg hover:bg-white/10 hover:border-blue-500 transition-all"
-            >
-              {preset.name}
-            </button>
-          ))}
+          {FILTER_PRESETS.map(preset => {
+            const isActive = isPresetActive(preset.filters);
+            return (
+              <button
+                key={preset.name}
+                onClick={() => onUpdateFilters(preset.filters)}
+                className={`px-3 py-2 border text-xs rounded-lg transition-all ${
+                  isActive
+                    ? 'bg-blue-500 border-blue-500 text-white'
+                    : 'bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-blue-500'
+                }`}
+              >
+                {preset.name}
+              </button>
+            );
+          })}
         </div>
       </div>
 
