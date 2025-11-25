@@ -51,17 +51,19 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   const [currentDisplayImage, setCurrentDisplayImage] = useState<string>(originalImageUrl);
   const [manipulationHistory, setManipulationHistory] = useState<string[]>([]);
   const [showAIComparison, setShowAIComparison] = useState(false);
-  const [aiComparePosition, setAIComparePosition] = useState(50);
+  const [aiComparePosition, setAIComparePosition] = useState(25); // Match ImageComparison initial position
   const [isAIDragging, setIsAIDragging] = useState(false);
   const aiCompareContainerRef = React.useRef<HTMLDivElement>(null);
   const [aiEditError, setAIEditError] = useState<string | null>(null);
   const [beforeAIEditImage, setBeforeAIEditImage] = useState<string | null>(null);
+  const [hasAcceptedAIEdit, setHasAcceptedAIEdit] = useState(false); // Track if user has kept an AI edit
 
   // Reset when original image changes
   useEffect(() => {
     setCurrentDisplayImage(originalImageUrl);
     setManipulationHistory([]);
     setShowAIComparison(false);
+    setHasAcceptedAIEdit(false);
   }, [originalImageUrl]);
 
   const handleCustomPromptSubmit = async (prompt: string) => {
@@ -76,7 +78,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
         setCurrentDisplayImage(result.imageUrl);
         setIsPromptEditorOpen(false);
         setShowAIComparison(true); // Show comparison after AI enhancement
-        setAIComparePosition(50);
+        setAIComparePosition(25); // Match ImageComparison initial position
         setAIEditError(null);
       } else {
         const errorMsg = result.error || 'Failed to apply AI edit. Please try again with a different prompt.';
@@ -92,69 +94,46 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
     }
   };
   
-  // AI Comparison slider handlers
-  const handleAICompareMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsAIDragging(true);
-  };
-  
-  const handleAICompareTouchStart = (e: React.TouchEvent) => {
-    setIsAIDragging(true);
-  };
-  
-  const handleAICompareMove = (clientX: number) => {
-    if (!isAIDragging || !aiCompareContainerRef.current) return;
+  // AI Comparison slider handlers - same pattern as ImageComparison
+  const getPositionFromEvent = (clientX: number): number => {
+    if (!aiCompareContainerRef.current) return aiComparePosition;
     const rect = aiCompareContainerRef.current.getBoundingClientRect();
     const x = clientX - rect.left;
-    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    setAIComparePosition(percentage);
+    return Math.max(0, Math.min(100, (x / rect.width) * 100));
   };
-  
-  const handleAICompareMouseMove = (e: React.MouseEvent) => {
-    handleAICompareMove(e.clientX);
+
+  const handleAIPointerDown = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    const clientX = 'touches' in e ? e.touches[0]?.clientX : e.clientX;
+    if (clientX !== undefined) {
+      setAIComparePosition(getPositionFromEvent(clientX));
+    }
+    setIsAIDragging(true);
   };
-  
-  const handleAICompareTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length > 0) {
-      handleAICompareMove(e.touches[0].clientX);
+
+  const handleAIPointerMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isAIDragging) return;
+    const clientX = 'touches' in e 
+      ? (e as unknown as TouchEvent).touches[0]?.clientX 
+      : (e as unknown as MouseEvent).clientX;
+    if (clientX !== undefined) {
+      setAIComparePosition(getPositionFromEvent(clientX));
     }
   };
-  
-  const handleAICompareEnd = () => {
+
+  const handleAIPointerUp = () => {
     setIsAIDragging(false);
   };
   
-  // Global event listeners for AI comparison slider to prevent getting stuck
+  // Global event listeners for mouse/touch up when dragging
   useEffect(() => {
     if (isAIDragging) {
-      const handleGlobalMouseMove = (e: MouseEvent) => {
-        if (aiCompareContainerRef.current) {
-          const rect = aiCompareContainerRef.current.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-          setAIComparePosition(percentage);
-        }
-      };
-      const handleGlobalTouchMove = (e: TouchEvent) => {
-        if (aiCompareContainerRef.current && e.touches.length > 0) {
-          const rect = aiCompareContainerRef.current.getBoundingClientRect();
-          const x = e.touches[0].clientX - rect.left;
-          const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-          setAIComparePosition(percentage);
-        }
-      };
-      const handleGlobalEnd = () => setIsAIDragging(false);
-      
-      window.addEventListener('mousemove', handleGlobalMouseMove);
-      window.addEventListener('mouseup', handleGlobalEnd);
-      window.addEventListener('touchmove', handleGlobalTouchMove);
-      window.addEventListener('touchend', handleGlobalEnd);
-      
+      const handleGlobalUp = () => setIsAIDragging(false);
+      window.addEventListener('mouseup', handleGlobalUp);
+      window.addEventListener('touchend', handleGlobalUp);
       return () => {
-        window.removeEventListener('mousemove', handleGlobalMouseMove);
-        window.removeEventListener('mouseup', handleGlobalEnd);
-        window.removeEventListener('touchmove', handleGlobalTouchMove);
-        window.removeEventListener('touchend', handleGlobalEnd);
+        window.removeEventListener('mouseup', handleGlobalUp);
+        window.removeEventListener('touchend', handleGlobalUp);
       };
     }
   }, [isAIDragging]);
@@ -182,19 +161,12 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
       setBeforeAIEditImage(null);
     }
   };
-
-  const handleSaveChanges = () => {
-    if (onSaveAIEdit && currentDisplayImage !== originalImageUrl) {
-      onSaveAIEdit(currentDisplayImage);
-    }
-    setManipulationHistory([]);
-    setIsPromptEditorOpen(false);
-  };
   
   // Handle keeping the AI enhancement
   const handleKeepAIEdit = () => {
     setShowAIComparison(false);
     setBeforeAIEditImage(null);
+    setHasAcceptedAIEdit(true); // Mark that user has accepted, hide slider
     // Save the AI edit to parent so future style applications use this version
     if (onSaveAIEdit && currentDisplayImage !== originalImageUrl) {
       onSaveAIEdit(currentDisplayImage);
@@ -233,17 +205,75 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
           >
         {isLoading ? (
           <Spinner message={activeFilterName ? `Applying ${activeFilterName} style...` : "Applying style..."} />
+        ) : hasAcceptedAIEdit ? (
+          <>
+            {/* Final image view - no slider, just the accepted AI enhanced image */}
+            <img
+              src={currentDisplayImage}
+              alt="AI Enhanced"
+              className="w-full h-full object-contain"
+              draggable={false}
+            />
+            
+            {/* Label showing this is AI Enhanced */}
+            <div className="absolute bottom-3 right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-3 py-1.5 rounded-full font-medium z-30 pointer-events-none">
+              AI Enhanced
+            </div>
+            
+            {/* Circular Action Buttons - Top Right */}
+            <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
+              {/* Custom AI Edit Button - Can edit more */}
+              <button
+                onClick={(e) => { e.stopPropagation(); setIsPromptEditorOpen(true); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                title="AI Custom Edit"
+              >
+                <MagicWand className="h-5 w-5" weight="bold" />
+              </button>
+
+              {/* Manual Edit Button */}
+              {onEdit && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onEdit(currentDisplayImage); }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                  title="Edit Image"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  </svg>
+                </button>
+              )}
+
+              {/* Download Button */}
+              <button
+                onClick={(e) => { e.stopPropagation(); handleDownloadAIEnhanced(); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                title="Download AI Enhanced Image"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </>
         ) : showAIComparison && beforeAIEditImage ? (
           <>
-            {/* AI Enhancement Comparison Slider */}
+            {/* AI Enhancement Comparison Slider - Matches ImageComparison styling */}
             <div 
               ref={aiCompareContainerRef}
-              className="relative w-full h-full select-none"
-              onMouseMove={handleAICompareMouseMove}
-              onMouseUp={handleAICompareEnd}
-              onMouseLeave={handleAICompareEnd}
-              onTouchMove={handleAICompareTouchMove}
-              onTouchEnd={handleAICompareEnd}
+              className="relative w-full h-full select-none cursor-ew-resize"
+              onMouseDown={handleAIPointerDown}
+              onTouchStart={handleAIPointerDown}
+              onMouseMove={handleAIPointerMove}
+              onTouchMove={handleAIPointerMove}
+              onMouseUp={handleAIPointerUp}
+              onTouchEnd={handleAIPointerUp}
               style={{ touchAction: 'none' }}
             >
               {/* After Image (Full - shown on right) */}
@@ -267,35 +297,39 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
                 />
               </div>
               
-              {/* Slider Handle */}
+              {/* Slider Line and Handle - Matches ImageComparison styling */}
               <div
-                className="absolute top-0 bottom-0 w-1 bg-white shadow-lg cursor-ew-resize z-10"
-                style={{ left: `${aiComparePosition}%`, transform: 'translateX(-50%)' }}
-                onMouseDown={handleAICompareMouseDown}
-                onTouchStart={handleAICompareTouchStart}
+                className="absolute top-0 bottom-0 w-[2px] z-10"
+                style={{ left: `${aiComparePosition}%`, backgroundColor: '#ffffff' }}
               >
-                {/* Handle Circle */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center border-2 border-gray-200">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 8L22 12L18 16" />
-                    <path d="M6 8L2 12L6 16" />
+                {/* Handle - Same as ImageComparison */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full flex items-center justify-center backdrop-blur-xl bg-white/10 border border-white/30 shadow-2xl hover:bg-white/20 transition-all duration-200">
+                  {/* Left Arrow */}
+                  <svg className="w-4 h-4 text-white absolute left-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  {/* Right Arrow */}
+                  <svg className="w-4 h-4 text-white absolute right-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
               </div>
               
-              {/* Labels */}
-              <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
+              {/* Labels - Same position and styling as ImageComparison */}
+              <div className="absolute bottom-3 left-3 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium z-30 pointer-events-none">
                 Before
               </div>
-              <div className="absolute top-3 right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full">
+              <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium z-30 pointer-events-none">
                 AI Enhanced
               </div>
             </div>
             
-            {/* Action buttons for comparison mode */}
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+            {/* Action buttons for comparison mode - positioned above labels */}
+            <div className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-2 z-30">
               <button
                 onClick={(e) => { e.stopPropagation(); handleKeepAIEdit(); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
                 className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-full shadow-lg transition-all flex items-center gap-2"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -305,6 +339,8 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); handleUndo(); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
                 className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm rounded-full shadow-lg transition-all flex items-center gap-2 border border-white/20"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -314,6 +350,8 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); setIsPromptEditorOpen(true); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
                 className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm rounded-full shadow-lg transition-all flex items-center gap-2"
               >
                 <MagicWand className="w-4 h-4" weight="bold" />
@@ -479,9 +517,6 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
         isOpen={isPromptEditorOpen}
         onClose={() => setIsPromptEditorOpen(false)}
         onSubmit={handleCustomPromptSubmit}
-        onUndo={handleUndo}
-        onSave={handleSaveChanges}
-        canUndo={manipulationHistory.length > 0}
         isProcessing={isProcessing}
         error={aiEditError}
         onClearError={() => setAIEditError(null)}

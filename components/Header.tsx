@@ -31,8 +31,8 @@ const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false }) => {
     <>
       <header className="w-full pt-4 md:pt-0 pb-4 md:pb-6 flex-shrink-0">
         <div className="flex items-center justify-between px-4 md:px-6">
-          {/* Left spacer for balance */}
-          <div className="w-10 md:w-12" />
+          {/* Left spacer - matches right side width for true centering */}
+          <div className="w-20 md:w-24 flex-shrink-0" />
           
           {/* Center logo */}
           <button
@@ -43,8 +43,8 @@ const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false }) => {
             <Logo className="h-8 md:h-10 w-auto" />
           </button>
           
-          {/* Right side - User avatar with tooltip menu */}
-          <div className="w-10 md:w-12 flex items-center justify-end mr-8 md:mr-8 relative">
+          {/* Right side - User avatar with tooltip menu (same width as left spacer) */}
+          <div className="w-20 md:w-24 flex-shrink-0 flex items-center justify-end relative">
             {user && (
               <>
                 <div onClick={() => setMenuOpen((v) => !v)}>
