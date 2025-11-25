@@ -104,6 +104,14 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
   const [initialSize, setInitialSize] = useState({ width: 0, height: 0 });
   const [resizeCorner, setResizeCorner] = useState<'tl' | 'tr' | 'bl' | 'br' | null>(null);
   
+  // Crop state
+  const [isCropMode, setIsCropMode] = useState(false);
+  const [cropArea, setCropArea] = useState({ x: 10, y: 10, width: 80, height: 80 });
+  const [cropDragType, setCropDragType] = useState<'move' | 'tl' | 'tr' | 'bl' | 'br' | 'top' | 'bottom' | 'left' | 'right' | null>(null);
+  const [cropDragStart, setCropDragStart] = useState({ x: 0, y: 0 });
+  const [cropStartArea, setCropStartArea] = useState({ x: 10, y: 10, width: 80, height: 80 });
+  const [selectedAspectRatio, setSelectedAspectRatio] = useState<number | null>(null);
+  
   // Drawing state
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [isDrawingActive, setIsDrawingActive] = useState(false);
@@ -159,6 +167,154 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
       setIsEraserMode(false);
     }
   }, [activeTab]);
+  
+  // Exit crop mode when switching tabs
+  useEffect(() => {
+    if (activeTab !== 'adjustments' && isCropMode) {
+      setIsCropMode(false);
+    }
+  }, [activeTab]);
+  
+  // Crop handlers
+  const handleCropDragStart = (e: React.MouseEvent | React.TouchEvent, type: typeof cropDragType) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setCropDragType(type);
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    setCropDragStart({ x: clientX, y: clientY });
+    setCropStartArea({ ...cropArea });
+  };
+  
+  const handleCropDragMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!cropDragType || !imageRef.current) return;
+    e.preventDefault();
+    
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const rect = imageRef.current.getBoundingClientRect();
+    
+    const deltaXPercent = ((clientX - cropDragStart.x) / rect.width) * 100;
+    const deltaYPercent = ((clientY - cropDragStart.y) / rect.height) * 100;
+    
+    let newArea = { ...cropStartArea };
+    
+    switch (cropDragType) {
+      case 'move':
+        newArea.x = Math.max(0, Math.min(100 - newArea.width, cropStartArea.x + deltaXPercent));
+        newArea.y = Math.max(0, Math.min(100 - newArea.height, cropStartArea.y + deltaYPercent));
+        break;
+      case 'tl':
+        newArea.x = Math.max(0, Math.min(cropStartArea.x + cropStartArea.width - 10, cropStartArea.x + deltaXPercent));
+        newArea.y = Math.max(0, Math.min(cropStartArea.y + cropStartArea.height - 10, cropStartArea.y + deltaYPercent));
+        newArea.width = cropStartArea.width - (newArea.x - cropStartArea.x);
+        newArea.height = cropStartArea.height - (newArea.y - cropStartArea.y);
+        break;
+      case 'tr':
+        newArea.y = Math.max(0, Math.min(cropStartArea.y + cropStartArea.height - 10, cropStartArea.y + deltaYPercent));
+        newArea.width = Math.max(10, Math.min(100 - cropStartArea.x, cropStartArea.width + deltaXPercent));
+        newArea.height = cropStartArea.height - (newArea.y - cropStartArea.y);
+        break;
+      case 'bl':
+        newArea.x = Math.max(0, Math.min(cropStartArea.x + cropStartArea.width - 10, cropStartArea.x + deltaXPercent));
+        newArea.width = cropStartArea.width - (newArea.x - cropStartArea.x);
+        newArea.height = Math.max(10, Math.min(100 - cropStartArea.y, cropStartArea.height + deltaYPercent));
+        break;
+      case 'br':
+        newArea.width = Math.max(10, Math.min(100 - cropStartArea.x, cropStartArea.width + deltaXPercent));
+        newArea.height = Math.max(10, Math.min(100 - cropStartArea.y, cropStartArea.height + deltaYPercent));
+        break;
+      case 'top':
+        newArea.y = Math.max(0, Math.min(cropStartArea.y + cropStartArea.height - 10, cropStartArea.y + deltaYPercent));
+        newArea.height = cropStartArea.height - (newArea.y - cropStartArea.y);
+        break;
+      case 'bottom':
+        newArea.height = Math.max(10, Math.min(100 - cropStartArea.y, cropStartArea.height + deltaYPercent));
+        break;
+      case 'left':
+        newArea.x = Math.max(0, Math.min(cropStartArea.x + cropStartArea.width - 10, cropStartArea.x + deltaXPercent));
+        newArea.width = cropStartArea.width - (newArea.x - cropStartArea.x);
+        break;
+      case 'right':
+        newArea.width = Math.max(10, Math.min(100 - cropStartArea.x, cropStartArea.width + deltaXPercent));
+        break;
+    }
+    
+    setCropArea(newArea);
+  };
+  
+  const handleCropDragEnd = () => {
+    setCropDragType(null);
+  };
+  
+  const handleApplyCrop = () => {
+    // Apply the crop to adjustments
+    onUpdateAdjustments({
+      ...adjustments,
+      crop: {
+        x: cropArea.x,
+        y: cropArea.y,
+        width: cropArea.width,
+        height: cropArea.height,
+      },
+    });
+    setIsCropMode(false);
+  };
+  
+  const handleCancelCrop = () => {
+    // Reset crop area and exit crop mode
+    setCropArea({ x: 10, y: 10, width: 80, height: 80 });
+    setIsCropMode(false);
+    setSelectedAspectRatio(null);
+  };
+  
+  // Handle aspect ratio selection - updates crop area to match the ratio
+  const handleSetAspectRatio = (ratio: number | null) => {
+    setSelectedAspectRatio(ratio);
+    
+    if (ratio === null) {
+      // Free crop - don't change the crop area
+      return;
+    }
+    
+    // Get the image dimensions to calculate proper crop area
+    if (!imageRef.current) return;
+    const imgRect = imageRef.current.getBoundingClientRect();
+    const imgAspect = imgRect.width / imgRect.height;
+    
+    // Calculate new crop dimensions that fit within the image while maintaining aspect ratio
+    let newWidth: number;
+    let newHeight: number;
+    
+    if (ratio > imgAspect) {
+      // Crop is wider than image - constrain by width
+      newWidth = 80; // 80% of image width
+      newHeight = (newWidth / ratio) * imgAspect;
+    } else {
+      // Crop is taller than image - constrain by height
+      newHeight = 80; // 80% of image height
+      newWidth = (newHeight * ratio) / imgAspect;
+    }
+    
+    // Ensure dimensions don't exceed 90% and are at least 10%
+    newWidth = Math.min(90, Math.max(10, newWidth));
+    newHeight = Math.min(90, Math.max(10, newHeight));
+    
+    // Center the crop area
+    const newX = (100 - newWidth) / 2;
+    const newY = (100 - newHeight) / 2;
+    
+    setCropArea({
+      x: newX,
+      y: newY,
+      width: newWidth,
+      height: newHeight,
+    });
+  };
+  
+  const onUpdateAdjustments = (newAdjustments: ImageAdjustments) => {
+    setAdjustments(newAdjustments);
+  };
   
   useEffect(() => {
     if (isSheetOpen) {
@@ -561,6 +717,13 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
       `,
       objectFit: fitMode === 'fit' ? 'contain' : 'cover',
     };
+    
+    // Apply crop preview when crop is set (not in crop mode)
+    if (adjustments.crop && !isCropMode) {
+      const { x, y, width, height } = adjustments.crop;
+      style.clipPath = `inset(${y}% ${100 - x - width}% ${100 - y - height}% ${x}%)`;
+    }
+    
     return style;
   };
 
@@ -742,7 +905,39 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
       ctx.stroke();
     });
 
-    // Convert to blob and save
+    // Apply crop if set
+    if (adjustments.crop) {
+      const cropX = (adjustments.crop.x / 100) * canvas.width;
+      const cropY = (adjustments.crop.y / 100) * canvas.height;
+      const cropWidth = (adjustments.crop.width / 100) * canvas.width;
+      const cropHeight = (adjustments.crop.height / 100) * canvas.height;
+      
+      // Create a temporary canvas for the cropped image
+      const croppedCanvas = document.createElement('canvas');
+      croppedCanvas.width = cropWidth;
+      croppedCanvas.height = cropHeight;
+      const croppedCtx = croppedCanvas.getContext('2d');
+      
+      if (croppedCtx) {
+        // Draw the cropped portion
+        croppedCtx.drawImage(
+          canvas,
+          cropX, cropY, cropWidth, cropHeight,
+          0, 0, cropWidth, cropHeight
+        );
+        
+        // Convert cropped canvas to blob and save
+        croppedCanvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            onSave(url);
+          }
+        }, 'image/png', 1.0);
+        return;
+      }
+    }
+
+    // Convert to blob and save (no crop)
     canvas.toBlob((blob) => {
       if (blob) {
         const url = URL.createObjectURL(blob);
@@ -1298,6 +1493,152 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                 </div>
               );
             })}
+            
+            {/* Crop Overlay */}
+            {isCropMode && displayedImageSize.width > 0 && (
+              <div 
+                className="absolute inset-0 z-30"
+                onMouseMove={handleCropDragMove}
+                onMouseUp={handleCropDragEnd}
+                onMouseLeave={handleCropDragEnd}
+                onTouchMove={handleCropDragMove}
+                onTouchEnd={handleCropDragEnd}
+                style={{ touchAction: 'none' }}
+              >
+                {/* Dark overlay outside crop area */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {/* Top */}
+                  <div 
+                    className="absolute bg-black/60" 
+                    style={{ 
+                      top: 0, 
+                      left: 0, 
+                      right: 0, 
+                      height: `${cropArea.y}%` 
+                    }} 
+                  />
+                  {/* Bottom */}
+                  <div 
+                    className="absolute bg-black/60" 
+                    style={{ 
+                      bottom: 0, 
+                      left: 0, 
+                      right: 0, 
+                      height: `${100 - cropArea.y - cropArea.height}%` 
+                    }} 
+                  />
+                  {/* Left */}
+                  <div 
+                    className="absolute bg-black/60" 
+                    style={{ 
+                      top: `${cropArea.y}%`, 
+                      left: 0, 
+                      width: `${cropArea.x}%`, 
+                      height: `${cropArea.height}%` 
+                    }} 
+                  />
+                  {/* Right */}
+                  <div 
+                    className="absolute bg-black/60" 
+                    style={{ 
+                      top: `${cropArea.y}%`, 
+                      right: 0, 
+                      width: `${100 - cropArea.x - cropArea.width}%`, 
+                      height: `${cropArea.height}%` 
+                    }} 
+                  />
+                </div>
+                
+                {/* Crop area border and handles */}
+                <div
+                  className="absolute border-2 border-white cursor-move"
+                  style={{
+                    left: `${cropArea.x}%`,
+                    top: `${cropArea.y}%`,
+                    width: `${cropArea.width}%`,
+                    height: `${cropArea.height}%`,
+                  }}
+                  onMouseDown={(e) => handleCropDragStart(e, 'move')}
+                  onTouchStart={(e) => handleCropDragStart(e, 'move')}
+                >
+                  {/* Grid lines */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute left-1/3 top-0 bottom-0 w-px bg-white/30" />
+                    <div className="absolute left-2/3 top-0 bottom-0 w-px bg-white/30" />
+                    <div className="absolute top-1/3 left-0 right-0 h-px bg-white/30" />
+                    <div className="absolute top-2/3 left-0 right-0 h-px bg-white/30" />
+                  </div>
+                  
+                  {/* Corner handles */}
+                  <div 
+                    className="absolute -top-2 -left-2 w-4 h-4 bg-white rounded-full cursor-nwse-resize shadow-lg"
+                    onMouseDown={(e) => handleCropDragStart(e, 'tl')}
+                    onTouchStart={(e) => handleCropDragStart(e, 'tl')}
+                  />
+                  <div 
+                    className="absolute -top-2 -right-2 w-4 h-4 bg-white rounded-full cursor-nesw-resize shadow-lg"
+                    onMouseDown={(e) => handleCropDragStart(e, 'tr')}
+                    onTouchStart={(e) => handleCropDragStart(e, 'tr')}
+                  />
+                  <div 
+                    className="absolute -bottom-2 -left-2 w-4 h-4 bg-white rounded-full cursor-nesw-resize shadow-lg"
+                    onMouseDown={(e) => handleCropDragStart(e, 'bl')}
+                    onTouchStart={(e) => handleCropDragStart(e, 'bl')}
+                  />
+                  <div 
+                    className="absolute -bottom-2 -right-2 w-4 h-4 bg-white rounded-full cursor-nwse-resize shadow-lg"
+                    onMouseDown={(e) => handleCropDragStart(e, 'br')}
+                    onTouchStart={(e) => handleCropDragStart(e, 'br')}
+                  />
+                  
+                  {/* Edge handles */}
+                  <div 
+                    className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-8 h-3 bg-white rounded-full cursor-ns-resize shadow-lg"
+                    onMouseDown={(e) => handleCropDragStart(e, 'top')}
+                    onTouchStart={(e) => handleCropDragStart(e, 'top')}
+                  />
+                  <div 
+                    className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-8 h-3 bg-white rounded-full cursor-ns-resize shadow-lg"
+                    onMouseDown={(e) => handleCropDragStart(e, 'bottom')}
+                    onTouchStart={(e) => handleCropDragStart(e, 'bottom')}
+                  />
+                  <div 
+                    className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-8 bg-white rounded-full cursor-ew-resize shadow-lg"
+                    onMouseDown={(e) => handleCropDragStart(e, 'left')}
+                    onTouchStart={(e) => handleCropDragStart(e, 'left')}
+                  />
+                  <div 
+                    className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-8 bg-white rounded-full cursor-ew-resize shadow-lg"
+                    onMouseDown={(e) => handleCropDragStart(e, 'right')}
+                    onTouchStart={(e) => handleCropDragStart(e, 'right')}
+                  />
+                </div>
+                
+                {/* Crop action buttons for mobile */}
+                {isMobile && (
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3">
+                    <button
+                      onClick={handleApplyCrop}
+                      className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg shadow-lg flex items-center gap-2"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Apply
+                    </button>
+                    <button
+                      onClick={handleCancelCrop}
+                      className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg shadow-lg flex items-center gap-2"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           
           {/* Hidden canvas for export */}
@@ -1338,7 +1679,16 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
               <FiltersPanel filters={filters} onUpdateFilters={setFilters} />
             )}
             {activeTab === 'adjustments' && (
-              <AdjustmentsPanel adjustments={adjustments} onUpdateAdjustments={setAdjustments} />
+              <AdjustmentsPanel 
+                adjustments={adjustments} 
+                onUpdateAdjustments={setAdjustments}
+                isCropMode={isCropMode}
+                onToggleCropMode={setIsCropMode}
+                onApplyCrop={handleApplyCrop}
+                onCancelCrop={handleCancelCrop}
+                onSetAspectRatio={handleSetAspectRatio}
+                selectedAspectRatio={selectedAspectRatio}
+              />
             )}
             {activeTab === 'stickers' && (
               <StickersPanel
@@ -1464,7 +1814,19 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageUrl, onClose, onSave }) 
                     <FiltersPanel filters={filters} onUpdateFilters={setFilters} />
                   )}
                   {activeTab === 'adjustments' && (
-                    <AdjustmentsPanel adjustments={adjustments} onUpdateAdjustments={setAdjustments} />
+                    <AdjustmentsPanel 
+                      adjustments={adjustments} 
+                      onUpdateAdjustments={setAdjustments}
+                      isCropMode={isCropMode}
+                      onToggleCropMode={(enabled) => {
+                        setIsCropMode(enabled);
+                        if (enabled) setIsSheetOpen(false);
+                      }}
+                      onApplyCrop={handleApplyCrop}
+                      onCancelCrop={handleCancelCrop}
+                      onSetAspectRatio={handleSetAspectRatio}
+                      selectedAspectRatio={selectedAspectRatio}
+                    />
                   )}
                   {activeTab === 'stickers' && (
                     <StickersPanel

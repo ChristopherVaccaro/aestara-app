@@ -43,7 +43,6 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({
                 className="group relative h-[60px] rounded-xl transition-colors duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed overflow-hidden"
                 title={filter.name}
               >
-                {/* Background with gradient border effect */}
                 <div className={`absolute inset-0 rounded-xl p-[1px] transition-all ${
                   filter.id === activeFilterId
                     ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500'
@@ -55,13 +54,13 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({
                       : 'bg-gray-800/90 group-hover:bg-gray-700/90'
                   }`} />
                 </div>
-                
-                {/* Content */}
-                <span className={`relative z-10 text-xs text-center px-2 leading-tight font-semibold flex items-center justify-center h-full ${
+                <div className={`relative z-10 px-2 h-full w-full flex items-center justify-start gap-2 ${
                   filter.id === activeFilterId ? 'text-white' : 'text-gray-200'
                 }`}>
-                  {filter.name}
-                </span>
+                  <span className="text-xs font-semibold truncate">
+                    {filter.name}
+                  </span>
+                </div>
               </button>
             ))}
         </div>
@@ -80,10 +79,9 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({
                     key={filter.id}
                     onClick={() => onSelectFilter(filter)}
                     disabled={isLoading}
-                    className="group relative h-[48px] rounded-lg transition-all duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center px-3 overflow-hidden"
+                    className="group relative h-[48px] rounded-lg transition-all duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-start px-3 overflow-hidden"
                     title={filter.name}
                   >
-                    {/* Background with gradient border effect */}
                     <div className={`absolute inset-0 rounded-lg p-[1px] transition-all ${
                       filter.id === activeFilterId
                         ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500'
@@ -95,13 +93,13 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({
                           : 'bg-gray-800/90 group-hover:bg-gray-700/90'
                       }`} />
                     </div>
-                    
-                    {/* Content */}
-                    <span className={`relative z-10 text-center text-sm leading-snug font-semibold ${
+                    <div className={`relative z-10 w-full flex items-center justify-start gap-2 ${
                       filter.id === activeFilterId ? 'text-white' : 'text-gray-200'
                     }`}>
-                      {filter.name}
-                    </span>
+                      <span className="text-sm font-semibold truncate">
+                        {filter.name}
+                      </span>
+                    </div>
                   </button>
                 ))}
               </div>
