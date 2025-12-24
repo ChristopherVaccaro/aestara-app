@@ -3,6 +3,7 @@ import FilterSelector from './FilterSelector';
 import CategorySelector from './CategorySelector';
 import StyleHistory, { HistoryItem } from './StyleHistory';
 import { Filter } from '../types';
+import { getStyleExampleThumbSources } from '../utils/styleExamples';
 
 interface FilterCategory {
   name: string;
@@ -14,9 +15,11 @@ interface MobileBottomSheetProps {
   onClose: () => void;
   categories: FilterCategory[];
   onSelectFilter: (filter: Filter) => void;
+  onApplySelectedFilter: () => void;
   onClearFilter: () => void;
   isLoading: boolean;
   activeFilterId: string | null;
+  selectedFilter: Filter | null;
   onReset: () => void;
   history: HistoryItem[];
   currentHistoryIndex: number;
@@ -31,9 +34,11 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
   onClose,
   categories,
   onSelectFilter,
+  onApplySelectedFilter,
   onClearFilter,
   isLoading,
   activeFilterId,
+  selectedFilter,
   onReset,
   history,
   currentHistoryIndex,
@@ -157,6 +162,37 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
           onTouchEnd={handleTouchEnd}
         >
           <h3 className="text-lg font-semibold text-white text-center tracking-tight">Styles</h3>
+          {selectedFilter && (
+            <div className="mt-2">
+              <div className="text-center text-xs text-white/80 font-medium truncate px-2">
+                {selectedFilter.name}
+              </div>
+              <div className="mt-2">
+                {(() => {
+                  const after = getStyleExampleThumbSources(selectedFilter.id, selectedFilter.name, 'after');
+                  return (
+                    <div className="relative rounded-lg overflow-hidden border border-white/10 bg-white/5">
+                      <img
+                        src={after.primary}
+                        alt=""
+                        aria-hidden="true"
+                        className="w-full h-20 object-cover"
+                        onError={(e) => {
+                          const el = e.currentTarget;
+                          if (el.src !== after.fallback) {
+                            el.src = after.fallback;
+                          }
+                        }}
+                      />
+                      <div className="absolute top-1 left-1 text-[10px] px-2 py-0.5 rounded-full bg-black/40 text-white/90 border border-white/10">
+                        Preview
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Scrollable Content Area - Category, Filters and History */}
@@ -205,6 +241,16 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
         {/* Upload New Image Button - Fixed at Bottom */}
         <div className="border-t border-white/10 bg-gray-900/80 backdrop-blur-xl">
           <div className="px-4 py-3 landscape-compact-actions">
+            <button
+              onClick={() => {
+                onApplySelectedFilter();
+                onClose();
+              }}
+              disabled={!selectedFilter || isLoading}
+              className="w-full mb-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:opacity-90 active:opacity-80 transition-opacity duration-150 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+            >
+              Apply Style
+            </button>
             <button
               onClick={onReset}
               className="w-full px-4 py-2.5 bg-white/10 text-white font-semibold rounded-lg hover:bg-white/15 active:bg-white/20 transition-colors duration-150 flex items-center justify-center gap-2 text-sm"

@@ -103,11 +103,10 @@ export const refinePrompt = async (
 export const applyImageFilter = async (
   imageFile: File,
   prompt: string,
-  options?: { retryCount?: number; model?: string }
+  options?: { retryCount?: number }
 ): Promise<string> => {
   try {
     const retryCount = options?.retryCount ?? 0;
-    const model = options?.model;
 
     const imagePart = await fileToGenerativePart(imageFile);
     // Use simplified prompt on retry
@@ -124,7 +123,6 @@ export const applyImageFilter = async (
         imageBase64: (imagePart.inlineData as any).data,
         mimeType: (imagePart.inlineData as any).mimeType,
         prompt: finalPrompt,
-        model,
       }),
     });
 

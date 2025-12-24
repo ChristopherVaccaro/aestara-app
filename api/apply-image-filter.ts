@@ -3,8 +3,14 @@ import { GoogleGenAI, Modality } from '@google/genai';
 function cors(res: any, req: any) {
   const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
   const origin = req.headers.origin;
-  const isAllowed = allowedOrigin === '*' || origin === allowedOrigin;
-  res.setHeader('Access-Control-Allow-Origin', isAllowed ? (origin || allowedOrigin) : allowedOrigin);
+  const allowedOrigins = allowedOrigin === '*'
+    ? ['*']
+    : allowedOrigin.split(',').map((s: string) => s.trim()).filter(Boolean);
+  const isAllowed = allowedOrigins[0] === '*' || (origin && allowedOrigins.includes(origin));
+  res.setHeader(
+    'Access-Control-Allow-Origin',
+    allowedOrigins[0] === '*' ? '*' : (isAllowed ? origin : allowedOrigins[0])
+  );
   res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -45,7 +51,7 @@ export default async function handler(req: any, res: any) {
       try { body = raw ? JSON.parse(raw) : {}; } catch { body = {}; }
     }
 
-    const { imageBase64, mimeType, prompt, model } = body || {};
+    const { imageBase64, mimeType, prompt } = body || {};
 
     if (!imageBase64 || typeof imageBase64 !== 'string') {
       return sendJson(400, { error: 'Missing imageBase64' });
@@ -59,9 +65,8 @@ export default async function handler(req: any, res: any) {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    const selectedModel = model || 'gemini-2.5-flash-image';
+    const selectedModel = 'gemini-2.5-flash-image';
 
-    // Use Gemini 2.5 Flash Image model (Nano Banana) for image generation
     const response = await ai.models.generateContent({
       model: selectedModel,
       contents: {

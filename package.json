@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "generate:style-examples": "node scripts/generate-style-examples.mjs",
     "cap:init": "cap init",
     "cap:add:android": "cap add android",
     "cap:sync": "cap sync",

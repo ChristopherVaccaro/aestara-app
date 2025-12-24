@@ -19,6 +19,8 @@ import MobileFloatingButton from './components/MobileFloatingButton';
 import { AdminDashboard } from './components/AdminDashboard';
 import ImageEditor from './components/ImageEditor';
 import AuthDebug from './components/AuthDebug';
+import StyleGallery from './components/StyleGallery';
+import GlamatronStyleSidebar from './components/GlamatronStyleSidebar';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Filter } from './types';
 import { applyImageFilter, refinePrompt } from './services/geminiService';
@@ -41,6 +43,7 @@ import {
 } from './services/promptService';
 import { recordPromptUsage } from './services/userPromptUsageService';
 import { useAuth } from './contexts/AuthContext';
+import { getStyleExampleThumbSources } from './utils/styleExamples';
 
 interface FilterCategory {
   name: string;
@@ -174,19 +177,20 @@ const App: React.FC = () => {
   const { user } = useAuth();
   
   // Check if we're on the admin page
-  const [currentPage, setCurrentPage] = useState<'main' | 'admin'>(() => {
+  const [currentPage, setCurrentPage] = useState<'main' | 'admin' | 'styles'>(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.get('page') === 'admin' ? 'admin' : 'main';
+    const page = params.get('page');
+    if (page === 'admin') return 'admin';
+    if (page === 'styles') return 'styles';
+    return 'main';
   });
   
   // Update URL when page changes
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (currentPage === 'admin') {
-      params.set('page', 'admin');
-    } else {
-      params.delete('page');
-    }
+    if (currentPage === 'admin') params.set('page', 'admin');
+    else if (currentPage === 'styles') params.set('page', 'styles');
+    else params.delete('page');
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
     window.history.replaceState({}, '', newUrl);
   }, [currentPage]);
@@ -200,6 +204,7 @@ const App: React.FC = () => {
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<Filter | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState<Filter | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isPeeking, setIsPeeking] = useState<boolean>(false);
@@ -220,7 +225,6 @@ const App: React.FC = () => {
   // Dev mode (only available in development)
   const [isDevMode, setIsDevMode] = useState<boolean>(false);
   const [devMockImageUrl, setDevMockImageUrl] = useState<string | null>(null);
-  const [useProImageModel, setUseProImageModel] = useState<boolean>(false);
   
   // Mobile bottom sheet
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState<boolean>(false);
@@ -273,15 +277,15 @@ const App: React.FC = () => {
   
   // Auto-update category when filter is selected
   useEffect(() => {
-    if (activeFilter) {
+    if (selectedFilter) {
       const categoryWithFilter = FILTER_CATEGORIES.find(cat =>
-        cat.filters.some(filter => filter.id === activeFilter.id)
+        cat.filters.some(filter => filter.id === selectedFilter.id)
       );
       if (categoryWithFilter && categoryWithFilter.name !== activeCategory) {
         setActiveCategory(categoryWithFilter.name);
       }
     }
-  }, [activeFilter]);
+  }, [selectedFilter]);
   
   // Vote tracking
   const [currentGenerationId, setCurrentGenerationId] = useState<string | null>(null);
@@ -326,7 +330,7 @@ const App: React.FC = () => {
     setImageFile(null);
     setOriginalImageUrl(null);
     
-    // Use setTimeout to ensure Safari processes the state change
+// Use setTimeout to ensure Safari processes the state change
     setTimeout(() => {
       setImageFile(file);
       setOriginalImageUrl(URL.createObjectURL(file));
@@ -348,12 +352,9 @@ const App: React.FC = () => {
   // Handle dev mode toggle
   const handleDevModeToggle = (enabled: boolean) => {
     setIsDevMode(enabled);
-    if (!enabled) {
-      setUseProImageModel(false);
-    }
     
     if (enabled && !originalImageUrl) {
-      // Create a placeholder image when dev mode is enabled
+      // If enabling dev mode without an image, set a mock image
       const canvas = document.createElement('canvas');
       canvas.width = 800;
       canvas.height = 800;
@@ -362,8 +363,7 @@ const App: React.FC = () => {
       if (ctx) {
         // Create gradient background
         const gradient = ctx.createLinearGradient(0, 0, 800, 800);
-        gradient.addColorStop(0, '#667eea');
-        gradient.addColorStop(0.5, '#764ba2');
+        gradient.addColorStop(0, '#4facfe');
         gradient.addColorStop(1, '#f093fb');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, 800, 800);
@@ -391,6 +391,8 @@ const App: React.FC = () => {
             setImageFile(mockFile);
           }
         });
+      } else {
+        setDevMockImageUrl('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=600&q=80');
       }
     } else if (!enabled && devMockImageUrl) {
       // Clean up when dev mode is disabled
@@ -421,8 +423,7 @@ const App: React.FC = () => {
     
     try {
       let newImageUrl: string;
-      const shouldUseProImageModel = isDevMode && useProImageModel;
-      const isDevSimulation = isDevMode && !shouldUseProImageModel;
+      const isDevSimulation = isDevMode;
       
       // Dev mode: simulate image generation without API call
       if (isDevSimulation) {
@@ -449,15 +450,14 @@ const App: React.FC = () => {
         const composedPrompt = `${STYLE_TRANSFER_CONSTRAINTS}\n\n${activePrompt}`;
         const base64Data = await applyImageFilter(
           imageFile,
-          composedPrompt,
-          shouldUseProImageModel ? { model: 'gemini-3-pro-image-preview' } : undefined
+          composedPrompt
         );
         newImageUrl = `data:image/png;base64,${base64Data}`;
         
         // Increment generation count for analytics
         await incrementGenerationCount(filter.id);
         
-        // Track prompt usage for authenticated users
+// Track prompt usage for authenticated users
         if (user?.id) {
           console.log('👤 User is authenticated, tracking prompt usage...');
           await recordPromptUsage(user.id, filter.id, filter.name);
@@ -506,6 +506,7 @@ const App: React.FC = () => {
 
   const handleClearFilter = () => {
     setActiveFilter(null);
+    setSelectedFilter(null);
     setGeneratedImageUrl(null);
     setError(null);
   };
@@ -515,12 +516,45 @@ const App: React.FC = () => {
     setOriginalImageUrl(null);
     setGeneratedImageUrl(null);
     setActiveFilter(null);
+    setSelectedFilter(null);
     setError(null);
     setIsLoading(false);
     setHistory([]);
     setCurrentHistoryIndex(-1);
     setCurrentGenerationId(null);
   };
+
+  const handleSelectFilter = (filter: Filter) => {
+    setSelectedFilter(filter);
+  };
+
+  const handleApplySelectedFilter = async () => {
+    if (!selectedFilter) return;
+    await handleApplyFilter(selectedFilter);
+  };
+
+  if (currentPage === 'styles') {
+    return (
+      <div className="h-screen flex flex-col items-center overflow-hidden py-0 px-4 md:p-6 font-sans text-gray-200 relative subtle-bg">
+        <ParticleBackground />
+        <div className="absolute inset-0 mesh-overlay pointer-events-none" />
+        <Header onLogoClick={() => setCurrentPage('main')} hideMenu={false} />
+        <main className="w-full flex-1 flex items-start justify-center px-4 overflow-hidden pt-4 md:pt-8">
+          <StyleGallery
+            categories={FILTER_CATEGORIES}
+            selectedFilterId={selectedFilter?.id || null}
+            onSelectFilter={handleSelectFilter}
+            onApplySelectedFilter={async () => {
+              setCurrentPage('main');
+              await handleApplySelectedFilter();
+            }}
+            onBack={() => setCurrentPage('main')}
+            isApplying={isLoading}
+          />
+        </main>
+      </div>
+    );
+  }
 
   // Handle vote feedback
   const handleVoteRecorded = async (isPositive: boolean) => {
@@ -611,7 +645,8 @@ const App: React.FC = () => {
   const handleDownload = (imageUrl?: string) => {
     const urlToDownload = imageUrl || generatedImageUrl;
     if (!urlToDownload) return;
-    const link = document.createElement('a');
+    
+const link = document.createElement('a');
     link.href = urlToDownload;
     // Get original filename without extension
     const originalName = imageFile?.name || 'image';
@@ -681,7 +716,7 @@ const App: React.FC = () => {
   const handleShare = async () => {
     if (!generatedImageUrl) return;
 
-    try {
+try {
       // Convert base64 to blob for sharing
       const response = await fetch(generatedImageUrl);
       const blob = await response.blob();
@@ -739,6 +774,7 @@ const App: React.FC = () => {
         .flatMap(cat => cat.filters)
         .find(f => f.id === history[index].filterId);
       setActiveFilter(filter || null);
+      setSelectedFilter(filter || null);
     }
   };
   
@@ -829,108 +865,90 @@ const App: React.FC = () => {
     }
 
     return (
-      <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row lg:space-x-8 items-start overflow-hidden h-full">
-        {/* Left Column: Image Display */}
-        <div className="w-full lg:w-2/3">
-          {isLoading || isTransitioning ? (
-            <BlurredImageLoading 
-              originalImageUrl={originalImageUrl}
-              message={isTransitioning ? 'Finalizing...' : (activeFilter ? `Applying ${activeFilter.name}...` : 'Processing image...')}
-              estimatedTimeMs={isTransitioning ? 300 : 10000}
-            />
-          ) : generatedImageUrl ? (
-            <ImageComparison
-              originalImageUrl={originalImageUrl}
-              generatedImageUrl={generatedImageUrl}
-              activeFilterName={activeFilter?.name || 'Styled'}
-              onOpenPreview={handleOpenPreview}
-              onDownload={handleDownload}
-              onShare={handleShare}
-              onEdit={handleOpenEditor}
-              onSaveAIEdit={handleSaveAIEdit}
-              previousImageUrl={currentHistoryIndex > 0 ? history[currentHistoryIndex - 1]?.imageUrl : undefined}
-            />
-          ) : (
-            <ImageDisplay
-              originalImageUrl={originalImageUrl}
-              generatedImageUrl={generatedImageUrl}
-              isLoading={isLoading}
-              isPeeking={isPeeking}
-              onPeekStart={handlePeekStart}
-              onPeekEnd={handlePeekEnd}
-              onOpenPreview={handleOpenPreview}
-              onDownload={handleDownload}
-              onShare={handleShare}
-              onEdit={handleOpenEditor}
-              onSaveAIEdit={handleSaveAIEdit}
-              error={error}
-              activeFilterName={activeFilter?.name || null}
-              isDevMode={isDevMode}
-            />
-          )}
-          
-          {/* Generation Feedback - Only show after successful generation */}
-          {generatedImageUrl && !isLoading && activeFilter && currentGenerationId && (
-            <GenerationFeedback
-              filterName={activeFilter.id}
-              generationId={currentGenerationId}
-              filterId={activeFilter.id}
-              currentPrompt={currentPromptUsed || undefined}
-              onVoteRecorded={handleVoteRecorded}
-              onShowToast={addToast}
-            />
-          )}
+      <div className="w-full max-w-7xl mx-auto flex flex-col lg:grid lg:grid-cols-[120px_minmax(0,1fr)] lg:gap-6 items-start overflow-visible h-full">
+        {/* Desktop Left Toolbar */}
+        <div className="hidden lg:flex w-full justify-center">
+          <GlamatronStyleSidebar
+            categories={FILTER_CATEGORIES}
+            activeCategory={activeCategory}
+            onCategoryChange={setActiveCategory}
+            selectedFilterId={selectedFilter?.id || null}
+            onSelectFilter={handleSelectFilter}
+            isLoading={isLoading}
+            onApplySelectedFilter={handleApplySelectedFilter}
+            canApply={!!selectedFilter && !isLoading}
+            onUploadNewImage={handleTriggerFileInput}
+          />
         </div>
 
-        {/* Right Column: Controls - Hidden on mobile, shown on desktop */}
-        <div className="hidden lg:flex w-full lg:w-1/3 mt-4 lg:mt-0 flex-col desktop-controls-column">
-          {/* Style History */}
-          {history.length > 0 && (
-            <StyleHistory
-              history={history}
-              currentIndex={currentHistoryIndex}
-              onSelectHistory={handleSelectHistory}
-              onClearHistory={handleClearHistory}
-            />
-          )}
-
-          {/* Category Selector */}
-          <div className={`glass-panel p-3 lg:p-4 mb-3 relative ${isCategoryDropdownOpen ? 'z-[50]' : ''}`}>
-            <CategorySelector
-              categories={FILTER_CATEGORIES}
-              activeCategory={activeCategory}
-              onCategoryChange={setActiveCategory}
-            />
-          </div>
-
-          {/* Scrollable Filters Section */}
-          <div className="flex-1 glass-panel p-3 lg:p-4 mb-3 overflow-hidden flex flex-col">
-            <div className="flex-1 overflow-y-auto scrollable-filters">
-              <FilterSelector
-                categories={FILTER_CATEGORIES}
-                onSelectFilter={handleApplyFilter}
-                onClearFilter={handleClearFilter}
-                isLoading={isLoading}
-                activeFilterId={activeFilter?.id || null}
-                activeCategory={activeCategory}
-                onCategoryChange={setActiveCategory}
+        {/* Center: Image Display */}
+        <div className="w-full">
+          <div className="relative">
+            {isLoading || isTransitioning ? (
+              <BlurredImageLoading 
+                originalImageUrl={originalImageUrl}
+                message={isTransitioning ? 'Finalizing...' : (activeFilter ? `Applying ${activeFilter.name}...` : 'Processing image...')}
+                estimatedTimeMs={isTransitioning ? 300 : 10000}
               />
-            </div>
+            ) : generatedImageUrl ? (
+              <ImageComparison
+                originalImageUrl={originalImageUrl}
+                generatedImageUrl={generatedImageUrl}
+                activeFilterName={activeFilter?.name || 'Styled'}
+                onOpenPreview={handleOpenPreview}
+                onDownload={handleDownload}
+                onShare={handleShare}
+                onEdit={handleOpenEditor}
+                onSaveAIEdit={handleSaveAIEdit}
+                previousImageUrl={currentHistoryIndex > 0 ? history[currentHistoryIndex - 1]?.imageUrl : undefined}
+              />
+            ) : (
+              <ImageDisplay
+                originalImageUrl={originalImageUrl}
+                generatedImageUrl={generatedImageUrl}
+                isLoading={isLoading}
+                isPeeking={isPeeking}
+                onPeekStart={handlePeekStart}
+                onPeekEnd={handlePeekEnd}
+                onOpenPreview={handleOpenPreview}
+                onDownload={handleDownload}
+                onShare={handleShare}
+                onEdit={handleOpenEditor}
+                onSaveAIEdit={handleSaveAIEdit}
+                error={error}
+                activeFilterName={activeFilter?.name || null}
+                isDevMode={isDevMode}
+              />
+            )}
           </div>
 
-          {/* Upload New Image Button */}
-           <div className="glass-panel p-3 lg:p-4">
-              <button
-                onClick={handleTriggerFileInput}
-                className="w-full px-4 py-2.5 bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] text-white font-medium rounded-lg hover:bg-white/[0.12] hover:border-white/20 transition-all duration-300 flex items-center justify-center gap-2"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-                Upload New Image
-              </button>
-           </div>
-
+          {(history.length > 0 || (generatedImageUrl && !isLoading && activeFilter && currentGenerationId)) && (
+            <div className="mt-4 w-full flex flex-col lg:flex-row gap-4">
+              {history.length > 0 && (
+                <div className="glass-panel p-4 flex-1 min-w-[280px]">
+                  <h3 className="text-sm font-semibold text-white/80 mb-2">Style History</h3>
+                  <StyleHistory
+                    history={history}
+                    currentIndex={currentHistoryIndex}
+                    onSelectHistory={handleSelectHistory}
+                    onClearHistory={handleClearHistory}
+                  />
+                </div>
+              )}
+              {generatedImageUrl && !isLoading && activeFilter && currentGenerationId && (
+                <div className="glass-panel p-4 w-full lg:max-w-md self-start">
+                  <GenerationFeedback
+                    filterName={activeFilter.id}
+                    generationId={currentGenerationId}
+                    filterId={activeFilter.id}
+                    currentPrompt={currentPromptUsed || undefined}
+                    onVoteRecorded={handleVoteRecorded}
+                    onShowToast={addToast}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -962,7 +980,7 @@ const App: React.FC = () => {
       )}
       
       <Header onLogoClick={handleReset} hideMenu={isEditorOpen} />
-      <main className="w-full flex-1 flex items-start justify-center px-4 overflow-hidden pt-4 md:pt-8">
+      <main className="w-full flex-1 flex items-start justify-center px-4 overflow-y-auto pt-4 md:pt-8">
         {renderContent()}
       </main>
       {isPreviewOpen && previewImageUrl && (
@@ -991,8 +1009,6 @@ const App: React.FC = () => {
       <DevModeToggle
         isDevMode={isDevMode}
         onToggle={handleDevModeToggle}
-        useProModel={useProImageModel}
-        onProModelToggle={setUseProImageModel}
       />
       
       {/* Toast Notifications */}
@@ -1009,10 +1025,12 @@ const App: React.FC = () => {
             isOpen={isMobileSheetOpen}
             onClose={() => setIsMobileSheetOpen(false)}
             categories={FILTER_CATEGORIES}
-            onSelectFilter={handleApplyFilter}
+            onSelectFilter={handleSelectFilter}
+            onApplySelectedFilter={handleApplySelectedFilter}
             onClearFilter={handleClearFilter}
             isLoading={isLoading}
-            activeFilterId={activeFilter?.id || null}
+            activeFilterId={selectedFilter?.id || null}
+            selectedFilter={selectedFilter}
             onReset={handleTriggerFileInput}
             history={history}
             currentHistoryIndex={currentHistoryIndex}

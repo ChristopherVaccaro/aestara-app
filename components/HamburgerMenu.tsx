@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { List, X, FileText, Shield, ChatCircle, ChartBar } from '@phosphor-icons/react';
+import { List, X, FileText, Shield, ChatCircle, ChartBar, Palette } from '@phosphor-icons/react';
 import FeedbackForm from './FeedbackForm';
 import TermsOfService from './TermsOfService';
 import PrivacyPolicy from './PrivacyPolicy';
@@ -28,6 +28,13 @@ const HamburgerMenu: React.FC = () => {
 
   const handleFeedbackClick = () => {
     setShowFeedback(true);
+  };
+
+  const handleStyleGalleryClick = () => {
+    const params = new URLSearchParams(window.location.search);
+    params.set('page', 'styles');
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.location.assign(newUrl);
   };
 
   const handleTermsClick = () => {
@@ -97,6 +104,14 @@ const HamburgerMenu: React.FC = () => {
               <ChartBar className="w-5 h-5 text-white" />
               <span>Analytics Dashboard</span>
             </button> */}
+            <button
+              onClick={handleStyleGalleryClick}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg bg-black/30 hover:bg-black/50 transition-colors text-white text-left"
+            >
+              <Palette className="w-5 h-5 text-white" />
+              <span>Style Gallery</span>
+            </button>
+
             <button
               onClick={handleTermsClick}
               className="flex items-center gap-3 px-4 py-3 rounded-lg bg-black/30 hover:bg-black/50 transition-colors text-white text-left"

@@ -131,7 +131,9 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
           {categories.map((category) => (
             <button
               key={category.name}
-              onClick={() => onCategoryChange(category.name)}
+              onClick={() => {
+                onCategoryChange(category.name);
+              }}
               className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
                 activeCategory === category.name
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
