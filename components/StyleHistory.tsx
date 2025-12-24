@@ -13,6 +13,7 @@ interface StyleHistoryProps {
   currentIndex: number;
   onSelectHistory: (index: number) => void;
   onClearHistory: () => void;
+  containerClassName?: string;
 }
 
 const StyleHistory: React.FC<StyleHistoryProps> = ({
@@ -20,13 +21,17 @@ const StyleHistory: React.FC<StyleHistoryProps> = ({
   currentIndex,
   onSelectHistory,
   onClearHistory,
+  containerClassName,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (history.length === 0) return null;
 
+  const wrapperClasses =
+    containerClassName ?? 'w-full glass-panel p-4 mb-4';
+
   return (
-    <div className="w-full glass-panel p-4 mb-4">
+    <div className={wrapperClasses}>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-between hover:bg-white/[0.02] rounded-lg p-2 -m-2 transition-colors"

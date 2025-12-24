@@ -35,18 +35,18 @@ const ParticleBackground: React.FC = () => {
     // Initialize stars
     const initStars = () => {
       starsRef.current = [];
-      // More stars for a denser starfield
-      const starCount = Math.floor((canvas.width * canvas.height) / 8000);
+      // Slightly sparser, softer starfield
+      const starCount = Math.floor((canvas.width * canvas.height) / 12000);
       
       for (let i = 0; i < starCount; i++) {
         starsRef.current.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * 0.15, // Slow horizontal drift
-          vy: (Math.random() - 0.5) * 0.15, // Slow vertical drift
-          size: Math.random() * 1.5 + 0.5, // Smaller, more subtle stars
-          opacity: Math.random() * 0.8 + 0.2,
-          twinkleSpeed: Math.random() * 0.02 + 0.005,
+          vx: (Math.random() - 0.5) * 0.08, // Slower drift
+          vy: (Math.random() - 0.5) * 0.08,
+          size: Math.random() * 0.9 + 0.2, // Smaller, subtler stars
+          opacity: Math.random() * 0.4 + 0.15,
+          twinkleSpeed: Math.random() * 0.015 + 0.003,
           twinklePhase: Math.random() * Math.PI * 2
         });
       }

@@ -883,7 +883,7 @@ try {
 
         {/* Center: Image Display */}
         <div className="w-full">
-          <div className="relative">
+          <div className="relative pb-24">
             {isLoading || isTransitioning ? (
               <BlurredImageLoading 
                 originalImageUrl={originalImageUrl}
@@ -920,12 +920,19 @@ try {
                 isDevMode={isDevMode}
               />
             )}
-          </div>
-
-          {(history.length > 0 || (generatedImageUrl && !isLoading && activeFilter && currentGenerationId)) && (
-            <div className="mt-4 w-full flex flex-col lg:flex-row gap-4">
-              {history.length > 0 && (
-                <div className="glass-panel p-4 flex-1 min-w-[280px]">
+            
+            {history.length > 0 && (
+              <>
+                <div className="hidden lg:block absolute bottom-6 right-6 z-30 w-72">
+                  <StyleHistory
+                    history={history}
+                    currentIndex={currentHistoryIndex}
+                    onSelectHistory={handleSelectHistory}
+                    onClearHistory={handleClearHistory}
+                    containerClassName="glass-panel p-4 rounded-2xl shadow-2xl shadow-black/40 border border-white/15"
+                  />
+                </div>
+                <div className="lg:hidden mt-4 glass-panel p-4 w-full">
                   <h3 className="text-sm font-semibold text-white/80 mb-2">Style History</h3>
                   <StyleHistory
                     history={history}
@@ -934,9 +941,25 @@ try {
                     onClearHistory={handleClearHistory}
                   />
                 </div>
-              )}
-              {generatedImageUrl && !isLoading && activeFilter && currentGenerationId && (
-                <div className="glass-panel p-4 w-full lg:max-w-md self-start">
+              </>
+            )}
+
+            {generatedImageUrl && !isLoading && activeFilter && currentGenerationId && (
+              <>
+                <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 translate-y-1/3 bottom-0 z-30 w-full max-w-md px-4">
+                  <div className="glass-panel px-5 py-3 rounded-2xl shadow-2xl shadow-black/40 border border-white/15 backdrop-blur-2xl">
+                    <GenerationFeedback
+                      filterName={activeFilter.id}
+                      generationId={currentGenerationId}
+                      filterId={activeFilter.id}
+                      currentPrompt={currentPromptUsed || undefined}
+                      onVoteRecorded={handleVoteRecorded}
+                      onShowToast={addToast}
+                      wrapperClassName="mt-0"
+                    />
+                  </div>
+                </div>
+                <div className="lg:hidden mt-4 glass-panel p-4 w-full">
                   <GenerationFeedback
                     filterName={activeFilter.id}
                     generationId={currentGenerationId}
@@ -946,9 +969,9 @@ try {
                     onShowToast={addToast}
                   />
                 </div>
-              )}
-            </div>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     );
