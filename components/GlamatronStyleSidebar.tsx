@@ -28,6 +28,9 @@ interface GlamatronStyleSidebarProps {
   onApplySelectedFilter: () => void;
   canApply: boolean;
   onUploadNewImage: () => void;
+  onRemoveImage?: () => void;
+  hasImage?: boolean;
+  disabled?: boolean;
 }
 
 const getCategoryIcon = (name: string) => {
@@ -52,6 +55,9 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
   onApplySelectedFilter,
   canApply,
   onUploadNewImage,
+  onRemoveImage,
+  hasImage = true,
+  disabled = false,
 }) => {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
@@ -69,18 +75,38 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
       )}
 
       <div className="relative flex items-start z-50">
-        <div className="flex flex-col gap-2 rounded-2xl bg-white/[0.04] backdrop-blur-xl border border-white/10 p-2">
+        <div className={`flex flex-col gap-2 rounded-2xl bg-white/[0.04] backdrop-blur-xl border border-white/10 p-2 ${disabled ? 'opacity-50' : ''}`}>
+          {/* X button to remove uploaded image */}
+          {hasImage && onRemoveImage && (
+            <div className="relative group">
+              <button
+                onClick={onRemoveImage}
+                disabled={isLoading}
+                className="h-11 w-11 rounded-2xl flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed text-red-400/80 hover:text-red-400 hover:bg-red-500/10 border border-transparent"
+                aria-label="Remove image"
+              >
+                <X className="w-5 h-5" weight="bold" />
+              </button>
+              <div className="pointer-events-none absolute left-12 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/80 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                Remove image
+              </div>
+            </div>
+          )}
+          
           {categories.map((c) => {
             const Icon = getCategoryIcon(c.name);
             const isActive = isPanelOpen && c.name === activeCategory;
+            const isDisabled = isLoading || disabled;
             return (
               <div key={c.name} className="relative group">
                 <button
                   onClick={() => {
-                    onCategoryChange(c.name);
-                    setIsPanelOpen(true);
+                    if (!disabled) {
+                      onCategoryChange(c.name);
+                      setIsPanelOpen(true);
+                    }
                   }}
-                  disabled={isLoading}
+                  disabled={isDisabled}
                   className={`h-11 w-11 rounded-2xl flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                     isActive
                       ? 'bg-white/15 text-white border border-white/30 shadow-lg shadow-blue-500/25'

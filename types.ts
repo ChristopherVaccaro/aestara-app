@@ -3,3 +3,14 @@ export interface Filter {
   name: string;
   prompt: string;
 }
+
+export interface GalleryItem {
+  id: string;
+  userId: string;
+  originalImage: string;
+  resultImage: string;
+  filterName: string;
+  filterId: string;
+  isFavorite: boolean;
+  createdAt: Date;
+}

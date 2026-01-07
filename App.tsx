@@ -20,19 +20,17 @@ import { AdminDashboard } from './components/AdminDashboard';
 import ImageEditor from './components/ImageEditor';
 import StyleGallery from './components/StyleGallery';
 import GlamatronStyleSidebar from './components/GlamatronStyleSidebar';
+import Footer from './components/Footer';
+import GalleryModal from './components/GalleryModal';
+import { useGallery } from './contexts/GalleryContext';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Filter } from './types';
-import { applyImageFilter, refinePrompt } from './services/geminiService';
+import { applyImageFilter } from './services/geminiService';
 import { ImageProcessor } from './utils/imageProcessor';
 import { GenerationFeedback } from './components/GenerationFeedback';
 import { useToast, ToastContainer } from './components/Toast';
 import {
-  needsRefinement,
-  getVoteStats,
-  savePromptOverride,
   getActivePrompt,
-  VOTE_THRESHOLD,
-  NEGATIVE_RATIO_THRESHOLD,
 } from './services/voteTrackingService';
 import {
   getPrompt,
@@ -288,6 +286,17 @@ const App: React.FC = () => {
   const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false);
   const [imageToEdit, setImageToEdit] = useState<string | null>(null);
   
+  // Gallery modal
+  const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
+  const { addItem: addToGallery, loadUserGallery } = useGallery();
+  
+  // Load gallery when user logs in
+  useEffect(() => {
+    if (user?.id) {
+      loadUserGallery(user.id);
+    }
+  }, [user?.id, loadUserGallery]);
+  
   // Category selection
   const [activeCategory, setActiveCategory] = useState<string>(FILTER_CATEGORIES[0]?.name || '');
   // Track category dropdown state to elevate its parent panel while open
@@ -337,7 +346,6 @@ const App: React.FC = () => {
   
   // Vote tracking
   const [currentGenerationId, setCurrentGenerationId] = useState<string | null>(null);
-  const [isRefiningPrompt, setIsRefiningPrompt] = useState<boolean>(false);
   const [currentPromptUsed, setCurrentPromptUsed] = useState<string | null>(null);
   
   // Initialize prompts from database on mount
@@ -540,6 +548,18 @@ const App: React.FC = () => {
       
       // Set generation ID for voting (unique per generation)
       setCurrentGenerationId(`${filter.id}_${Date.now()}`);
+      
+      // Save to gallery for logged-in users
+      if (user?.id && originalImageUrl) {
+        addToGallery({
+          userId: user.id,
+          originalImage: originalImageUrl,
+          resultImage: newImageUrl,
+          filterName: filter.name,
+          filterId: filter.id,
+          isFavorite: false,
+        });
+      }
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -609,55 +629,11 @@ const App: React.FC = () => {
     );
   }
 
-  // Handle vote feedback
+  // Handle vote feedback - just log without triggering prompt refinement
   const handleVoteRecorded = async (isPositive: boolean) => {
     if (!activeFilter || isDevMode) return;
-
-    // Check if this filter needs refinement
-    if (!isPositive && await needsRefinement(activeFilter.id)) {
-      setIsRefiningPrompt(true);
-      
-      try {
-        const stats = await getVoteStats(activeFilter.id);
-        if (stats) {
-          const negativePercentage = Math.round((stats.thumbsDown / stats.totalVotes) * 100);
-          
-          console.log(`🔧 PROMPT REFINEMENT TRIGGERED for ${activeFilter.name}`);
-          console.log(`   Votes: ${stats.thumbsUp} 👍 / ${stats.thumbsDown} 👎 (${stats.totalVotes} total)`);
-          console.log(`   Negative ratio: ${negativePercentage}% (threshold: ${NEGATIVE_RATIO_THRESHOLD * 100}%)`);
-          console.log(`   Minimum votes: ${VOTE_THRESHOLD}`);
-          
-          const refinedPrompt = await refinePrompt(
-            activeFilter.name,
-            activeFilter.prompt,
-            stats.thumbsUp,
-            stats.thumbsDown
-          );
-          
-          // Save the refined prompt
-          await savePromptOverride(
-            activeFilter.id,
-            activeFilter.prompt,
-            refinedPrompt,
-            `Auto-refined after receiving ${stats.thumbsDown}/${stats.totalVotes} negative votes (${negativePercentage}% negative)`
-          );
-          
-          console.log(`✅ Prompt refined and saved for ${activeFilter.name}`);
-          console.log(`   New prompt: ${refinedPrompt.substring(0, 100)}...`);
-          
-          // Show success notification to user
-          addToast(
-            `✨ "${activeFilter.name}" style improved! The AI has updated the prompt based on ${stats.totalVotes} votes. Try it again for better results!`,
-            'success'
-          );
-        }
-      } catch (err) {
-        console.error('Error refining prompt:', err);
-        addToast('Failed to refine prompt. Please try again.', 'error');
-      } finally {
-        setIsRefiningPrompt(false);
-      }
-    }
+    // Vote is recorded in GenerationFeedback component - no prompt refinement
+    console.log(`Vote recorded for ${activeFilter.name}: ${isPositive ? '👍' : '👎'}`);
   };
 
   // Handle file input trigger for mobile
@@ -913,13 +889,9 @@ try {
   };
 
   const renderContent = () => {
-    if (!originalImageUrl) {
-      return <ImageUploader onImageUpload={handleImageUpload} />;
-    }
-
     return (
-      <div className="w-full max-w-screen-2xl mx-auto flex flex-col lg:grid lg:grid-cols-[120px_minmax(0,1fr)] lg:gap-6 items-start overflow-visible h-full">
-        {/* Desktop Left Toolbar */}
+      <div className="w-full max-w-6xl mx-auto flex flex-col lg:grid lg:grid-cols-[80px_minmax(0,1fr)] lg:gap-4 items-start overflow-visible h-full">
+        {/* Desktop Left Toolbar - Always visible, disabled when no image */}
         <div className="hidden lg:flex w-full justify-center">
           <GlamatronStyleSidebar
             categories={FILTER_CATEGORIES}
@@ -929,13 +901,19 @@ try {
             onSelectFilter={handleSelectFilter}
             isLoading={isLoading}
             onApplySelectedFilter={handleApplySelectedFilter}
-            canApply={!!selectedFilter && !isLoading}
+            canApply={!!selectedFilter && !isLoading && !!originalImageUrl}
             onUploadNewImage={handleTriggerFileInput}
+            onRemoveImage={handleReset}
+            hasImage={!!originalImageUrl}
+            disabled={!originalImageUrl || isLoading}
           />
         </div>
 
-        {/* Center: Image Display */}
-        <div className="w-full">
+        {/* Main Content Area */}
+        {!originalImageUrl ? (
+          <ImageUploader onImageUpload={handleImageUpload} />
+        ) : (
+          <div className="w-full">
           <div className="relative pb-6">
             {isLoading || isTransitioning ? (
               <BlurredImageLoading 
@@ -1029,6 +1007,7 @@ try {
             </div>
           </div>
         </div>
+        )}
       </div>
     );
   };
@@ -1058,10 +1037,11 @@ try {
         </div>
       )}
       
-      <Header onLogoClick={handleReset} hideMenu={isEditorOpen} />
-      <main className="w-full flex-1 flex items-start justify-center px-4 overflow-y-auto pt-4 md:pt-8">
+      <Header onLogoClick={handleReset} hideMenu={isEditorOpen} onOpenGallery={() => setIsGalleryOpen(true)} />
+      <main className="w-full max-w-6xl mx-auto flex-1 flex items-start justify-center px-4 sm:px-6 overflow-y-auto pt-4 md:pt-8">
         {renderContent()}
       </main>
+      <Footer />
       {isPreviewOpen && previewImageUrl && (
         <ImagePreviewModal 
           imageUrl={previewImageUrl} 
@@ -1083,6 +1063,15 @@ try {
       {showTerms && <TermsOfService onClose={() => setShowTerms(false)} />}
       {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
       {showFeedback && <FeedbackForm onClose={() => setShowFeedback(false)} />}
+      
+      {/* Gallery Modal */}
+      {user && (
+        <GalleryModal
+          isOpen={isGalleryOpen}
+          onClose={() => setIsGalleryOpen(false)}
+          userId={user.id}
+        />
+      )}
       
       {/* Dev Mode Toggle (only in development) */}
       <DevModeToggle
