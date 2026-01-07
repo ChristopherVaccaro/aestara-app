@@ -32,9 +32,20 @@ const HamburgerMenu: React.FC = () => {
 
   const handleStyleGalleryClick = () => {
     const params = new URLSearchParams(window.location.search);
-    params.set('page', 'styles');
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
-    window.location.assign(newUrl);
+    const currentPage = params.get('page');
+    
+    // If we're already on the styles page, don't navigate again
+    if (currentPage === 'styles') {
+      setIsOpen(false);
+      return;
+    }
+
+    window.dispatchEvent(
+      new CustomEvent('app:navigate', {
+        detail: { page: 'styles' },
+      })
+    );
+    setIsOpen(false);
   };
 
   const handleTermsClick = () => {

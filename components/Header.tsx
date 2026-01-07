@@ -4,14 +4,16 @@ import HamburgerMenu from './HamburgerMenu';
 import UserAvatar from './UserAvatar';
 import { useAuth } from '../contexts/AuthContext';
 import ProfilePage from './ProfilePage';
-import { User, SignOut } from '@phosphor-icons/react';
+import { User, SignOut, ArrowLeft } from '@phosphor-icons/react';
 
 interface HeaderProps {
   onLogoClick?: () => void;
   hideMenu?: boolean;
+  showBackButton?: boolean;
+  onBackClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false }) => {
+const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false, showBackButton = false, onBackClick }) => {
   const { user, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -30,21 +32,31 @@ const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false }) => {
   return (
     <>
       <header className="w-full pt-4 md:pt-0 pb-4 md:pb-6 flex-shrink-0">
-        <div className="flex items-center justify-between px-4 md:px-6">
-          {/* Left spacer - matches right side width for true centering */}
-          <div className="w-20 md:w-24 flex-shrink-0" />
+        <div className="relative flex items-center px-4 md:px-6">
+          {/* Left side - Back button or spacer */}
+          <div className="w-20 md:w-24 flex-shrink-0 flex items-center z-10">
+            {showBackButton && onBackClick ? (
+              <button
+                onClick={onBackClick}
+                className="p-2 hover:opacity-70 transition-opacity duration-200 text-gray-400 hover:text-white"
+                aria-label="Go back"
+              >
+                <ArrowLeft className="w-6 h-6 md:w-7 md:h-7" />
+              </button>
+            ) : null}
+          </div>
           
           {/* Center logo */}
           <button
             onClick={onLogoClick}
-            className="cursor-pointer hover:opacity-80 transition-opacity duration-200 focus:outline-none focus:opacity-80"
+            className="absolute left-1/2 -translate-x-1/2 cursor-pointer hover:opacity-80 transition-opacity duration-200 focus:outline-none focus:opacity-80"
             aria-label="Go to home"
           >
             <Logo className="h-8 md:h-10 w-auto" />
           </button>
           
           {/* Right side - User avatar with tooltip menu (same width as left spacer) */}
-          <div className="w-20 md:w-24 flex-shrink-0 flex items-center justify-end relative">
+          <div className="ml-auto w-20 md:w-24 flex-shrink-0 flex items-center justify-end relative z-10">
             {user && (
               <>
                 <div onClick={() => setMenuOpen((v) => !v)}>

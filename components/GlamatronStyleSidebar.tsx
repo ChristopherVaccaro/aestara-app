@@ -9,6 +9,7 @@ import {
   Smiley,
   Star,
   X,
+  Check,
 } from '@phosphor-icons/react';
 import { Filter } from '../types';
 
@@ -71,7 +72,7 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
         <div className="flex flex-col gap-2 rounded-2xl bg-white/[0.04] backdrop-blur-xl border border-white/10 p-2">
           {categories.map((c) => {
             const Icon = getCategoryIcon(c.name);
-            const isActive = c.name === activeCategory;
+            const isActive = isPanelOpen && c.name === activeCategory;
             return (
               <div key={c.name} className="relative group">
                 <button
@@ -80,10 +81,10 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
                     setIsPanelOpen(true);
                   }}
                   disabled={isLoading}
-                  className={`h-10 w-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                  className={`h-11 w-11 rounded-2xl flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                     isActive
-                      ? 'bg-gradient-to-b from-white/20 to-white/5 text-white border border-white/20 shadow-lg shadow-blue-500/20'
-                      : 'text-white/60 hover:text-white hover:bg-white/10'
+                      ? 'bg-white/15 text-white border border-white/30 shadow-lg shadow-blue-500/25'
+                      : 'text-white/60 hover:text-white hover:bg-white/10 border border-transparent'
                   }`}
                   aria-label={c.name}
                 >
@@ -95,12 +96,15 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
               </div>
             );
           })}
-          <div className="pt-4 mt-2 border-t border-white/10">
+          <div className="pt-5 mt-3 border-t border-white/10">
             <div className="relative group flex items-center justify-center">
               <button
                 onClick={onUploadNewImage}
                 disabled={isLoading}
-                className="h-11 w-full rounded-xl flex items-center justify-center bg-gradient-to-r from-blue-600/80 to-purple-600/80 border border-white/20 text-white hover:from-blue-500 hover:to-purple-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/30"
+                className="h-12 w-full rounded-2xl flex items-center justify-center border border-white/20 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/20"
+                style={{
+                  background: 'linear-gradient(135deg, #4c63ff 0%, #5f5dff 50%, #8a4dff 100%)'
+                }}
                 aria-label="Upload new image"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -120,7 +124,7 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
               isPanelOpen ? 'opacity-100 translate-x-0 pointer-events-auto' : 'opacity-0 -translate-x-6 pointer-events-none'
             }`}
           >
-            <div className="w-64 rounded-2xl bg-[#0b0d14]/95 backdrop-blur-2xl border border-white/15 shadow-2xl shadow-black/50 overflow-hidden">
+            <div className="w-72 rounded-3xl bg-[#07090f]/95 backdrop-blur-2xl border border-white/15 shadow-2xl shadow-black/60 overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
                 <div className="text-sm font-semibold text-white truncate">{active.name}</div>
                 <button
@@ -132,7 +136,7 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
                 </button>
               </div>
 
-              <div className="max-h-[420px] overflow-y-auto px-1">
+              <div className="max-h-[520px] overflow-y-auto px-1 pb-1">
                 {active.filters.map((f) => {
                   const isSelected = selectedFilterId === f.id;
                   return (
@@ -140,21 +144,21 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
                       key={f.id}
                       onClick={() => onSelectFilter(f)}
                       disabled={isLoading}
-                      className={`w-full px-3 py-3 text-left text-sm rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                      className={`w-full px-4 py-4 text-left text-base rounded-2xl transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                         isSelected
-                          ? 'bg-gradient-to-r from-blue-600/30 via-purple-600/30 to-pink-600/30 text-white'
-                          : 'text-white/80 hover:bg-white/8 hover:text-white'
+                          ? 'bg-gradient-to-r from-blue-500/30 via-purple-500/35 to-pink-500/35 text-white border border-white/15 shadow-inner shadow-blue-500/10'
+                          : 'text-white/80 hover:bg-white/6 hover:text-white border border-transparent'
                       }`}
                       title={f.name}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <span className="truncate font-medium">{f.name}</span>
                         <span
-                          className={`text-[11px] px-2 py-0.5 rounded-full border border-white/10 text-white/80 transition-opacity duration-200 ${
-                            isSelected ? 'bg-white/10 opacity-100' : 'bg-white/5 opacity-0'
+                          className={`flex items-center justify-center transition-all duration-200 ${
+                            isSelected ? 'text-white opacity-100' : 'opacity-0'
                           }`}
                         >
-                          Selected
+                          {isSelected && <Check className="w-3 h-3" weight="bold" />}
                         </span>
                       </div>
                     </button>
@@ -162,14 +166,17 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
                 })}
               </div>
 
-              <div className="px-3 pb-3 pt-2 border-t border-white/10">
+              <div className="px-3 pb-4 pt-3 border-t border-white/10 bg-black/20">
                 <button
                   onClick={() => {
                     setIsPanelOpen(false);
                     onApplySelectedFilter();
                   }}
                   disabled={!canApply || isLoading}
-                  className="w-full px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+                  className="w-full px-4 py-3 text-sm font-semibold rounded-2xl text-white shadow-lg shadow-purple-500/25 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+                  style={{
+                    background: 'linear-gradient(135deg, #5a63ff 0%, #7a52ff 50%, #c14bff 100%)'
+                  }}
                 >
                   Apply Style
                 </button>

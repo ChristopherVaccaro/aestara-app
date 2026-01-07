@@ -11,6 +11,7 @@ interface GenerationFeedbackProps {
   currentPrompt?: string;
   onVoteRecorded?: (isPositive: boolean) => void;
   onShowToast?: (message: string, type: 'success' | 'info') => void;
+  wrapperClassName?: string;
 }
 
 export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
@@ -20,6 +21,7 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
   currentPrompt,
   onVoteRecorded,
   onShowToast,
+  wrapperClassName,
 }) => {
   const [voted, setVoted] = useState<'up' | 'down' | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -130,6 +132,10 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
     }
   };
 
+  const outerClasses =
+    wrapperClassName ??
+    'flex items-center justify-center gap-4 mt-3';
+
   return (
     <>
       <FeedbackTagSelector
@@ -146,8 +152,7 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
         onShowToast={onShowToast}
       />
       
-      <div className="flex items-center justify-center gap-4 mt-3">
-      <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+      <div className={outerClasses}>
         {voted ? (
           // Show thank you message after voting
           <span className="text-sm text-white/80 animate-fade-in">
@@ -176,7 +181,6 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
           </>
         )}
       </div>
-    </div>
     </>
   );
 };

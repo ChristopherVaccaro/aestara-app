@@ -468,16 +468,19 @@ button, a, [role="button"] {
   height: -webkit-fill-available;
 }
 
-/* Responsive image container heights based on device size */
-/* Default (Desktop): 280px reserved for UI - strict to prevent ANY scroll */
+/* Responsive image container heights based on device size - Glamatron-style dimensions */
+/* Default (Desktop): Match Glamatron's responsive heights */
 .responsive-image-container {
-  max-height: calc(100vh - 280px);
-  min-height: 200px;
-  height: calc(100vh - 280px);
+  height: 70vh;
+  max-height: 850px;
+  width: 100%;
+  max-width: 820px;
+  aspect-ratio: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  margin: 0 auto;
 }
 
 .responsive-image-container > div {
@@ -487,21 +490,22 @@ button, a, [role="button"] {
   overflow: hidden;
 }
 
-/* Tablet (768px - 1024px): 260px reserved */
+/* Tablet (768px - 1024px): Match Glamatron's md breakpoint */
 @media (max-width: 1024px) and (min-width: 769px) {
   .responsive-image-container {
-    max-height: calc(100vh - 260px) !important;
-    height: calc(100vh - 260px) !important;
-    min-height: 200px !important;
+    height: 65vh !important;
+    max-height: 850px !important;
+    max-width: 740px !important;
+    aspect-ratio: auto !important;
   }
 }
 
-/* Mobile (up to 768px): More aggressive space saving */
+/* Mobile (up to 768px): Match Glamatron's sm breakpoint */
 @media (max-width: 768px) {
   .responsive-image-container {
-    max-height: calc(100vh - 280px) !important;
-    height: calc(100vh - 280px) !important;
-    min-height: 180px !important;
+    height: 500px !important;
+    max-width: 500px !important;
+    aspect-ratio: auto !important;
   }
   
   /* Tighter spacing on mobile */
@@ -511,12 +515,12 @@ button, a, [role="button"] {
   }
 }
 
-/* Small mobile (up to 640px): Even more aggressive */
+/* Small mobile (up to 640px): Match Glamatron's base height */
 @media (max-width: 640px) {
   .responsive-image-container {
-    max-height: calc(100vh - 260px) !important;
-    height: calc(100vh - 260px) !important;
-    min-height: 160px !important;
+    height: 400px !important;
+    max-width: 400px !important;
+    aspect-ratio: auto !important;
   }
 }
 
