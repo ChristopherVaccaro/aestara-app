@@ -1,8 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
+import ContactPage from './pages/ContactPage';
 import { AuthProvider } from './contexts/AuthContext';
+import { GalleryProvider } from './contexts/GalleryContext';
 import { initializeMobileApp } from './utils/capacitorUtils';
+
 // Initialize Capacitor for mobile platforms
 initializeMobileApp().catch(err => {
   console.error('Failed to initialize mobile app:', err);
@@ -16,8 +22,17 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <GalleryProvider>
+          <Routes>
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/*" element={<App />} />
+          </Routes>
+        </GalleryProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </React.StrictMode>
 );

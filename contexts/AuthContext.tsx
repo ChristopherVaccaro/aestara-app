@@ -12,6 +12,8 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUpWithEmail: (email: string, password: string, name?: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -149,6 +151,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log('URL:', data.url);
   };
 
+  const signInWithEmail = async (email: string, password: string): Promise<{ error: string | null }> => {
+    console.log('🔐 Signing in with email:', email);
+    
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    
+    if (error) {
+      console.error('❌ Error signing in with email:', error);
+      return { error: error.message };
+    }
+    
+    console.log('✅ Signed in successfully:', data.user?.email);
+    return { error: null };
+  };
+
+  const signUpWithEmail = async (email: string, password: string, name?: string): Promise<{ error: string | null }> => {
+    console.log('📝 Signing up with email:', email);
+    
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name || email.split('@')[0],
+        },
+      },
+    });
+    
+    if (error) {
+      console.error('❌ Error signing up:', error);
+      return { error: error.message };
+    }
+    
+    // Check if email confirmation is required
+    if (data.user && !data.session) {
+      console.log('📧 Confirmation email sent');
+      return { error: 'Please check your email to confirm your account.' };
+    }
+    
+    console.log('✅ Signed up successfully:', data.user?.email);
+    return { error: null };
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -162,6 +209,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     session,
     loading,
     signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail,
     signOut,
   };
 
