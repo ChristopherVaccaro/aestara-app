@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import ImageUploader from './components/ImageUploader';
 import ImageDisplay from './components/ImageDisplay';
@@ -18,7 +18,6 @@ import MobileBottomSheet from './components/MobileBottomSheet';
 import MobileFloatingButton from './components/MobileFloatingButton';
 import { AdminDashboard } from './components/AdminDashboard';
 import ImageEditor from './components/ImageEditor';
-import AuthDebug from './components/AuthDebug';
 import StyleGallery from './components/StyleGallery';
 import GlamatronStyleSidebar from './components/GlamatronStyleSidebar';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -49,6 +48,25 @@ interface FilterCategory {
   name: string;
   filters: Filter[];
 }
+
+ type Page = 'main' | 'admin' | 'styles';
+
+ const getPageFromLocation = (): Page => {
+   const params = new URLSearchParams(window.location.search);
+   const page = params.get('page');
+   if (page === 'admin') return 'admin';
+   if (page === 'styles') return 'styles';
+   return 'main';
+ };
+
+ const buildUrlForPage = (page: Page): string => {
+   const params = new URLSearchParams(window.location.search);
+   if (page === 'admin') params.set('page', 'admin');
+   else if (page === 'styles') params.set('page', 'styles');
+   else params.delete('page');
+   const query = params.toString();
+   return `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash || ''}`;
+ };
 
 // Global guidance to improve style consistency across all filters
 const STYLE_TRANSFER_CONSTRAINTS = (
@@ -177,23 +195,53 @@ const App: React.FC = () => {
   const { user } = useAuth();
   
   // Check if we're on the admin page
-  const [currentPage, setCurrentPage] = useState<'main' | 'admin' | 'styles'>(() => {
-    const params = new URLSearchParams(window.location.search);
-    const page = params.get('page');
-    if (page === 'admin') return 'admin';
-    if (page === 'styles') return 'styles';
-    return 'main';
-  });
+  const [currentPage, setCurrentPage] = useState<Page>(() => getPageFromLocation());
+  const didMountRef = useRef(false);
+  const isHandlingPopStateRef = useRef(false);
   
   // Update URL when page changes
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (currentPage === 'admin') params.set('page', 'admin');
-    else if (currentPage === 'styles') params.set('page', 'styles');
-    else params.delete('page');
-    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
-    window.history.replaceState({}, '', newUrl);
+    const newUrl = buildUrlForPage(currentPage);
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash || ''}`;
+
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      if (newUrl !== currentUrl) window.history.replaceState({}, '', newUrl);
+      return;
+    }
+
+    if (newUrl === currentUrl) {
+      isHandlingPopStateRef.current = false;
+      return;
+    }
+
+    if (isHandlingPopStateRef.current) {
+      isHandlingPopStateRef.current = false;
+      window.history.replaceState({}, '', newUrl);
+      return;
+    }
+
+    window.history.pushState({}, '', newUrl);
   }, [currentPage]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      isHandlingPopStateRef.current = true;
+      setCurrentPage(getPageFromLocation());
+    };
+
+    const handleNavigate = (e: Event) => {
+      const page = (e as CustomEvent<{ page?: Page }>).detail?.page;
+      if (page) setCurrentPage(page);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('app:navigate', handleNavigate as EventListener);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('app:navigate', handleNavigate as EventListener);
+    };
+  }, []);
   
   // If admin page, render admin dashboard
   if (currentPage === 'admin') {
@@ -538,7 +586,12 @@ const App: React.FC = () => {
       <div className="h-screen flex flex-col items-center overflow-hidden py-0 px-4 md:p-6 font-sans text-gray-200 relative subtle-bg">
         <ParticleBackground />
         <div className="absolute inset-0 mesh-overlay pointer-events-none" />
-        <Header onLogoClick={() => setCurrentPage('main')} hideMenu={false} />
+        <Header 
+          onLogoClick={() => setCurrentPage('main')} 
+          hideMenu={false} 
+          showBackButton={true}
+          onBackClick={() => setCurrentPage('main')}
+        />
         <main className="w-full flex-1 flex items-start justify-center px-4 overflow-hidden pt-4 md:pt-8">
           <StyleGallery
             categories={FILTER_CATEGORIES}
@@ -865,7 +918,7 @@ try {
     }
 
     return (
-      <div className="w-full max-w-7xl mx-auto flex flex-col lg:grid lg:grid-cols-[120px_minmax(0,1fr)] lg:gap-6 items-start overflow-visible h-full">
+      <div className="w-full max-w-screen-2xl mx-auto flex flex-col lg:grid lg:grid-cols-[120px_minmax(0,1fr)] lg:gap-6 items-start overflow-visible h-full">
         {/* Desktop Left Toolbar */}
         <div className="hidden lg:flex w-full justify-center">
           <GlamatronStyleSidebar
@@ -883,7 +936,7 @@ try {
 
         {/* Center: Image Display */}
         <div className="w-full">
-          <div className="relative pb-24">
+          <div className="relative pb-6">
             {isLoading || isTransitioning ? (
               <BlurredImageLoading 
                 originalImageUrl={originalImageUrl}
@@ -920,46 +973,38 @@ try {
                 isDevMode={isDevMode}
               />
             )}
-            
-            {history.length > 0 && (
-              <>
-                <div className="hidden lg:block absolute bottom-6 right-6 z-30 w-72">
-                  <StyleHistory
-                    history={history}
-                    currentIndex={currentHistoryIndex}
-                    onSelectHistory={handleSelectHistory}
-                    onClearHistory={handleClearHistory}
-                    containerClassName="glass-panel p-4 rounded-2xl shadow-2xl shadow-black/40 border border-white/15"
-                  />
-                </div>
-                <div className="lg:hidden mt-4 glass-panel p-4 w-full">
-                  <h3 className="text-sm font-semibold text-white/80 mb-2">Style History</h3>
-                  <StyleHistory
-                    history={history}
-                    currentIndex={currentHistoryIndex}
-                    onSelectHistory={handleSelectHistory}
-                    onClearHistory={handleClearHistory}
-                  />
-                </div>
-              </>
-            )}
+          </div>
 
-            {generatedImageUrl && !isLoading && activeFilter && currentGenerationId && (
-              <>
-                <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 translate-y-1/3 bottom-0 z-30 w-full max-w-md px-4">
-                  <div className="glass-panel px-5 py-3 rounded-2xl shadow-2xl shadow-black/40 border border-white/15 backdrop-blur-2xl">
-                    <GenerationFeedback
-                      filterName={activeFilter.id}
-                      generationId={currentGenerationId}
-                      filterId={activeFilter.id}
-                      currentPrompt={currentPromptUsed || undefined}
-                      onVoteRecorded={handleVoteRecorded}
-                      onShowToast={addToast}
-                      wrapperClassName="mt-0"
-                    />
-                  </div>
-                </div>
-                <div className="lg:hidden mt-4 glass-panel p-4 w-full">
+          {/* Rate this Image and Style History - Under Image Preview */}
+          <div className="mt-6 space-y-4">
+            {/* Desktop: Side by side layout */}
+            <div className="hidden lg:flex flex-wrap items-center justify-center gap-4">
+              {generatedImageUrl && !isLoading && activeFilter && currentGenerationId && (
+                <GenerationFeedback
+                  filterName={activeFilter.id}
+                  generationId={currentGenerationId}
+                  filterId={activeFilter.id}
+                  currentPrompt={currentPromptUsed || undefined}
+                  onVoteRecorded={handleVoteRecorded}
+                  onShowToast={addToast}
+                  wrapperClassName="inline-flex items-center gap-4 px-4 py-3 rounded-2xl border border-white/15 bg-white/[0.08] backdrop-blur-2xl shadow-2xl shadow-black/40"
+                />
+              )}
+              {history.length > 0 && (
+                <StyleHistory
+                  history={history}
+                  currentIndex={currentHistoryIndex}
+                  onSelectHistory={handleSelectHistory}
+                  onClearHistory={handleClearHistory}
+                  containerClassName="w-fit max-w-full rounded-2xl border border-white/15 bg-white/[0.08] backdrop-blur-2xl shadow-2xl shadow-black/40 px-4 py-3"
+                />
+              )}
+            </div>
+
+            {/* Mobile: Stacked layout */}
+            <div className="lg:hidden space-y-4">
+              {generatedImageUrl && !isLoading && activeFilter && currentGenerationId && (
+                <div className="glass-panel p-4 w-full">
                   <GenerationFeedback
                     filterName={activeFilter.id}
                     generationId={currentGenerationId}
@@ -969,8 +1014,19 @@ try {
                     onShowToast={addToast}
                   />
                 </div>
-              </>
-            )}
+              )}
+              {history.length > 0 && (
+                <div className="glass-panel p-4 w-full">
+                  <h3 className="text-sm font-semibold text-white/80 mb-2">Style History</h3>
+                  <StyleHistory
+                    history={history}
+                    currentIndex={currentHistoryIndex}
+                    onSelectHistory={handleSelectHistory}
+                    onClearHistory={handleClearHistory}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -1036,9 +1092,6 @@ try {
       
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-      
-      {/* Auth Debug (dev only) */}
-      <AuthDebug />
       
       {/* Mobile Bottom Sheet */}
       {originalImageUrl && (
