@@ -13,6 +13,7 @@ interface ImageComparisonProps {
   onEdit?: (imageUrl?: string) => void;
   onSaveAIEdit?: (editedImageUrl: string) => void;
   previousImageUrl?: string;
+  onRemoveImage?: () => void;
 }
 
 const TooltipButton: React.FC<{ label: string; position?: 'left' | 'right'; children: React.ReactNode }> = ({
@@ -42,6 +43,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
   onEdit,
   onSaveAIEdit,
   previousImageUrl,
+  onRemoveImage,
 }) => {
   const [sliderPosition, setSliderPosition] = useState(25);
   const [isDragging, setIsDragging] = useState(false);
@@ -183,8 +185,8 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
   };
 
   return (
-    <div className="w-full flex flex-col items-center">
-      <div className="w-full responsive-image-container">
+    <div className="w-full h-full flex flex-col items-center">
+      <div className="w-full h-full">
         {/* Gradient Border Wrapper - Matches upload button style */}
         <div className="relative rounded-2xl overflow-hidden p-[2px] bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50 hover:from-blue-500/70 hover:via-purple-500/70 hover:to-pink-500/70 transition-all duration-300 h-full">
           <div
@@ -499,6 +501,31 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
 
             {/* Circular Action Buttons - Top Right */}
             <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
+              {/* Remove Image Button */}
+              {onRemoveImage && (
+                <div className="relative group">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemoveImage();
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onMouseUp={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onTouchEnd={(e) => e.stopPropagation()}
+                    className="w-12 h-12 rounded-full bg-red-500/80 hover:bg-red-600 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                    aria-label="Remove image"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  <div className="pointer-events-none absolute right-[calc(100%+0.5rem)] top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/85 px-3 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                    Remove image
+                  </div>
+                </div>
+              )}
+
               {/* Custom AI Edit Button */}
               <div className="relative group">
                 <button

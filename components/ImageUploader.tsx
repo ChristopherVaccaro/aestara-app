@@ -71,44 +71,24 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
   }, []);
 
   return (
-    <div className="w-full max-w-6xl mx-auto flex flex-col items-center">
-        {/* Hero Section */}
-        <div className="text-center mb-3 md:mb-4 max-w-4xl">
-          <h1 className="text-3xl md:text-5xl font-bold mb-1.5 leading-tight">
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Transform Photos
-            </span>
-            <br />
-            <span className="text-white">into Art with AI</span>
-          </h1>
-          <p>The first system to learn from your feedback</p>
-        </div>
-
-        {/* Main Upload Area - Modern Glass Design */}
+    <div className="w-full h-full flex flex-col items-center justify-center">
+        {/* Main Upload Area - Dark Theme with Glamatron Layout */}
         <label
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
-          className={`group relative w-full max-w-3xl rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 mt-6 md:mt-8 ${
-            isProcessing 
-              ? 'scale-[0.98]' 
-              : isDragging 
-                ? 'scale-[1.02]' 
-                : 'hover:scale-[1.01]'
-          }`}
+          className={`group relative w-full h-full rounded-lg overflow-hidden cursor-pointer transition-all duration-300`}
         >
-          {/* Gradient Border Effect */}
-          <div className={`absolute inset-0 rounded-2xl p-[2px] transition-all duration-300 ${
+          {/* Dashed Border Container - Dark Theme */}
+          <div className={`absolute inset-0 rounded-lg border-2 border-dashed transition-all duration-300 ${
             isDragging 
-              ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500' 
-              : 'bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-pink-500/50 group-hover:from-blue-500/70 group-hover:via-purple-500/70 group-hover:to-pink-500/70'
-          }`}>
-            <div className="h-full w-full rounded-2xl bg-gray-900/95 backdrop-blur-xl" />
-          </div>
+              ? 'border-blue-400 bg-blue-500/10' 
+              : 'border-white/20 bg-white/[0.02]'
+          }`} />
           
           {/* Content */}
-          <div className="relative z-10 flex flex-col items-center justify-center py-8 md:py-12 px-6 md:px-8">
+          <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 md:px-8">
             <input 
               type="file" 
               className="hidden" 
@@ -129,21 +109,23 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
               </>
             ) : (
               <>
-                <div className="relative mb-4 md:mb-6">
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity"></div>
-                  <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-white/10">
-                    <svg className="w-12 h-12 md:w-14 md:h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                {/* Upload Icon */}
+                <div className="mb-6">
+                  <div className="w-14 h-14 rounded-full border-2 border-white/30 flex items-center justify-center bg-white/5">
+                    <svg className="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
                   </div>
                 </div>
                 
-                <h3 className="text-white text-xl md:text-2xl font-semibold mb-2 md:mb-3">
-                  {isDragging ? 'Drop your image here' : 'Upload Your Photo'}
+                <h3 className="text-white text-lg md:text-xl font-semibold mb-2">
+                  {isDragging ? 'Drop your image here' : 'Upload a photo'}
                 </h3>
-                <p className="text-gray-300 text-base md:text-lg mb-3 md:mb-4">
-                  <span className="font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Click to browse</span>
-                  <span className="text-gray-400"> or drag and drop</span>
+                <p className="text-gray-400 text-sm md:text-base text-center mb-2">
+                  <span className="text-blue-400">Drag</span> and drop or <span className="text-blue-400">click</span> to select a photo.
+                </p>
+                <p className="text-gray-500 text-xs md:text-sm">
+                  JPG, PNG, WebP, HEIC • Max 10MB
                 </p>
               </>
             )}

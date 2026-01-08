@@ -12,9 +12,10 @@ interface HeaderProps {
   showBackButton?: boolean;
   onBackClick?: () => void;
   onOpenGallery?: () => void;
+  onOpenHelp?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false, showBackButton = false, onBackClick, onOpenGallery }) => {
+const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false, showBackButton = false, onBackClick, onOpenGallery, onOpenHelp }) => {
   const { user } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
 
@@ -23,9 +24,9 @@ const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false, showBack
       <header className="w-full flex-shrink-0">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Left side - Back button or spacer (fixed width for centering) */}
-            <div className="w-24 flex-shrink-0 flex items-center">
-              {showBackButton && onBackClick ? (
+            {/* Left side - Logo (left aligned like Glamatron) */}
+            <div className="flex items-center gap-3">
+              {showBackButton && onBackClick && (
                 <button
                   onClick={onBackClick}
                   className="p-2 hover:opacity-70 transition-opacity duration-200 text-gray-400 hover:text-white"
@@ -33,11 +34,7 @@ const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false, showBack
                 >
                   <ArrowLeft className="w-6 h-6 md:w-7 md:h-7" />
                 </button>
-              ) : null}
-            </div>
-            
-            {/* Center logo - flex-1 to take remaining space, centered content */}
-            <div className="flex-1 flex justify-center">
+              )}
               <button
                 onClick={onLogoClick}
                 className="cursor-pointer hover:opacity-80 transition-opacity duration-200 focus:outline-none focus:opacity-80"
@@ -47,12 +44,13 @@ const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false, showBack
               </button>
             </div>
             
-            {/* Right side - Auth button or Profile dropdown (fixed width for centering) */}
-            <div className="w-24 flex-shrink-0 flex items-center justify-end">
+            {/* Right side - Auth button or Profile dropdown */}
+            <div className="flex items-center justify-end">
               {user ? (
                 <ProfileDropdown
                   onOpenProfile={() => setShowProfile(true)}
                   onOpenGallery={onOpenGallery}
+                  onOpenFAQ={onOpenHelp}
                 />
               ) : (
                 <AuthButton />

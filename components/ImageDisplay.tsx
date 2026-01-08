@@ -19,6 +19,7 @@ interface ImageDisplayProps {
   error?: string | null;
   activeFilterName?: string | null;
   isDevMode?: boolean;
+  onRemoveImage?: () => void;
 }
 
 const ImageDisplay: React.FC<ImageDisplayProps> = ({
@@ -36,6 +37,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   error,
   activeFilterName,
   isDevMode = false,
+  onRemoveImage,
 }) => {
   const imageUrlToShow = isPeeking
     ? originalImageUrl
@@ -174,9 +176,9 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   };
 
   return (
-    <div className="w-full flex flex-col items-center">
+    <div className="w-full h-full flex flex-col items-center">
       {/* Image Container with Modern Design */}
-      <div className="relative w-full responsive-image-container">
+      <div className="relative w-full h-full">
         {/* Gradient Border Wrapper - Matches upload button style */}
         <div className={`relative rounded-2xl overflow-hidden p-[2px] transition-all duration-300 h-full ${
           hasError 
@@ -368,18 +370,45 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
             />
             {/* Top-right action buttons (stacked) */}
             <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
+              {/* Remove Image Button */}
+              {onRemoveImage && (
+                <div className="relative group/tooltip">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onRemoveImage(); }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onMouseUp={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onTouchEnd={(e) => e.stopPropagation()}
+                    className="w-12 h-12 rounded-full bg-red-500/80 hover:bg-red-600 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                    aria-label="Remove image"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  <div className="hidden lg:block pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-xs text-white opacity-0 group-hover/tooltip:opacity-100 transition-opacity">
+                    Remove image
+                  </div>
+                </div>
+              )}
+
               {/* AI Custom Edit Button - Always available after upload */}
-              <button
-                onClick={(e) => { e.stopPropagation(); setIsPromptEditorOpen(true); }}
-                onMouseDown={(e) => e.stopPropagation()}
-                onMouseUp={(e) => e.stopPropagation()}
-                onTouchStart={(e) => e.stopPropagation()}
-                onTouchEnd={(e) => e.stopPropagation()}
-                className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
-                title="AI Custom Edit"
-              >
-                <MagicWand className="h-5 w-5" weight="bold" />
-              </button>
+              <div className="relative group/tooltip">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setIsPromptEditorOpen(true); }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onMouseUp={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchEnd={(e) => e.stopPropagation()}
+                  className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                  aria-label="AI Custom Edit"
+                >
+                  <MagicWand className="h-5 w-5" weight="bold" />
+                </button>
+                <div className="hidden lg:block pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-xs text-white opacity-0 group-hover/tooltip:opacity-100 transition-opacity">
+                  AI Custom Edit
+                </div>
+              </div>
 
               {/* Download Button - Show when AI enhancement has been applied */}
               {currentDisplayImage !== originalImageUrl && (
@@ -400,19 +429,24 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
 
               {/* Manual Edit Button - Only when no generated image yet */}
               {onEdit && !generatedImageUrl && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onEdit(currentDisplayImage); }}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onMouseUp={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onTouchEnd={(e) => e.stopPropagation()}
-                  className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
-                  title="Edit Image"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                  </svg>
-                </button>
+                <div className="relative group/tooltip">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onEdit(currentDisplayImage); }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onMouseUp={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onTouchEnd={(e) => e.stopPropagation()}
+                    className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                    aria-label="Edit Image"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                  </button>
+                  <div className="hidden lg:block pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-xs text-white opacity-0 group-hover/tooltip:opacity-100 transition-opacity">
+                    Edit Image
+                  </div>
+                </div>
               )}
             </div>
             

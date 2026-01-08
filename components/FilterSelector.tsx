@@ -64,7 +64,7 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({
                     <div className={`absolute inset-0 rounded-xl p-[1px] transition-all ${
                       filter.id === activeFilterId
                         ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500'
-                        : 'bg-white/10 group-hover:bg-white/20'
+                        : 'bg-white/20'
                     }`}>
                       <div className={`h-full w-full rounded-xl transition-all ${
                         filter.id === activeFilterId

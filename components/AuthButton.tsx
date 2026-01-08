@@ -29,7 +29,7 @@ export const AuthButton: React.FC = () => {
     <>
       <button
         onClick={() => setIsAuthModalOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 border border-white/20 transition-all shadow-lg hover:shadow-xl"
+        className="flex items-center gap-2 px-4 py-2 rounded-lg glass-button-active text-blue-100 font-semibold hover:bg-blue-500/40 transition-all duration-300 border border-gray-600"
       >
         <SignIn className="w-4 h-4" />
         <span className="text-sm font-medium">Sign In</span>
