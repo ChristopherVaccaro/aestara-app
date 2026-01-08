@@ -131,8 +131,8 @@ const HelpFAQModal: React.FC<HelpFAQModalProps> = ({ isOpen, onClose }) => {
         <div className="px-6 py-4 bg-slate-800 flex-shrink-0">
           <p className="text-center text-white text-sm">
             Still have questions? Reach out to us at{' '}
-            <a href="mailto:support@aestara.app" className="font-medium underline">
-              support@aestara.app
+            <a href="mailto:support@cognitav.com" className="font-medium underline">
+              support@cognitav.com
             </a>
           </p>
         </div>

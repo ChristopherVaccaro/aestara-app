@@ -24,6 +24,7 @@ import Footer from './components/Footer';
 import ContactModal from './components/ContactModal';
 import HelpFAQModal from './components/HelpFAQModal';
 import GalleryModal from './components/GalleryModal';
+import CustomStyleUploader from './components/CustomStyleUploader';
 import { useGallery } from './contexts/GalleryContext';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Filter } from './types';
@@ -86,7 +87,6 @@ const FILTER_CATEGORIES: FilterCategory[] = [
     name: 'Artistic & Stylized',
     filters: [
       { id: 'anime', name: 'Anime', prompt: 'Apply anime illustration style rendering to this image. PRESERVE: Exact facial structure, face shape, eye shape, nose shape, mouth shape, all facial proportions, body pose, and composition. STYLE: Traditional 2D anime cel-shading with clean linework, solid color blocks, and soft shadows. Render the existing features in anime aesthetic without altering facial geometry or proportions. Keep the person 100% recognizable with their unique facial characteristics intact. Only change the rendering style to anime illustration technique.' },
-      { id: 'anime_v2', name: 'Anime Enhanced', prompt: 'Apply cinematic anime key visual rendering style. PRESERVE: Exact facial structure, all facial features, eye shape, nose shape, mouth proportions, face geometry, body pose, clothing design, and composition. STYLE: Refined cel-shading with soft rim lighting and atmospheric gradients. Render existing features with anime aesthetic while maintaining perfect facial likeness. LIGHTING: Dramatic yet balanced with colored highlights. COLOR: Rich, vibrant anime palette. Keep the person 100% recognizable with all unique facial characteristics intact. Only apply anime rendering technique to existing structure.' },
       { id: 'anime_v3', name: 'Anime Cinematic', prompt: 'Apply cinematic anime film rendering style. PRESERVE: Exact facial structure, all facial features, face shape, eye shape, nose shape, mouth shape, body pose, and composition. STYLE: Elegant linework with multi-step cel-shading, cinematic lighting effects, and atmospheric elements. Render existing features with anime aesthetic while maintaining realistic facial structure and perfect likeness. LIGHTING: Cinematic rim lights with atmospheric effects. COLOR: Rich filmic palette with warm skin tones. Keep the person 100% recognizable. Only apply anime rendering technique.' },
       { id: 'western', name: 'Western Theme', prompt: 'Reimagine in classic American Old West aesthetic with authentic frontier atmosphere. Apply rugged cowboy styling with weathered textures, cowboy hats, boots, leather elements, vests, bandanas, and duster coats. Create a dusty frontier setting with wooden buildings, hitching posts, tumbleweeds, and vast open skies. Use warm golden hour lighting with dramatic shadows and atmospheric dust. Apply sepia-toned or desaturated color palette with browns, oranges, and muted earth tones. Include authentic western details like horses, cattle, cacti, and weathered wood textures for immersive Wild West atmosphere.' },
       { id: 'oil', name: 'Oil Painting', prompt: 'Apply classical oil painting rendering style. PRESERVE: Exact facial structure, face shape, all facial features, eye shape, nose shape, mouth shape, body pose, and composition. STYLE: Visible directional brushstrokes with rich layered pigments and canvas texture. Apply oil painting technique to existing features without altering facial geometry. TECHNIQUE: Impasto texture, wet-on-wet blending, warm and cool color temperatures. Keep the person 100% recognizable. Only change the rendering medium to oil painting technique while maintaining perfect facial likeness.' },
@@ -98,6 +98,13 @@ const FILTER_CATEGORIES: FilterCategory[] = [
       { id: 'impressionist', name: 'Impressionism', prompt: 'Apply Impressionist painting rendering style. PRESERVE: Exact facial structure, face shape, all facial features, eye shape, nose shape, mouth shape, body pose, and composition. STYLE: Short broken brushstrokes with vibrant colors and soft blurred edges emphasizing light effects. Apply Impressionist technique to existing features without altering facial geometry. TECHNIQUE: Layered strokes, optical color mixing, luminous quality. Keep the person 100% recognizable. Only change the rendering style to Impressionist painting technique while maintaining perfect facial likeness.' },
       { id: 'popart', name: 'Pop Art', prompt: 'Apply Pop Art rendering style. PRESERVE: Exact facial structure, face shape, all facial features, eye shape, nose shape, mouth shape, body pose, and composition. STYLE: Bright saturated colors with strong outlines, flat color blocks, and Ben-Day dot patterns. Apply Pop Art technique to existing features without altering facial geometry. TECHNIQUE: Limited bold palette, screen-printing appearance, high contrast. Keep the person 100% recognizable. Only change the rendering style to Pop Art technique while maintaining perfect facial likeness.' },
       { id: 'artdeco', name: 'Art Deco', prompt: 'Apply Art Deco rendering style. PRESERVE: Exact facial structure, face shape, all facial features, eye shape, nose shape, mouth shape, body pose, and composition. STYLE: Strong geometric patterns, bold clean lines, and sophisticated metallic color palette with luxurious aesthetic. Apply Art Deco technique to existing features without altering facial geometry. TECHNIQUE: Symmetrical designs, stylized decorative elements, glamorous opulent feel. Keep the person 100% recognizable. Only change the rendering style to Art Deco technique while maintaining perfect facial likeness.' },
+      { id: 'surrealism', name: 'Surrealism', prompt: 'Apply surrealist art style inspired by Salvador Dalí and René Magritte. PRESERVE: Core facial structure and identity. STYLE: Dreamlike impossible scenes with melting forms, floating objects, impossible architecture, and symbolic imagery. Unexpected juxtapositions of elements. Soft atmospheric lighting with dramatic shadows. Rich jewel-tone colors. Subconscious dream logic aesthetic. Keep the person recognizable while adding surreal environmental elements.' },
+      { id: 'retrowave', name: 'Retrowave/Synthwave', prompt: 'Apply 1980s synthwave/retrowave aesthetic. Neon grid landscapes, chrome text effects, sunset gradients (pink, purple, orange, cyan). Wireframe mountains and geometric shapes. Glowing neon outlines. Palm tree silhouettes. VHS scan lines and chromatic aberration. Retrofuturistic sci-fi aesthetic. Outrun video game visuals. Dramatic neon lighting against dark backgrounds. Keep facial features identical while applying synthwave visual style.' },
+      { id: 'glitchart', name: 'Glitch Art', prompt: 'Apply digital glitch art aesthetic. Pixel sorting, data moshing, RGB channel separation and offset. Horizontal scan line distortions. Corrupted digital artifacts. Fragmented displaced image sections. Chromatic aberration with color channel splitting. VHS tracking errors and digital corruption effects. Cyberpunk digital decay aesthetic. Keep underlying subject recognizable through the glitch effects.' },
+      { id: 'chibi', name: 'Chibi/Kawaii', prompt: 'Transform into adorable chibi/kawaii style while maintaining identity. Oversized head (2-3 heads tall body ratio). Large sparkling eyes with highlights. Small simplified body with stubby limbs. Cute exaggerated expressions. Soft pastel colors with pink accents. Rounded simplified features. Anime-inspired kawaii aesthetic. Keep facial characteristics recognizable in chibi form.' },
+      { id: 'lofi', name: 'Lo-Fi Aesthetic', prompt: 'Apply lo-fi aesthetic with cozy study vibes. Warm muted color palette (browns, oranges, soft purples). Soft grain and film texture. Warm ambient lighting like sunset through windows. Nostalgic melancholic mood. Anime-inspired lo-fi hip hop visual style. Soft focus with dreamy quality. Relaxed atmospheric aesthetic. Keep subject recognizable with lo-fi visual treatment.' },
+      { id: 'biophilic', name: 'Biophilic Art', prompt: 'Apply biophilic nature-integrated art style. Blend subject with natural elements: flowers growing from hair, moss textures on skin, leaves and vines intertwining. Nature reclaiming aesthetic. Organic flowing forms. Earth tone palette with vibrant greens and florals. Magical realism nature fusion. Environmental harmony aesthetic. Keep facial features recognizable while integrating natural elements.' },
+      { id: 'claymation', name: 'Claymation', prompt: 'Transform into claymation/stop-motion style. Clay-like smooth matte textures. Slightly imperfect handmade quality. Visible fingerprint impressions and sculpting marks. Rounded simplified forms. Wallace and Gromit or Coraline aesthetic. Warm studio lighting. Miniature set design quality. Keep subject recognizable in clay sculpture form.' },
     ],
   },
   {
@@ -107,12 +114,9 @@ const FILTER_CATEGORIES: FilterCategory[] = [
       { id: 'bw', name: 'Black & White', prompt: 'Convert to dramatic black and white photography (Ansel Adams style): CONTRAST - High contrast with rich tonal range. Deep, pure blacks and bright whites. MIDTONES - Full spectrum of grays with excellent tonal separation. TEXTURE - Enhanced texture detail and surface quality. Sharp, defined edges. LIGHTING - Dramatic lighting with strong shadows and highlights. Sculptural quality. COMPOSITION - Emphasize form, shape, and tonal relationships. QUALITY - Professional monochrome photography with excellent tonal depth. AVOID - Flat gray appearance, washed out tones, muddy midtones, sepia tinting. AIM FOR - Classic fine art black and white photography with dramatic impact and rich tonal depth.' },
       { id: 'hdr', name: 'HDR Look', prompt: 'Apply HDR (High Dynamic Range) photographic enhancement: DYNAMIC RANGE - Expanded tonal range with visible detail in both shadows and highlights. DETAILS - Enhanced micro-contrast and sharpness. Crisp, defined edges. COLORS - Boosted saturation with vibrant but believable colors. CLARITY - Increased local contrast for dramatic effect. SHADOWS - Lifted shadows with visible detail. HIGHLIGHTS - Controlled highlights preventing blowout. HALOS - Minimal haloing (avoid excessive glow around edges). DEPTH - Enhanced sense of dimension and pop. AVOID - Oversaturation, unrealistic appearance, excessive halos, cartoonish look. AIM FOR - Dramatic, impactful photography with enhanced realism and visual punch, professional HDR aesthetic.' },
       { id: 'cinematic', name: 'Cinematic', prompt: 'Apply professional cinematic color grading (Hollywood film aesthetic): COLOR PALETTE - Teal and orange color scheme (teal in shadows, warm orange in highlights and skin tones). CONTRAST - Controlled contrast with crushed blacks and gentle roll-off in highlights. MOOD - Atmospheric, moody feel with dramatic lighting. DEPTH - Enhanced dimensional quality through color separation. SHADOWS - Teal/cyan tint in shadow areas. SKIN TONES - Warm, flattering orange/peach tones. SATURATION - Selective saturation with emphasis on key colors. ASPECT - Wide cinematic framing aesthetic. AVOID - Flat colors, neutral grading, amateur video look, oversaturation. AIM FOR - Professional film look-up-table (LUT) quality grading like modern blockbuster movies.' },
-      { id: 'softglow', name: 'Soft Glow', prompt: 'Apply soft romantic glow effect (portrait photography filter): GLOW - Gentle, diffused glow emanating from highlights. Soft halation effect. SKIN - Smoothed skin texture while maintaining natural appearance (not plastic). HIGHLIGHTS - Enhanced, luminous highlights with soft bloom. FOCUS - Slight softening overall with maintained subject clarity. MOOD - Dreamy, ethereal, flattering quality. COLORS - Slightly desaturated with warm, gentle tones. CONTRAST - Reduced contrast for soft, gentle appearance. AVOID - Harsh blur, loss of detail, over-smoothing, artificial look, excessive blur. AIM FOR - Professional portrait retouching aesthetic with flattering soft focus and romantic glow, elegant and natural.' },
       { id: 'filmnoir', name: 'Film Noir', prompt: 'Transform into classic Film Noir cinematography (1940s-50s detective film aesthetic): BLACK & WHITE - High contrast monochrome with dramatic tonal range. LIGHTING - Strong directional lighting with deep, dramatic shadows (chiaroscuro). Hard light creating sharp shadow edges. SHADOWS - Deep, inky blacks with bold shadow patterns. Venetian blind shadows, dramatic silhouettes. COMPOSITION - Low-key lighting, mysterious atmosphere, noir cinematography angles. MOOD - Dark, moody, mysterious, tension-filled atmosphere. CONTRAST - Extreme contrast between light and shadow areas. FOG/SMOKE - Atmospheric haze, volumetric lighting if appropriate. AVOID - Flat lighting, gray tones, bright cheerful mood, soft shadows. AIM FOR - Classic noir films like The Maltese Falcon or Double Indemnity with dramatic expressionist lighting and mystery.' },
       { id: 'doubleexposure', name: 'Double Exposure', prompt: 'Create artistic double exposure photography effect: TECHNIQUE - Blend two exposures together with translucent overlay. Primary subject with secondary ghostly image superimposed. TRANSPARENCY - Soft, ethereal transparency in overlapping areas. Multiple exposure blend. ELEMENTS - Combine subject with complementary imagery (nature, cityscapes, textures). BLENDING - Natural, organic blending modes (not cut-and-paste). Seamless integration. CONTRAST - Strong subject silhouette with lighter overlaid elements. MOOD - Dreamy, artistic, surreal quality. COMPOSITION - Thoughtful positioning of overlapping elements. AVOID - Harsh edges, obvious compositing, cluttered overlays, muddy blending. AIM FOR - Professional multiple exposure photography like analog double exposure technique with artistic, intentional overlapping imagery.' },
       { id: 'boudoir', name: 'Boudoir', prompt: 'Apply elegant portrait photography styling while preserving exact pose, composition, and facial features. CRITICAL: Maintain original body position, pose, and framing exactly as shown. Professional glamour portrait aesthetic with soft flattering lighting and gentle shadows. Warm romantic color palette with soft creams, blush pinks, champagne tones. Window light quality with subtle highlights. Enhance expression to be confident and graceful. Add soft fabrics like silk and satin in styling. Sophisticated, empowering atmosphere. Professional beauty retouching while maintaining natural features. Timeless, artistic portrait quality. Keep original pose, body position, face shape, nose, eyes, mouth identical.' },
-      { id: 'glamour', name: 'Glamour', prompt: 'Apply high-fashion glamour photography styling while preserving exact pose, composition, and facial features. CRITICAL: Maintain original body position, pose, and framing exactly as shown. Professional fashion editorial aesthetic with dramatic makeup and styled hair. Flattering studio lighting with soft key light and rim lighting. Enhance wardrobe with elegant fabrics while keeping original clothing style. Rich colors with skin tone perfection. Confident, empowered expression. Vogue editorial quality with professional retouching and natural beauty enhancement. High-end fashion magazine aesthetic. Keep original pose, body position, face shape, nose, eyes, mouth identical.' },
-      { id: 'editorial', name: 'Editorial', prompt: 'Transform into high-fashion editorial photography while preserving exact pose, composition, and facial features. CRITICAL: Maintain original body position, pose, and framing exactly as shown. Striking fashion-forward styling with bold makeup and sophisticated hair. Dramatic fashion lighting with strong directional light. Enhance clothing with designer fashion aesthetic and luxurious textures while keeping original pose. Confident, powerful expression. Harper\'s Bazaar magazine quality with artistic composition. Professional fashion photography with elegant, sophisticated atmosphere. Keep original pose, body position, face shape, nose, eyes, mouth identical.' },
       { id: 'redcarpet', name: 'Red Carpet', prompt: 'Apply red carpet celebrity styling while preserving exact pose, composition, and facial features. CRITICAL: Maintain original body position, pose, and framing exactly as shown. Hollywood glamour with professional styling. Flawless makeup with contouring, dramatic eyes, perfect lips. Elegant hairstyling with volume and shine. Enhance clothing with designer formal attire while keeping original pose. Professional event lighting with flash photography glow. Confident, radiant expression. A-list celebrity aesthetic with paparazzi-ready perfection. Keep original pose, body position, face shape, nose, eyes, mouth identical.' },
     ],
   },
@@ -165,6 +169,17 @@ const FILTER_CATEGORIES: FilterCategory[] = [
       { id: 'stainedglass', name: 'Stained Glass', prompt: 'Transform into stained glass window art (church window style): STRUCTURE - Colored glass segments separated by dark lead came/solder lines. Clear geometric or organic divisions. COLORS - Vibrant, translucent jewel-tone colors. Light shining through glass effect. TECHNIQUE - Individual glass pieces with distinct boundaries. Lead lines defining each segment. LIGHT - Backlit quality with luminous, glowing colors. Light transmission through colored glass. PATTERNS - Geometric patterns, art nouveau flowing lines, or pictorial scenes in glass. TEXTURE - Slight glass texture, uneven color within pieces. BORDERS - Heavy lead outlines (black lines) around each glass piece. AVOID - Solid opaque colors, photographic detail, smooth gradients within pieces, missing lead lines. AIM FOR - Authentic cathedral stained glass window appearance with translucent luminous quality and traditional glass art craftsmanship.' },
       { id: 'mosaic', name: 'Mosaic', prompt: 'Transform into mosaic tile artwork (ancient Roman/Byzantine style): TILES - Small square or irregular tiles (tesserae) clearly visible. Each tile distinct. SPACING - Visible grout lines between tiles creating grid or irregular pattern. COLORS - Solid color per tile from limited palette. No gradients within individual tiles. TECHNIQUE - Tiles arranged to create image through color placement. Opus tessellatum style. TEXTURE - Three-dimensional surface quality. Slight variations in tile height. MATERIALS - Stone, glass, or ceramic tile appearance. Matte or slight sheen. COMPOSITION - Image formed by aggregate of small colored pieces. Pixelated quality at close view. SHADOWS - Subtle shadows between tiles adding depth. AVOID - Smooth surfaces, photo-realistic detail, perfect alignment, modern digital look. AIM FOR - Authentic ancient mosaic art appearance with handcrafted tile-by-tile quality and classical mosaic technique.' },
       { id: 'chineseink', name: 'Chinese Ink', prompt: 'Transform into traditional Chinese ink painting (Sumi-e/Shui-mo style): BRUSHWORK - Flowing, expressive brush strokes with varied ink density. Calligraphic quality. INK - Black ink with gradations from deep black to pale gray washes. Minimal color if any. TECHNIQUE - Wet-on-wet ink bleeding, brush texture visible. Traditional brush painting marks. COMPOSITION - Minimalist with emphasis on negative space (empty white areas). Asymmetrical balance. PHILOSOPHY - Capture essence rather than detail. Suggestion over definition. ELEMENTS - Traditional subjects: landscapes, bamboo, birds, mountains interpreted artistically. PAPER - Rice paper texture, ink absorption and bleeding effects. AVOID - Western painting techniques, heavy detail, filled composition, opaque coverage. AIM FOR - Authentic Chinese brush painting aesthetic with philosophical minimalism and masterful ink control like traditional literati paintings.' },
+      { id: 'japaneseink', name: 'Japanese Ink', prompt: 'Transform into traditional Japanese ink wash painting (Sumi-e style). BRUSHWORK - Deliberate, meditative brush strokes with varying pressure and ink load. Zen calligraphic quality. INK - Sumi ink with beautiful gradations from rich black to ethereal gray washes. Monochromatic or subtle color accents. TECHNIQUE - Single confident brush strokes capturing essence. Visible brush texture and ink flow. COMPOSITION - Elegant asymmetrical balance with generous negative space (ma). Wabi-sabi aesthetic embracing imperfection. SUBJECTS - Nature motifs: bamboo, cherry blossoms, koi, cranes, mountains, waves. PAPER - Washi paper texture with natural ink absorption. MOOD - Contemplative, serene, harmonious with nature. AVOID - Overworking, Western realism, cluttered composition. AIM FOR - Authentic Japanese brush painting with Zen philosophy and masterful simplicity.' },
+      { id: 'simpsons', name: 'Simpsons Style', prompt: 'Transform into The Simpsons animated TV series art style. CHARACTER DESIGN - Signature yellow skin tone (#FFD90F). Overbite with visible upper teeth. Round bulging eyes with small black pupils. Four fingers on each hand. Simple rounded body shapes. LINEWORK - Bold black outlines (2-3px thick). Clean vector-quality lines. No sketchy or rough edges. COLORS - Flat solid colors with no gradients. Bright saturated palette. Simple cel-shading with minimal shadows. STYLE - Matt Groening cartoon aesthetic. Exaggerated features and expressions. Springfield universe visual language. Keep subject recognizable as Simpsons-style character version of themselves.' },
+      { id: 'southpark', name: 'South Park Style', prompt: 'Transform into South Park animated series art style. CHARACTER DESIGN - Simple geometric construction paper cutout aesthetic. Round heads, small bodies. Dot eyes or simple oval eyes. Simple curved mouths. Minimal detail and features. TECHNIQUE - Flat 2D paper cutout look. No perspective or depth. Characters appear as layered paper shapes. COLORS - Flat matte colors, no gradients or shading. Bold primary and secondary colors. MOVEMENT - Static pose quality like paper puppets. STYLE - Trey Parker and Matt Stone crude animation aesthetic. Deliberately simple and crude. Keep subject recognizable in South Park universe style.' },
+      { id: 'manga', name: 'Manga', prompt: 'Transform into Japanese manga black and white comic art style. LINEWORK - Clean precise ink lines with varying thickness. Dynamic action lines and speed lines. Bold confident strokes. SHADING - Screentone dot patterns for shading and texture. Hatching and crosshatching. High contrast black and white with gray tones. EYES - Large expressive manga eyes with detailed highlights and reflections. STYLE - Shonen/Shoujo manga aesthetic. Dynamic compositions and dramatic angles. Emotional expressions. EFFECTS - Motion blur lines, impact effects, emotional symbols. PANEL - Comic panel quality illustration. Keep subject recognizable with manga stylization.' },
+      { id: 'marvelcomic', name: 'Marvel Comics', prompt: 'Transform into classic Marvel Comics illustration style. LINEWORK - Bold dynamic ink lines with confident thick-to-thin variation. Jack Kirby and John Romita Sr. influence. Strong black spotting. COLORS - Classic four-color printing palette. Bold primary colors (red, blue, yellow). Ben-Day dot patterns visible. SHADING - Dramatic shadows and highlights. Cross-hatching for texture. ANATOMY - Heroic idealized proportions. Dynamic poses with foreshortening. Muscular definition. STYLE - Bronze/Silver Age Marvel aesthetic. Action-packed compositions. Dramatic lighting. EFFECTS - Kirby Krackle energy effects, motion lines, impact bursts. Keep subject as heroic Marvel character version.' },
+      { id: 'dccomic', name: 'DC Comics', prompt: 'Transform into classic DC Comics illustration style. LINEWORK - Clean precise lines with elegant ink work. Jim Lee, Alex Ross influence for modern DC. Neal Adams classic style. COLORS - Rich jewel tones and dramatic color palettes. Deep blues, reds, golds. SHADING - Dramatic chiaroscuro lighting. Rendered shadows and highlights. ANATOMY - Idealized heroic proportions. Powerful stances and noble bearing. STYLE - Iconic DC aesthetic mixing classic and modern. Gothic undertones. Mythic, legendary quality. EFFECTS - Energy auras, dramatic lighting, atmospheric effects. Keep subject as legendary DC-style character version.' },
+      { id: 'studioghibli', name: 'Studio Ghibli', prompt: 'Transform into Studio Ghibli animated film art style. STYLE - Hayao Miyazaki and Ghibli aesthetic. Hand-painted watercolor backgrounds. Soft, warm, inviting atmosphere. CHARACTERS - Rounded friendly features. Large expressive eyes with realistic proportions. Natural hair movement. Gentle expressions. COLORS - Soft watercolor palette. Lush greens, warm earth tones, beautiful sky gradients. Pastel accents. LIGHTING - Soft natural lighting. Beautiful golden hour and dappled light effects. ATMOSPHERE - Whimsical, magical realism. Connection to nature. Spirited Away, Howl\'s Moving Castle, My Neighbor Totoro quality. DETAIL - Intricate background details. Lovingly rendered environments. Keep subject in Ghibli universe aesthetic.' },
+      { id: 'disneypixar', name: 'Disney/Pixar 3D', prompt: 'Transform into Disney/Pixar 3D animated film style. CHARACTER DESIGN - Appealing rounded shapes. Large expressive eyes. Exaggerated but appealing proportions. Smooth subsurface scattering skin. RENDERING - High-quality 3D CGI look. Soft global illumination lighting. Subsurface skin scattering. STYLE - Pixar/Disney Animation Studios aesthetic. The Incredibles, Coco, Frozen quality. Appeal and charm. HAIR - Detailed individual strand rendering. Natural movement and shine. EYES - Large glossy eyes with detailed reflections and catchlights. LIGHTING - Cinematic studio lighting. Rim lights and soft fill. Keep subject as loveable Disney/Pixar character version.' },
+      { id: 'spiderverse', name: 'Spider-Verse', prompt: 'Transform into Spider-Man: Into the Spider-Verse animated film style. TECHNIQUE - Innovative comic book meets animation hybrid. Ben-Day halftone dots visible. LINEWORK - Bold graphic novel ink lines. Visible hatching patterns. FRAME RATE - Stylized "on twos" animation look with slight motion blur. COLORS - High contrast vibrant colors. Neon accents against darks. Chromatic aberration effects. EFFECTS - Comic book sound effects, motion lines, action panels overlaid. Glitch effects between frames. STYLE - Groundbreaking Sony Animation aesthetic. Street art and graffiti influences. Keep subject in Spider-Verse visual language.' },
+      { id: 'arcane', name: 'Arcane Style', prompt: 'Transform into Arcane (League of Legends Netflix series) animation style. TECHNIQUE - Painterly 3D animation with visible brushstroke textures. Oil painting quality overlaid on 3D. COLORS - Rich saturated palette with neon accents. Deep teals, magentas, golds. Steampunk-fantasy color grading. LIGHTING - Dramatic cinematic lighting. Volumetric fog and atmospheric effects. Strong rim lights. TEXTURE - Painted texture overlays. Visible brushwork on surfaces. Stylized imperfection. STYLE - Fortiche Productions aesthetic. Gritty fantasy-punk atmosphere. Emotional intensity. Keep subject in Arcane/Piltover visual style.' },
+      { id: 'onepunchman', name: 'One Punch Man', prompt: 'Transform into One Punch Man anime art style. LINEWORK - Clean bold lines with dynamic action emphasis. Yusuke Murata manga influence. HIGH DETAIL MODE - Hyper-detailed dramatic shots with intense shading, dynamic poses, and epic scale for action moments. SIMPLE MODE - Deliberately simplified "OK" face style for comedic contrast. SHADING - High contrast dramatic shadows. Speed lines and impact effects. STYLE - Madhouse/J.C.Staff anime aesthetic. Over-the-top action sequences. Parody of superhero tropes. Keep subject in One Punch Man universe style with dramatic or comedic interpretation.' },
     ],
   },
   {
@@ -185,7 +200,6 @@ const FILTER_CATEGORIES: FilterCategory[] = [
       { id: 'coquette', name: 'Coquette', prompt: 'Apply coquette aesthetic while preserving exact facial structure and identity: Soft romantic hairstyles with bows, ribbons, pearl clips. Glossy lips, rosy cheeks, delicate natural makeup. Bows everywhere, lace, ruffles, pearls, pink accents. Feminine delicate clothing with vintage-inspired details. Soft pastels (pink, cream, white, lavender). Romantic dreamy lighting. Ultra-feminine, sweet, innocent aesthetic. Vintage doll-like charm. Keep face shape, bone structure, features identical.' },
       { id: 'cleangirl', name: 'Clean Girl', prompt: 'Apply clean girl aesthetic while preserving exact facial features and identity: Slicked-back bun or sleek low ponytail. Minimal dewy makeup, glossy lips, natural brows, subtle gold hoops. No-makeup makeup look with glowing skin. Neutral tones (beige, cream, white, camel, tan). Simple elegant pieces, minimalist jewelry. Effortless sophistication. Soft natural lighting. Fresh polished understated elegance. Keep face shape, nose, eyes, mouth identical.' },
       { id: 'oldmoney', name: 'Old Money', prompt: 'Apply old money aesthetic while preserving exact facial structure and identity: Classic elegant hairstyles (sleek bun, soft waves, neat styling). Subtle refined makeup, natural elegance. Tailored blazers, neutral palette (navy, beige, cream, white, camel). Timeless pieces, no logos, quiet luxury. Classic silhouettes, high-quality fabrics. Sophisticated understated elegance. Soft refined lighting. Kennedy family, European aristocracy aesthetic. Keep face shape, bone structure, features identical.' },
-      { id: 'acubi', name: 'Acubi', prompt: 'Apply Acubi aesthetic while preserving exact facial structure and identity: Minimalist Korean streetwear styling. Sleek hair (often dark), minimal makeup. Cargo pants, crop tops, utilitarian pieces. Neutral colors (black, white, gray, beige). Subversive basics with slight military influence. Clean lines, functional fashion. Y2K futurism meets minimalism. Urban streetwear edge. Moody atmospheric lighting. Keep face shape, bone structure, features identical.' },
     ],
   },
 ];
@@ -293,6 +307,9 @@ const App: React.FC = () => {
   // Gallery modal
   const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
   const { addItem: addToGallery, loadUserGallery } = useGallery();
+  
+  // Custom style modal
+  const [isCustomStyleOpen, setIsCustomStyleOpen] = useState<boolean>(false);
   
   // Load gallery when user logs in
   useEffect(() => {
@@ -554,10 +571,28 @@ const App: React.FC = () => {
       setCurrentGenerationId(`${filter.id}_${Date.now()}`);
       
       // Save to gallery for logged-in users
+      // Convert blob URLs to data URLs for persistence (blob URLs expire with session)
       if (user?.id && originalImageUrl) {
+        let persistentOriginalUrl = originalImageUrl;
+        
+        // Convert blob URL to data URL for persistence
+        if (originalImageUrl.startsWith('blob:')) {
+          try {
+            const response = await fetch(originalImageUrl);
+            const blob = await response.blob();
+            persistentOriginalUrl = await new Promise<string>((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.readAsDataURL(blob);
+            });
+          } catch (err) {
+            console.warn('Failed to convert original image for gallery:', err);
+          }
+        }
+        
         addToGallery({
           userId: user.id,
-          originalImage: originalImageUrl,
+          originalImage: persistentOriginalUrl,
           resultImage: newImageUrl,
           filterName: filter.name,
           filterId: filter.id,
@@ -603,6 +638,83 @@ const App: React.FC = () => {
   const handleApplySelectedFilter = async () => {
     if (!selectedFilter) return;
     await handleApplyFilter(selectedFilter);
+  };
+
+  const handleApplyCustomStyle = async (styleImageUrl: string, styleDescription: string) => {
+    if (!imageFile || !originalImageUrl) {
+      addToast('Please upload an image first', 'error');
+      return;
+    }
+    
+    setIsLoading(true);
+    setIsCustomStyleOpen(false);
+    
+    try {
+      // Convert blob URL to base64 for the style reference image
+      let styleImageBase64 = '';
+      let styleMimeType = 'image/jpeg';
+      
+      if (styleImageUrl.startsWith('blob:')) {
+        const response = await fetch(styleImageUrl);
+        const blob = await response.blob();
+        styleMimeType = blob.type || 'image/jpeg';
+        
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const result = reader.result as string;
+            if (result && result.includes(',')) {
+              resolve(result.split(',')[1]);
+            } else {
+              reject(new Error('Failed to read style image'));
+            }
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        styleImageBase64 = base64;
+      }
+      
+      // Build a custom style prompt based on the user's description
+      const customPrompt = `Apply the artistic style from the second reference image to transform the first image while preserving exact facial features and identity.
+
+${styleDescription ? `USER NOTES: ${styleDescription}\n\n` : ''}STYLE TRANSFER INSTRUCTIONS:
+- Analyze the colors, textures, lighting, and artistic techniques from the style reference image
+- Apply those same visual characteristics to the subject image
+- Match the color palette, brush strokes, lighting style, and overall aesthetic
+- Keep all facial proportions, body pose, and identity identical
+
+The person must remain 100% recognizable while adopting the style from the reference.`;
+
+      const newImageUrl = await applyImageFilter(imageFile, customPrompt, {
+        styleImageBase64,
+        styleMimeType,
+      });
+      
+      setGeneratedImageUrl(newImageUrl);
+      setActiveFilter({ id: 'custom', name: 'Custom Style', prompt: customPrompt });
+      
+      // Add to history
+      const newHistoryItem: HistoryItem = {
+        id: `custom_${Date.now()}`,
+        imageUrl: newImageUrl,
+        filterName: 'Custom Style',
+        filterId: 'custom',
+        timestamp: Date.now(),
+      };
+      const newHistory = history.slice(0, currentHistoryIndex + 1);
+      const updatedHistory = [...newHistory, newHistoryItem].slice(-MAX_HISTORY);
+      setHistory(updatedHistory);
+      setCurrentHistoryIndex(updatedHistory.length - 1);
+      
+      addToast('Custom style applied!', 'success');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to apply custom style';
+      setError(errorMessage);
+      addToast(errorMessage, 'error');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (currentPage === 'styles') {
@@ -899,7 +1011,7 @@ try {
     return (
       <>
         {/* Fixed Left Sidebar - Like Glamatron, aligned with image container top */}
-        <div className="hidden lg:block fixed left-0 xl:left-[max(0px,calc((100vw-72rem)/2))] top-[6.5rem] z-40">
+        <div className="hidden lg:block fixed left-0 xl:left-[max(0px,calc((100vw-72rem)/2))] top-32 z-40">
           <GlamatronStyleSidebar
             categories={FILTER_CATEGORIES}
             activeCategory={activeCategory}
@@ -913,6 +1025,7 @@ try {
             onRemoveImage={handleReset}
             hasImage={!!originalImageUrl}
             disabled={!originalImageUrl || isLoading}
+            onOpenCustomStyle={() => setIsCustomStyleOpen(true)}
           />
         </div>
 
@@ -965,8 +1078,8 @@ try {
             )}
           </div>
           
-          {/* Style History - Horizontal strip below image */}
-          {history.length > 0 && (
+          {/* Style History - Accordion below image - hidden during loading to prevent layout shift */}
+          {history.length > 0 && !isLoading && !isTransitioning && (
             <div className="mt-4">
               <StyleHistory
                 history={history}
@@ -1049,6 +1162,15 @@ try {
           userId={user.id}
         />
       )}
+      
+      {/* Custom Style Upload Modal */}
+      <CustomStyleUploader
+        isOpen={isCustomStyleOpen}
+        onClose={() => setIsCustomStyleOpen(false)}
+        onApplyCustomStyle={handleApplyCustomStyle}
+        isLoading={isLoading}
+        disabled={!originalImageUrl}
+      />
       
       {/* Dev Mode Toggle (only in development) */}
       <DevModeToggle

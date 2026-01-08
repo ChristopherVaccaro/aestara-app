@@ -10,7 +10,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   const handleEmailClick = () => {
-    window.location.href = 'mailto:support@aestara.app?subject=Aestara Support';
+    window.location.href = 'mailto:support@cognitav.com?subject=Aestara Support';
   };
 
   return (
@@ -51,7 +51,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
             </div>
             <div className="text-left">
               <p className="text-sm text-gray-400">Email us directly</p>
-              <p className="text-white font-medium">support@aestara.app</p>
+              <p className="text-white font-medium">support@cognitav.com</p>
             </div>
           </button>
           

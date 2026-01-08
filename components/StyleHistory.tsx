@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { CaretDown, CaretUp, Trash } from '@phosphor-icons/react';
 
 export interface HistoryItem {
   id: string;
@@ -31,9 +32,45 @@ const StyleHistory: React.FC<StyleHistoryProps> = ({
 
   return (
     <div className={wrapperClasses}>
-      {/* Horizontal scrollable thumbnails - always visible */}
-      <div className="flex items-center gap-2">
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin flex-1">
+      {/* Accordion Header */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between px-3 py-2 bg-white/5 hover:bg-white/8 rounded-lg border border-white/10 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-white/80">Style History</span>
+          <span className="text-xs text-white/40 bg-white/10 px-1.5 py-0.5 rounded">
+            {history.length}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {isExpanded && history.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClearHistory();
+              }}
+              className="p-1 text-white/40 hover:text-red-400 hover:bg-white/10 rounded transition-colors"
+              title="Clear history"
+            >
+              <Trash size={14} />
+            </button>
+          )}
+          {isExpanded ? (
+            <CaretUp size={16} className="text-white/50" />
+          ) : (
+            <CaretDown size={16} className="text-white/50" />
+          )}
+        </div>
+      </button>
+
+      {/* Collapsible Content */}
+      <div
+        className={`overflow-hidden transition-all duration-300 ease-out ${
+          isExpanded ? 'max-h-32 opacity-100 mt-2' : 'max-h-0 opacity-0'
+        }`}
+      >
+        <div className="flex gap-2 overflow-x-auto pb-2 pt-1 px-1 scrollbar-thin">
           {history.map((item, index) => (
             <button
               key={item.id}
@@ -48,7 +85,7 @@ const StyleHistory: React.FC<StyleHistoryProps> = ({
               <img
                 src={item.imageUrl}
                 alt={item.filterName}
-                className="w-12 h-12 object-cover"
+                className="w-14 h-14 object-cover"
               />
               {/* Overlay with filter name on hover */}
               <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -58,24 +95,11 @@ const StyleHistory: React.FC<StyleHistoryProps> = ({
               </div>
               {/* Current indicator */}
               {index === currentIndex && (
-                <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-blue-500 rounded-full border border-white"></div>
+                <div className="absolute top-0.5 right-0.5 w-2 h-2 bg-blue-500 rounded-full"></div>
               )}
             </button>
           ))}
         </div>
-        
-        {/* Clear button */}
-        {history.length > 1 && (
-          <button
-            onClick={onClearHistory}
-            className="flex-shrink-0 p-1.5 text-white/40 hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors"
-            title="Clear history"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        )}
       </div>
     </div>
   );

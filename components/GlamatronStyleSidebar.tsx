@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import {
   Sparkle,
   MagicWand,
@@ -33,6 +33,7 @@ interface GlamatronStyleSidebarProps {
   onRemoveImage?: () => void;
   hasImage?: boolean;
   disabled?: boolean;
+  onOpenCustomStyle?: () => void;
 }
 
 const getCategoryIcon = (name: string) => {
@@ -60,8 +61,11 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
   onRemoveImage,
   hasImage = true,
   disabled = false,
+  onOpenCustomStyle,
 }) => {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [previewStyle, setPreviewStyle] = useState<{ filter: Filter; top: number } | null>(null);
+  const filterButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   
   // Close panel when disabled state changes (e.g., during auth changes)
   React.useEffect(() => {
@@ -91,6 +95,10 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
             const isDisabled = isLoading || disabled;
             return (
               <div key={c.name} className="relative group">
+                {/* Blue notification dot when a style from this category is selected */}
+                {selectedFilterId && c.filters.some(f => f.id === selectedFilterId) && (
+                  <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-blue-500 rounded-full border-2 border-transparent z-10" />
+                )}
                 <button
                   onClick={() => {
                     if (!disabled) {
@@ -114,6 +122,27 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
               </div>
             );
           })}
+          
+          {/* Custom Style Button */}
+          {onOpenCustomStyle && (
+            <div className="relative group mt-1 pt-1 border-t border-white/10">
+              <button
+                onClick={() => {
+                  if (!disabled) {
+                    onOpenCustomStyle();
+                  }
+                }}
+                disabled={isLoading || disabled}
+                className="h-10 w-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white/60 hover:text-white hover:bg-gradient-to-br hover:from-purple-500/20 hover:to-pink-500/20 border border-transparent hover:border-purple-500/30"
+                aria-label="Custom Style"
+              >
+                <Sparkle className="w-5 h-5" weight="fill" />
+              </button>
+              <div className="pointer-events-none absolute left-12 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/80 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                Custom Style
+              </div>
+            </div>
+          )}
         </div>
 
         {active && (
@@ -134,13 +163,24 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
                 </button>
               </div>
 
-              <div className="max-h-[520px] overflow-y-auto p-3">
+              <div className="max-h-[520px] overflow-y-auto p-3 space-y-1">
                 {active.filters.map((f) => {
                   const isSelected = selectedFilterId === f.id;
                   return (
                     <button
                       key={f.id}
-                      onClick={() => onSelectFilter(f)}
+                      ref={(el) => {
+                        if (el) filterButtonRefs.current.set(f.id, el);
+                      }}
+                      onClick={() => {
+                        onSelectFilter(f);
+                        // Show preview modal instantly when selecting a style
+                        const buttonEl = filterButtonRefs.current.get(f.id);
+                        if (buttonEl) {
+                          const rect = buttonEl.getBoundingClientRect();
+                          setPreviewStyle({ filter: f, top: rect.top });
+                        }
+                      }}
                       disabled={isLoading}
                       className={`w-full p-2 text-left text-base rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                         isSelected
@@ -149,8 +189,8 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
                       }`}
                       title={f.name}
                     >
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="truncate font-medium">{f.name}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="truncate font-medium flex-1">{f.name}</span>
                         <span
                           className={`flex items-center justify-center transition-all duration-200 ${
                             isSelected ? 'text-white opacity-100' : 'opacity-0'
@@ -176,6 +216,31 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
                   Apply Style
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Style Preview Modal - positioned at the selected item's height, no backdrop click to close */}
+        {previewStyle && isPanelOpen && (
+          <div
+            className="fixed z-[70] left-[360px] w-72 bg-[#07090f]/98 backdrop-blur-xl rounded-xl border border-white/15 shadow-2xl overflow-hidden pointer-events-auto"
+            style={{ top: Math.max(80, Math.min(previewStyle.top, window.innerHeight - 400)) }}
+          >
+            <div className="flex items-center justify-between p-3 border-b border-white/10">
+              <span className="text-sm font-semibold text-white truncate">{previewStyle.filter.name}</span>
+            </div>
+            <div className="p-3">
+              <div className="relative aspect-square rounded-lg overflow-hidden bg-white/5 border border-white/10">
+                <img
+                  src={`/style-examples/${previewStyle.filter.id}-after.png`}
+                  alt={previewStyle.filter.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/style-examples/base.png';
+                  }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-white/50 text-center">Style preview example</p>
             </div>
           </div>
         )}

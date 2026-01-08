@@ -51,7 +51,7 @@ export default async function handler(req: any, res: any) {
       try { body = raw ? JSON.parse(raw) : {}; } catch { body = {}; }
     }
 
-    const { imageBase64, mimeType, prompt } = body || {};
+    const { imageBase64, mimeType, prompt, styleImageBase64, styleMimeType } = body || {};
 
     if (!imageBase64 || typeof imageBase64 !== 'string') {
       return sendJson(400, { error: 'Missing imageBase64' });
@@ -67,13 +67,22 @@ export default async function handler(req: any, res: any) {
 
     const selectedModel = 'gemini-2.5-flash-image';
 
+    // Build parts array - include style reference image if provided
+    const parts: any[] = [
+      { inlineData: { data: imageBase64, mimeType } },
+    ];
+    
+    // Add style reference image if provided for custom style transfer
+    if (styleImageBase64 && styleMimeType) {
+      parts.push({ inlineData: { data: styleImageBase64, mimeType: styleMimeType } });
+    }
+    
+    parts.push({ text: prompt });
+
     const response = await ai.models.generateContent({
       model: selectedModel,
       contents: {
-        parts: [
-          { inlineData: { data: imageBase64, mimeType } },
-          { text: prompt },
-        ],
+        parts,
       },
       config: {
         responseModalities: [Modality.IMAGE, Modality.TEXT],

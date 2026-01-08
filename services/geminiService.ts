@@ -103,7 +103,7 @@ export const refinePrompt = async (
 export const applyImageFilter = async (
   imageFile: File,
   prompt: string,
-  options?: { retryCount?: number }
+  options?: { retryCount?: number; styleImageBase64?: string; styleMimeType?: string }
 ): Promise<string> => {
   try {
     const retryCount = options?.retryCount ?? 0;
@@ -116,14 +116,22 @@ export const applyImageFilter = async (
       logger.log('Using simplified prompt due to safety filter:', finalPrompt);
     }
 
+    const requestBody: any = {
+      imageBase64: (imagePart.inlineData as any).data,
+      mimeType: (imagePart.inlineData as any).mimeType,
+      prompt: finalPrompt,
+    };
+    
+    // Add style reference image if provided
+    if (options?.styleImageBase64 && options?.styleMimeType) {
+      requestBody.styleImageBase64 = options.styleImageBase64;
+      requestBody.styleMimeType = options.styleMimeType;
+    }
+
     const res = await fetch(`${API_BASE}/api/apply-image-filter`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        imageBase64: (imagePart.inlineData as any).data,
-        mimeType: (imagePart.inlineData as any).mimeType,
-        prompt: finalPrompt,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!res.ok) {

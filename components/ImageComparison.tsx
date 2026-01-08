@@ -485,12 +485,16 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
                 <div className="flex items-center gap-1 bg-black/60 border border-white/20 backdrop-blur-sm rounded-full p-1">
                   <button
                     onClick={(e) => { e.stopPropagation(); setCompareBaseline('original'); }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
                     className={`text-[11px] px-2 py-0.5 rounded-full transition ${compareBaseline === 'original' ? 'bg-white/20 text-white' : 'text-gray-300 hover:text-white'}`}
                   >
                     Original
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); setCompareBaseline('previous'); }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
                     className={`text-[11px] px-2 py-0.5 rounded-full transition ${compareBaseline === 'previous' ? 'bg-white/20 text-white' : 'text-gray-300 hover:text-white'}`}
                   >
                     Previous
