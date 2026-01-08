@@ -52,46 +52,23 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
     // Only allow one vote per generation
     if (voted) return;
     
-    if (isPositive) {
-      // Thumbs up: record immediately
-      setVoted('up');
-      setIsAnimating(true);
-      
-      const voteId = await recordVote(
-        filterName, 
-        isPositive, 
-        generationId, 
-        filterId, 
-        currentPrompt,
-        handleRefinementTriggered
-      );
-      
-      setTimeout(() => setIsAnimating(false), 300);
-      onVoteRecorded?.(isPositive);
-      
-      logVoteStats();
-    } else {
-      // Thumbs down: show tag selector first
-      const voteId = await recordVote(
-        filterName, 
-        isPositive, 
-        generationId, 
-        filterId, 
-        currentPrompt,
-        handleRefinementTriggered
-      );
-      
-      if (voteId) {
-        setPendingVoteId(voteId);
-        setShowTagSelector(true);
-      } else {
-        // Fallback if vote recording fails
-        setVoted('down');
-        setIsAnimating(true);
-        setTimeout(() => setIsAnimating(false), 300);
-        onVoteRecorded?.(isPositive);
-      }
-    }
+    // Record vote and highlight immediately (no feedback form)
+    setVoted(isPositive ? 'up' : 'down');
+    setIsAnimating(true);
+    
+    await recordVote(
+      filterName, 
+      isPositive, 
+      generationId, 
+      filterId, 
+      currentPrompt,
+      handleRefinementTriggered
+    );
+    
+    setTimeout(() => setIsAnimating(false), 300);
+    onVoteRecorded?.(isPositive);
+    
+    logVoteStats();
   };
 
   const handleTagsSubmit = async (selectedTagIds: string[]) => {
@@ -153,33 +130,35 @@ export const GenerationFeedback: React.FC<GenerationFeedbackProps> = ({
       />
       
       <div className={outerClasses}>
-        {voted ? (
-          // Show thank you message after voting
-          <span className="text-sm text-white/80 animate-fade-in">
-            Thanks for your feedback!
-          </span>
-        ) : (
-          // Show rating buttons before voting
-          <>
-            <span className="text-sm text-white/60">Rate this image:</span>
-            
-            <button
-              onClick={() => handleVote(true)}
-              className="p-2 rounded-lg transition-all duration-200 hover:bg-white/10 text-white/70 hover:text-white hover:scale-110"
-              aria-label="Thumbs up"
-            >
-              <ThumbsUp className="w-5 h-5" />
-            </button>
+        <button
+          onClick={() => handleVote(true)}
+          disabled={!!voted}
+          className={`p-2 rounded-lg transition-all duration-200 disabled:cursor-default ${
+            voted === 'up' 
+              ? 'bg-green-500/20 text-green-400' 
+              : voted 
+                ? 'text-white/30' 
+                : 'hover:bg-white/10 text-white/70 hover:text-white hover:scale-110'
+          }`}
+          aria-label="Thumbs up"
+        >
+          <ThumbsUp className="w-5 h-5" weight={voted === 'up' ? 'fill' : 'regular'} />
+        </button>
 
-            <button
-              onClick={() => handleVote(false)}
-              className="p-2 rounded-lg transition-all duration-200 hover:bg-white/10 text-white/70 hover:text-white hover:scale-110"
-              aria-label="Thumbs down"
-            >
-              <ThumbsDown className="w-5 h-5" />
-            </button>
-          </>
-        )}
+        <button
+          onClick={() => handleVote(false)}
+          disabled={!!voted}
+          className={`p-2 rounded-lg transition-all duration-200 disabled:cursor-default ${
+            voted === 'down' 
+              ? 'bg-red-500/20 text-red-400' 
+              : voted 
+                ? 'text-white/30' 
+                : 'hover:bg-white/10 text-white/70 hover:text-white hover:scale-110'
+          }`}
+          aria-label="Thumbs down"
+        >
+          <ThumbsDown className="w-5 h-5" weight={voted === 'down' ? 'fill' : 'regular'} />
+        </button>
       </div>
     </>
   );

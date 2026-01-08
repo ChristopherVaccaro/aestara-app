@@ -21,6 +21,8 @@ import ImageEditor from './components/ImageEditor';
 import StyleGallery from './components/StyleGallery';
 import GlamatronStyleSidebar from './components/GlamatronStyleSidebar';
 import Footer from './components/Footer';
+import ContactModal from './components/ContactModal';
+import HelpFAQModal from './components/HelpFAQModal';
 import GalleryModal from './components/GalleryModal';
 import { useGallery } from './contexts/GalleryContext';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -265,6 +267,8 @@ const App: React.FC = () => {
   const [showTerms, setShowTerms] = useState<boolean>(false);
   const [showPrivacy, setShowPrivacy] = useState<boolean>(false);
   const [showFeedback, setShowFeedback] = useState<boolean>(false);
+  const [showContact, setShowContact] = useState<boolean>(false);
+  const [showHelp, setShowHelp] = useState<boolean>(false);
   // Track if a modal/drawer overlay is open to adjust z-index of Category panel
   const [overlayOpen, setOverlayOpen] = useState<boolean>(false);
   
@@ -889,10 +893,13 @@ try {
   };
 
   const renderContent = () => {
+    // Fixed height for consistent sizing like Glamatron
+    const CONTAINER_HEIGHT = 'h-[400px] sm:h-[500px] md:h-[65vh] lg:h-[70vh] md:max-h-[750px]';
+    
     return (
-      <div className="w-full max-w-6xl mx-auto flex flex-col lg:grid lg:grid-cols-[80px_minmax(0,1fr)] lg:gap-4 items-start overflow-visible h-full">
-        {/* Desktop Left Toolbar - Always visible, disabled when no image */}
-        <div className="hidden lg:flex w-full justify-center">
+      <>
+        {/* Fixed Left Sidebar - Like Glamatron, aligned with image container top */}
+        <div className="hidden lg:block fixed left-0 xl:left-[max(0px,calc((100vw-72rem)/2))] top-[6.5rem] z-40">
           <GlamatronStyleSidebar
             categories={FILTER_CATEGORIES}
             activeCategory={activeCategory}
@@ -909,106 +916,68 @@ try {
           />
         </div>
 
-        {/* Main Content Area */}
-        {!originalImageUrl ? (
-          <ImageUploader onImageUpload={handleImageUpload} />
-        ) : (
-          <div className="w-full">
-          <div className="relative pb-6">
-            {isLoading || isTransitioning ? (
-              <BlurredImageLoading 
-                originalImageUrl={originalImageUrl}
-                message={isTransitioning ? 'Finalizing...' : (activeFilter ? `Applying ${activeFilter.name}...` : 'Processing image...')}
-                estimatedTimeMs={isTransitioning ? 300 : 10000}
-              />
-            ) : generatedImageUrl ? (
-              <ImageComparison
-                originalImageUrl={originalImageUrl}
-                generatedImageUrl={generatedImageUrl}
-                activeFilterName={activeFilter?.name || 'Styled'}
-                onOpenPreview={handleOpenPreview}
-                onDownload={handleDownload}
-                onShare={handleShare}
-                onEdit={handleOpenEditor}
-                onSaveAIEdit={handleSaveAIEdit}
-                previousImageUrl={currentHistoryIndex > 0 ? history[currentHistoryIndex - 1]?.imageUrl : undefined}
-              />
+        {/* Main Content Area - Offset for fixed sidebar */}
+        <div className="w-full max-w-6xl mx-auto lg:pl-20">
+          <div className={`w-full ${CONTAINER_HEIGHT}`}>
+            {!originalImageUrl ? (
+              <ImageUploader onImageUpload={handleImageUpload} />
             ) : (
-              <ImageDisplay
-                originalImageUrl={originalImageUrl}
-                generatedImageUrl={generatedImageUrl}
-                isLoading={isLoading}
-                isPeeking={isPeeking}
-                onPeekStart={handlePeekStart}
-                onPeekEnd={handlePeekEnd}
-                onOpenPreview={handleOpenPreview}
-                onDownload={handleDownload}
-                onShare={handleShare}
-                onEdit={handleOpenEditor}
-                onSaveAIEdit={handleSaveAIEdit}
-                error={error}
-                activeFilterName={activeFilter?.name || null}
-                isDevMode={isDevMode}
-              />
+              <div className="w-full h-full relative">
+                {isLoading || isTransitioning ? (
+                  <BlurredImageLoading 
+                    originalImageUrl={originalImageUrl}
+                    message={isTransitioning ? 'Finalizing...' : (activeFilter ? `Applying ${activeFilter.name}...` : 'Processing image...')}
+                    estimatedTimeMs={isTransitioning ? 300 : 10000}
+                  />
+                ) : generatedImageUrl ? (
+                  <ImageComparison
+                    originalImageUrl={originalImageUrl}
+                    generatedImageUrl={generatedImageUrl}
+                    activeFilterName={activeFilter?.name || 'Styled'}
+                    onOpenPreview={handleOpenPreview}
+                    onDownload={handleDownload}
+                    onShare={handleShare}
+                    onEdit={handleOpenEditor}
+                    onSaveAIEdit={handleSaveAIEdit}
+                    previousImageUrl={currentHistoryIndex > 0 ? history[currentHistoryIndex - 1]?.imageUrl : undefined}
+                    onRemoveImage={handleReset}
+                  />
+                ) : (
+                  <ImageDisplay
+                    originalImageUrl={originalImageUrl}
+                    generatedImageUrl={generatedImageUrl}
+                    isLoading={isLoading}
+                    isPeeking={isPeeking}
+                    onPeekStart={handlePeekStart}
+                    onPeekEnd={handlePeekEnd}
+                    onOpenPreview={handleOpenPreview}
+                    onDownload={handleDownload}
+                    onShare={handleShare}
+                    onEdit={handleOpenEditor}
+                    onSaveAIEdit={handleSaveAIEdit}
+                    error={error}
+                    activeFilterName={activeFilter?.name || null}
+                    isDevMode={isDevMode}
+                    onRemoveImage={handleReset}
+                  />
+                )}
+              </div>
             )}
           </div>
-
-          {/* Rate this Image and Style History - Under Image Preview */}
-          <div className="mt-6 space-y-4">
-            {/* Desktop: Side by side layout */}
-            <div className="hidden lg:flex flex-wrap items-center justify-center gap-4">
-              {generatedImageUrl && !isLoading && activeFilter && currentGenerationId && (
-                <GenerationFeedback
-                  filterName={activeFilter.id}
-                  generationId={currentGenerationId}
-                  filterId={activeFilter.id}
-                  currentPrompt={currentPromptUsed || undefined}
-                  onVoteRecorded={handleVoteRecorded}
-                  onShowToast={addToast}
-                  wrapperClassName="inline-flex items-center gap-4 px-4 py-3 rounded-2xl border border-white/15 bg-white/[0.08] backdrop-blur-2xl shadow-2xl shadow-black/40"
-                />
-              )}
-              {history.length > 0 && (
-                <StyleHistory
-                  history={history}
-                  currentIndex={currentHistoryIndex}
-                  onSelectHistory={handleSelectHistory}
-                  onClearHistory={handleClearHistory}
-                  containerClassName="w-fit max-w-full rounded-2xl border border-white/15 bg-white/[0.08] backdrop-blur-2xl shadow-2xl shadow-black/40 px-4 py-3"
-                />
-              )}
+          
+          {/* Style History - Horizontal strip below image */}
+          {history.length > 0 && (
+            <div className="mt-4">
+              <StyleHistory
+                history={history}
+                currentIndex={currentHistoryIndex}
+                onSelectHistory={handleSelectHistory}
+                onClearHistory={handleClearHistory}
+              />
             </div>
-
-            {/* Mobile: Stacked layout */}
-            <div className="lg:hidden space-y-4">
-              {generatedImageUrl && !isLoading && activeFilter && currentGenerationId && (
-                <div className="glass-panel p-4 w-full">
-                  <GenerationFeedback
-                    filterName={activeFilter.id}
-                    generationId={currentGenerationId}
-                    filterId={activeFilter.id}
-                    currentPrompt={currentPromptUsed || undefined}
-                    onVoteRecorded={handleVoteRecorded}
-                    onShowToast={addToast}
-                  />
-                </div>
-              )}
-              {history.length > 0 && (
-                <div className="glass-panel p-4 w-full">
-                  <h3 className="text-sm font-semibold text-white/80 mb-2">Style History</h3>
-                  <StyleHistory
-                    history={history}
-                    currentIndex={currentHistoryIndex}
-                    onSelectHistory={handleSelectHistory}
-                    onClearHistory={handleClearHistory}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
+          )}
         </div>
-        )}
-      </div>
+      </>
     );
   };
 
@@ -1037,11 +1006,15 @@ try {
         </div>
       )}
       
-      <Header onLogoClick={handleReset} hideMenu={isEditorOpen} onOpenGallery={() => setIsGalleryOpen(true)} />
+      <Header onLogoClick={handleReset} hideMenu={isEditorOpen} onOpenGallery={() => setIsGalleryOpen(true)} onOpenHelp={() => setShowHelp(true)} />
       <main className="w-full max-w-6xl mx-auto flex-1 flex items-start justify-center px-4 sm:px-6 overflow-y-auto pt-4 md:pt-8">
         {renderContent()}
       </main>
-      <Footer />
+      <Footer 
+        onOpenContact={() => setShowContact(true)}
+        onOpenTerms={() => setShowTerms(true)}
+        onOpenPrivacy={() => setShowPrivacy(true)}
+      />
       {isPreviewOpen && previewImageUrl && (
         <ImagePreviewModal 
           imageUrl={previewImageUrl} 
@@ -1063,6 +1036,10 @@ try {
       {showTerms && <TermsOfService onClose={() => setShowTerms(false)} />}
       {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
       {showFeedback && <FeedbackForm onClose={() => setShowFeedback(false)} />}
+      
+      {/* Contact and Help Modals */}
+      <ContactModal isOpen={showContact} onClose={() => setShowContact(false)} />
+      <HelpFAQModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
       
       {/* Gallery Modal */}
       {user && (

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { X } from '@phosphor-icons/react';
 import FilterSelector from './FilterSelector';
 import CategorySelector from './CategorySelector';
 import StyleHistory, { HistoryItem } from './StyleHistory';
@@ -156,43 +157,20 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
 
         {/* Header - iOS style - Also draggable */}
         <div 
-          className="px-4 py-3 border-b border-white/10 cursor-grab active:cursor-grabbing"
+          className="px-4 py-3 border-b border-white/10 cursor-grab active:cursor-grabbing flex items-center justify-between"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
+          <div className="w-8" />
           <h3 className="text-lg font-semibold text-white text-center tracking-tight">Styles</h3>
-          {selectedFilter && (
-            <div className="mt-2">
-              <div className="text-center text-xs text-white/80 font-medium truncate px-2">
-                {selectedFilter.name}
-              </div>
-              <div className="mt-2">
-                {(() => {
-                  const after = getStyleExampleThumbSources(selectedFilter.id, selectedFilter.name, 'after');
-                  return (
-                    <div className="relative rounded-lg overflow-hidden border border-white/10 bg-white/5">
-                      <img
-                        src={after.primary}
-                        alt=""
-                        aria-hidden="true"
-                        className="w-full h-20 object-cover"
-                        onError={(e) => {
-                          const el = e.currentTarget;
-                          if (el.src !== after.fallback) {
-                            el.src = after.fallback;
-                          }
-                        }}
-                      />
-                      <div className="absolute top-1 left-1 text-[10px] px-2 py-0.5 rounded-full bg-black/40 text-white/90 border border-white/10">
-                        Preview
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-          )}
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-colors"
+            aria-label="Close"
+          >
+            <X size={18} weight="bold" />
+          </button>
         </div>
 
         {/* Scrollable Content Area - Category, Filters and History */}
@@ -263,18 +241,6 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
           </div>
         </div>
 
-        {/* Close Button - iOS X style */}
-        <div className="absolute top-3 right-3">
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 transition-colors duration-150 flex items-center justify-center"
-            aria-label="Close"
-          >
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
       </div>
     </div>
   );

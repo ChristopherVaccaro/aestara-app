@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, SignOut, CaretDown, ImageSquare, Question } from '@phosphor-icons/react';
+import { User, SignOut, CaretDown, ImageSquare, Question, Lightning } from '@phosphor-icons/react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface ProfileDropdownProps {
@@ -70,27 +70,36 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
 
   return (
     <div ref={dropdownRef} className="relative">
-      {/* Avatar Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 p-1 rounded-full hover:bg-white/10 transition-colors"
-      >
-        <div className={`w-9 h-9 ${getAvatarBg()} rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-md`}>
-          {user.user_metadata?.avatar_url ? (
-            <img 
-              src={user.user_metadata.avatar_url} 
-              alt={displayName} 
-              className="w-full h-full rounded-full object-cover" 
-            />
-          ) : (
-            getInitials(displayEmail)
-          )}
+      {/* Credits Badge + Avatar Button */}
+      <div className="flex items-center gap-2">
+        {/* Credits Display - matches avatar height */}
+        <div className="flex items-center gap-1.5 h-9 px-2.5 bg-white/5 border border-white/10 rounded-full">
+          <Lightning size={16} className="text-amber-400" weight="fill" />
+          <span className="text-sm font-medium text-white/80">∞</span>
         </div>
-        <CaretDown 
-          size={16} 
-          className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
-        />
-      </button>
+        
+        {/* Avatar Button */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-2 p-1 rounded-full hover:bg-white/10 transition-colors"
+        >
+          <div className={`w-9 h-9 ${getAvatarBg()} rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-md`}>
+            {user.user_metadata?.avatar_url ? (
+              <img 
+                src={user.user_metadata.avatar_url} 
+                alt={displayName} 
+                className="w-full h-full rounded-full object-cover" 
+              />
+            ) : (
+              getInitials(displayEmail)
+            )}
+          </div>
+          <CaretDown 
+            size={16} 
+            className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+          />
+        </button>
+      </div>
 
       {/* Dropdown Menu */}
       {isOpen && (

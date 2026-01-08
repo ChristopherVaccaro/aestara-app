@@ -247,32 +247,31 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, userId }) 
         tabIndex={-1}
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-xl border-b border-white/10 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h2 className="text-xl font-bold text-white">My Gallery</h2>
-              <span className="text-sm text-slate-400">
+        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+              <h2 className="text-lg sm:text-xl font-bold text-white whitespace-nowrap">My Gallery</h2>
+              <span className="text-xs sm:text-sm text-slate-400 truncate">
                 {items.length} {items.length === 1 ? 'image' : 'images'}
-                {favoritesCount > 0 && ` · ${favoritesCount} favorites`}
               </span>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
               {isSelectMode ? (
                 <>
-                  <span className="text-sm text-slate-400">
+                  <span className="text-xs sm:text-sm text-slate-400 hidden sm:inline">
                     {selectedIds.size} selected
                   </span>
                   <button
                     onClick={() => setShowBulkDeleteConfirm(true)}
                     disabled={selectedIds.size === 0}
-                    className="px-3 py-1.5 bg-red-500/20 text-red-400 text-sm font-medium rounded-lg hover:bg-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-2 sm:px-3 py-1.5 bg-red-500/20 text-red-400 text-xs sm:text-sm font-medium rounded-lg hover:bg-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Delete Selected
+                    Delete
                   </button>
                   <button
                     onClick={exitSelectMode}
-                    className="px-3 py-1.5 bg-slate-700 text-slate-300 text-sm font-medium rounded-lg hover:bg-slate-600 transition-colors"
+                    className="px-2 sm:px-3 py-1.5 bg-slate-700 text-slate-300 text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-600 transition-colors"
                   >
                     Cancel
                   </button>
@@ -282,40 +281,29 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, userId }) 
                   {items.length > 0 && (
                     <button
                       onClick={() => setIsSelectMode(true)}
-                      className="px-3 py-1.5 bg-slate-700 text-slate-300 text-sm font-medium rounded-lg hover:bg-slate-600 transition-colors"
+                      className="px-2 sm:px-3 py-1.5 bg-slate-700 text-slate-300 text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-600 transition-colors"
                     >
                       Select
                     </button>
                   )}
                   
-                  {/* Time filter */}
+                  {/* Time filter - hidden on mobile */}
                   <select
                     value={timePeriod}
                     onChange={(e) => setTimePeriod(e.target.value as TimePeriod)}
-                    className="px-3 py-1.5 bg-slate-700 text-slate-300 text-sm rounded-lg border-none focus:ring-2 focus:ring-blue-500"
+                    className="hidden sm:block px-2 sm:px-3 py-1.5 bg-slate-700 text-slate-300 text-xs sm:text-sm rounded-lg border-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="all">All Time</option>
                     <option value="today">Today</option>
                     <option value="week">This Week</option>
                     <option value="month">This Month</option>
                   </select>
-                  
-                  {/* Sort */}
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as SortOption)}
-                    className="px-3 py-1.5 bg-slate-700 text-slate-300 text-sm rounded-lg border-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="newest">Newest First</option>
-                    <option value="oldest">Oldest First</option>
-                    <option value="favorites">Favorites First</option>
-                  </select>
                 </>
               )}
               
               <button
                 onClick={onClose}
-                className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
               >
                 <X size={20} />
               </button>

@@ -58,17 +58,23 @@ const BlurredImageLoading: React.FC<BlurredImageLoadingProps> = ({
               {message}
             </p>
             
-            {/* Progress Bar */}
-            <div className="w-64 px-4">
-              <div className="h-1.5 bg-black/40 rounded-full overflow-hidden backdrop-blur-sm">
-                <div
-                  className="h-full bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 transition-all duration-300 ease-out"
-                  style={{ 
-                    width: `${progress}%`,
-                    backgroundSize: '200% 100%',
-                    animation: 'shimmer 2s linear infinite'
-                  }}
-                />
+            {/* Segmented Progress Bar - Larger segments */}
+            <div className="w-72 px-4">
+              <div className="flex gap-1.5">
+                {Array.from({ length: 10 }).map((_, i) => {
+                  const segmentProgress = (i + 1) * 10; // Each segment = 10%
+                  const isActive = progress >= segmentProgress;
+                  return (
+                    <div
+                      key={i}
+                      className={`h-3 flex-1 rounded transition-all duration-150 ${
+                        isActive 
+                          ? 'bg-blue-500' 
+                          : 'bg-white/10'
+                      }`}
+                    />
+                  );
+                })}
               </div>
               <div className="flex justify-between mt-2 text-xs text-white/80 drop-shadow">
                 <span>{Math.round(progress)}%</span>
@@ -79,16 +85,6 @@ const BlurredImageLoading: React.FC<BlurredImageLoadingProps> = ({
         </div>
       </div>
 
-      <style>{`
-        @keyframes shimmer {
-          0% {
-            background-position: -200% 0;
-          }
-          100% {
-            background-position: 200% 0;
-          }
-        }
-      `}</style>
     </div>
   );
 };
