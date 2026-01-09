@@ -67,14 +67,17 @@ export default async function handler(req: any, res: any) {
 
     const selectedModel = 'gemini-2.5-flash-image';
 
-    // Build parts array - include style reference image if provided
-    const parts: any[] = [
-      { inlineData: { data: imageBase64, mimeType } },
-    ];
+    // Build parts array - for custom style transfer, order matters:
+    // Style reference first (to analyze), then target image (to transform)
+    const parts: any[] = [];
     
-    // Add style reference image if provided for custom style transfer
     if (styleImageBase64 && styleMimeType) {
+      // Custom style transfer: style reference FIRST, target image SECOND
       parts.push({ inlineData: { data: styleImageBase64, mimeType: styleMimeType } });
+      parts.push({ inlineData: { data: imageBase64, mimeType } });
+    } else {
+      // Normal filter: just the target image
+      parts.push({ inlineData: { data: imageBase64, mimeType } });
     }
     
     parts.push({ text: prompt });

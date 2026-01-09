@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Sparkle,
   MagicWand,
@@ -64,8 +64,6 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
   onOpenCustomStyle,
 }) => {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [previewStyle, setPreviewStyle] = useState<{ filter: Filter; top: number } | null>(null);
-  const filterButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   
   // Close panel when disabled state changes (e.g., during auth changes)
   React.useEffect(() => {
@@ -169,17 +167,8 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
                   return (
                     <button
                       key={f.id}
-                      ref={(el) => {
-                        if (el) filterButtonRefs.current.set(f.id, el);
-                      }}
                       onClick={() => {
                         onSelectFilter(f);
-                        // Show preview modal instantly when selecting a style
-                        const buttonEl = filterButtonRefs.current.get(f.id);
-                        if (buttonEl) {
-                          const rect = buttonEl.getBoundingClientRect();
-                          setPreviewStyle({ filter: f, top: rect.top });
-                        }
                       }}
                       disabled={isLoading}
                       className={`w-full p-2 text-left text-base rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
@@ -220,30 +209,6 @@ const GlamatronStyleSidebar: React.FC<GlamatronStyleSidebarProps> = ({
           </div>
         )}
 
-        {/* Style Preview Modal - positioned at the selected item's height, no backdrop click to close */}
-        {previewStyle && isPanelOpen && (
-          <div
-            className="fixed z-[70] left-[360px] w-72 bg-[#07090f]/98 backdrop-blur-xl rounded-xl border border-white/15 shadow-2xl overflow-hidden pointer-events-auto"
-            style={{ top: Math.max(80, Math.min(previewStyle.top, window.innerHeight - 400)) }}
-          >
-            <div className="flex items-center justify-between p-3 border-b border-white/10">
-              <span className="text-sm font-semibold text-white truncate">{previewStyle.filter.name}</span>
-            </div>
-            <div className="p-3">
-              <div className="relative aspect-square rounded-lg overflow-hidden bg-white/5 border border-white/10">
-                <img
-                  src={`/style-examples/${previewStyle.filter.id}-after.png`}
-                  alt={previewStyle.filter.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/style-examples/base.png';
-                  }}
-                />
-              </div>
-              <p className="mt-2 text-xs text-white/50 text-center">Style preview example</p>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );
