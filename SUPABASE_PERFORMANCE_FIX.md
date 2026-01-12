@@ -205,3 +205,161 @@ And delete:
 2. **Implement optimistic updates** - Already done for favorites, expand to other operations
 3. **Add connection pooling metrics** - Monitor from Supabase dashboard
 4. **Consider edge caching** - For prompts that rarely change
+
+---
+
+# Gallery Persistence Fix (Additional)
+
+## Root Cause Discovered
+
+**Problem:** Gallery thumbnails broke after logout/login because:
+
+1. **`loadedUserRef` not reset on logout** - When user logged out and back in with same account, `loadedUserRef.current === userId` was still true, so gallery never reloaded from DB
+2. **Gallery items not cleared on logout** - Stale items remained in memory while DB had newer data
+3. **Missing force reload on login** - Even when loading, the cache guard prevented fresh DB fetch
+
+## Pattern Comparison: Glamatron vs Aestara
+
+| Aspect | Glamatron (Working) | Aestara (Was Broken) |
+|--------|---------------------|----------------------|
+| DB Table | `gallery_items` | `gallery` |
+| URL Storage | Full public URL | Full public URL ✓ |
+| Bucket | `gallery-images` (PUBLIC) | `gallery-images` (PUBLIC) ✓ |
+| On Logout | Clears local state | Did NOT clear state ✗ |
+| On Re-login | Forces reload from DB | Skipped due to cache ✗ |
+
+## Fixes Applied
+
+### 1. GalleryContext Changes (`contexts/GalleryContext.tsx`)
+
+- Added `resetGalleryState()` function to clear local state on logout
+- Modified `loadUserGallery(userId, forceReload)` to:
+  - Clear items when user changes
+  - Accept `forceReload` parameter to bypass cache
+  - Add comprehensive debug logging
+
+### 2. App.tsx Changes
+
+- Track previous user ID with `prevUserIdRef`
+- On logout: call `resetGalleryState()`
+- On login: call `loadUserGallery(userId, true)` with force reload
+
+### 3. Storage Service Changes (`services/storageService.ts`)
+
+- Added detailed error messages for policy failures
+- Added debug logging for upload success/failure
+
+## Verification Checklist - Gallery Persistence
+
+### Pre-Test Setup
+1. Add `VITE_DEBUG_SUPABASE=true` to `.env.local`
+2. Open browser DevTools → Console
+3. Clear localStorage: `localStorage.removeItem('ai-stylizer-auth')`
+
+### Test Procedure
+
+#### 1. Fresh Login + Generation Test
+- [ ] Login with Google/email
+- [ ] Console shows: `📥 [Gallery] Loading gallery for user: xxxxxxxx...`
+- [ ] Upload an image
+- [ ] Apply a style filter
+- [ ] Console shows: `📤 [Gallery] Adding item, input URLs: {...}`
+- [ ] Console shows: `📥 [Gallery] Final URLs to store: {...}` with `isStorageUrl: true`
+- [ ] Open Gallery modal - image thumbnail displays correctly
+
+#### 2. Supabase Dashboard Verification
+- [ ] Go to Supabase Dashboard → Storage → gallery-images
+- [ ] Verify image files exist under `{user_id}/original_*.png` and `{user_id}/result_*.png`
+- [ ] Go to Table Editor → gallery table
+- [ ] Verify row exists with `original_image` and `result_image` containing storage URLs (not blob: or data:)
+
+#### 3. Logout + Re-login Test (Critical)
+- [ ] Logout
+- [ ] Console shows: `🧹 [Gallery] Resetting gallery state (logout)`
+- [ ] Login again with same account
+- [ ] Console shows: `📥 [Gallery] Loading gallery for user: xxxxxxxx...`
+- [ ] Console shows: `✅ [Gallery] Loaded X items`
+- [ ] Console shows: `🔍 [Gallery] First item URLs: {...}` with `isStorageUrl: true`
+- [ ] Open Gallery modal - thumbnails display correctly
+- [ ] Images load without 404 errors
+
+#### 4. Different User Test
+- [ ] Logout
+- [ ] Login with a different account
+- [ ] Console shows: `🔄 [Gallery] User changed, clearing old items` (if switching users)
+- [ ] New user's gallery loads (or empty if new)
+
+### Expected Console Output (Success Case)
+
+```
+📥 [Gallery] Loading gallery for user: a1b2c3d4...
+✅ [Gallery] Loaded 3 items
+🔍 [Gallery] First item URLs: {
+  original: "https://xxx.supabase.co/storage/v1/object/public/gallery-images/...",
+  result: "https://xxx.supabase.co/storage/v1/object/public/gallery-images/...",
+  isStorageUrl: true
+}
+```
+
+### Failure Indicators
+
+❌ `isStorageUrl: false` in logs → Upload failed, storing blob/data URL
+❌ `❌ [Storage] Error uploading` → Check bucket policies
+❌ `❌ [Gallery] Error loading from Supabase` → Check table RLS policies
+❌ Thumbnails show broken image icon → URL expired or bucket not public
+
+## Required Supabase Configuration
+
+### Storage Bucket: `gallery-images`
+- **Public access:** YES (match Glamatron)
+- **Allowed MIME types:** image/*
+
+### Storage Policies (storage.objects)
+
+```sql
+-- Allow authenticated users to upload to their folder
+CREATE POLICY "Users can upload images"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'gallery-images');
+
+-- Allow public read access (for thumbnail display)
+CREATE POLICY "Public read access"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'gallery-images');
+
+-- Allow users to delete their own images
+CREATE POLICY "Users can delete own images"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (bucket_id = 'gallery-images' AND auth.uid()::text = (storage.foldername(name))[1]);
+```
+
+### Gallery Table RLS Policies
+
+```sql
+-- Users can read their own gallery items
+CREATE POLICY "Users can view own gallery"
+ON gallery FOR SELECT
+TO authenticated
+USING (user_id = auth.uid());
+
+-- Users can insert their own gallery items
+CREATE POLICY "Users can insert own gallery"
+ON gallery FOR INSERT
+TO authenticated
+WITH CHECK (user_id = auth.uid());
+
+-- Users can update their own gallery items
+CREATE POLICY "Users can update own gallery"
+ON gallery FOR UPDATE
+TO authenticated
+USING (user_id = auth.uid());
+
+-- Users can delete their own gallery items
+CREATE POLICY "Users can delete own gallery"
+ON gallery FOR DELETE
+TO authenticated
+USING (user_id = auth.uid());
+```
