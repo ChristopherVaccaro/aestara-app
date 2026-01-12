@@ -3,7 +3,7 @@
  * Shows user profile with prompt usage statistics
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { X, TrendUp, Calendar, Hash } from '@phosphor-icons/react';
 import { useAuth } from '../contexts/AuthContext';
 import UserAvatar from './UserAvatar';
@@ -22,12 +22,20 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
   const [usageStats, setUsageStats] = useState<PromptUsageStats[]>([]);
   const [totalUsage, setTotalUsage] = useState(0);
   const [loading, setLoading] = useState(true);
+  
+  // Guard to prevent duplicate fetches
+  const loadedUserIdRef = useRef<string | null>(null);
+
+  // Stable user ID reference to prevent useEffect re-runs
+  const userId = user?.id;
 
   useEffect(() => {
-    if (user?.id) {
+    // Only load if user ID exists and hasn't been loaded yet
+    if (userId && loadedUserIdRef.current !== userId) {
+      loadedUserIdRef.current = userId;
       loadUsageStats();
     }
-  }, [user]);
+  }, [userId]);
 
   const loadUsageStats = async () => {
     if (!user?.id) return;

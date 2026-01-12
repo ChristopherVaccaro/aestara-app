@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { List, X, FileText, Shield, ChatCircle, ChartBar, Palette } from '@phosphor-icons/react';
-import FeedbackForm from './FeedbackForm';
+import { List, X, FileText, Shield, Envelope, Palette } from '@phosphor-icons/react';
 import TermsOfService from './TermsOfService';
 import PrivacyPolicy from './PrivacyPolicy';
+import ContactModal from './ContactModal';
 import { AuthButton } from './AuthButton';
 import { useAuth } from '../contexts/AuthContext';
 
 const HamburgerMenu: React.FC = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [showFeedback, setShowFeedback] = useState(false);
+  const [showContact, setShowContact] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const currentYear = new Date().getFullYear();
@@ -26,8 +26,8 @@ const HamburgerMenu: React.FC = () => {
     }
   }, [isOpen]);
 
-  const handleFeedbackClick = () => {
-    setShowFeedback(true);
+  const handleContactClick = () => {
+    setShowContact(true);
   };
 
   const handleStyleGalleryClick = () => {
@@ -140,11 +140,11 @@ const HamburgerMenu: React.FC = () => {
             </button>
 
             <button
-              onClick={handleFeedbackClick}
+              onClick={handleContactClick}
               className="flex items-center gap-3 px-4 py-3 rounded-lg bg-black/30 hover:bg-black/50 transition-colors text-white text-left"
             >
-              <ChatCircle className="w-5 h-5 text-white" />
-              <span>Feedback</span>
+              <Envelope className="w-5 h-5 text-white" />
+              <span>Contact Us</span>
             </button>
           </nav>
 
@@ -158,7 +158,7 @@ const HamburgerMenu: React.FC = () => {
       {/* Modals */}
       {showTerms && <TermsOfService onClose={() => setShowTerms(false)} />}
       {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
-      {showFeedback && <FeedbackForm onClose={() => setShowFeedback(false)} />}
+      <ContactModal isOpen={showContact} onClose={() => setShowContact(false)} />
     </>
   );
 };

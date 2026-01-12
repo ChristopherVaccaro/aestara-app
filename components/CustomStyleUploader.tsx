@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, Sparkle, Image as ImageIcon, ArrowRight } from '@phosphor-icons/react';
+import { Upload, X, Sparkle, ArrowRight, Plus, Lightning, Palette, Eye } from '@phosphor-icons/react';
 
 interface CustomStyleUploaderProps {
   isOpen: boolean;
@@ -7,6 +7,7 @@ interface CustomStyleUploaderProps {
   onApplyCustomStyle: (styleImageUrl: string, styleDescription: string) => void;
   isLoading?: boolean;
   disabled?: boolean;
+  originalImageUrl?: string | null;
 }
 
 const CustomStyleUploader: React.FC<CustomStyleUploaderProps> = ({
@@ -15,6 +16,7 @@ const CustomStyleUploader: React.FC<CustomStyleUploaderProps> = ({
   onApplyCustomStyle,
   isLoading = false,
   disabled = false,
+  originalImageUrl = null,
 }) => {
   const [styleImageUrl, setStyleImageUrl] = useState<string | null>(null);
   const [styleDescription, setStyleDescription] = useState<string>('');
@@ -91,7 +93,7 @@ const CustomStyleUploader: React.FC<CustomStyleUploaderProps> = ({
       />
       
       {/* Modal */}
-      <div className="relative w-full max-w-lg bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-3xl bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-white/10">
           <div className="flex items-center gap-3">
@@ -100,7 +102,7 @@ const CustomStyleUploader: React.FC<CustomStyleUploaderProps> = ({
             </div>
             <div>
               <h2 className="text-lg font-semibold text-white">Custom Style Transfer</h2>
-              <p className="text-sm text-white/60">Upload an image to match its style</p>
+              <p className="text-sm text-white/60">Copy any visual style to your photo</p>
             </div>
           </div>
           <button
@@ -112,88 +114,154 @@ const CustomStyleUploader: React.FC<CustomStyleUploaderProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-5 space-y-4">
-          {/* Style Image Upload */}
-          {!styleImageUrl ? (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              className={`
-                relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer
-                transition-all duration-200
-                ${dragOver 
-                  ? 'border-purple-400 bg-purple-500/10' 
-                  : 'border-white/20 hover:border-white/40 hover:bg-white/5'
-                }
-              `}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
-                className="hidden"
-              />
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
-                  <Upload size={24} className="text-white/60" />
-                </div>
-                <div>
-                  <p className="text-white font-medium">Upload a style reference</p>
-                  <p className="text-sm text-white/50 mt-1">
-                    Drop an image or click to browse
-                  </p>
+        <div className="p-5">
+          {/* Visual Flow: Your Photo + Style = Result */}
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-stretch mb-6">
+            {/* Your Photo (Left) */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-white/80 text-sm font-medium">
+                <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold">1</span>
+                <span>Your Photo</span>
+              </div>
+              <div className="relative rounded-xl overflow-hidden border border-white/10 bg-white/5 aspect-[4/3]">
+                {originalImageUrl ? (
+                  <img
+                    src={originalImageUrl}
+                    alt="Your photo"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white/40">
+                    <span className="text-sm">No image uploaded</span>
+                  </div>
+                )}
+                <div className="absolute bottom-2 left-2 px-2 py-1 rounded-md bg-black/60 text-white/80 text-xs">
+                  Target
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Style Preview */}
-              <div className="relative rounded-xl overflow-hidden border border-white/10">
-                <img
-                  src={styleImageUrl}
-                  alt="Style reference"
-                  className="w-full h-48 object-cover"
-                />
-                <button
-                  onClick={handleRemoveStyle}
-                  className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 rounded-lg transition-colors"
+
+            {/* Plus Sign / Arrow */}
+            <div className="hidden md:flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center">
+                <Plus size={20} className="text-purple-400" weight="bold" />
+              </div>
+            </div>
+
+            {/* Style Reference (Right) */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-white/80 text-sm font-medium">
+                <span className="w-5 h-5 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs font-bold">2</span>
+                <span>Style Source</span>
+              </div>
+              {!styleImageUrl ? (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  className={`
+                    relative rounded-xl overflow-hidden border-2 border-dashed aspect-[4/3] cursor-pointer
+                    transition-all duration-200 flex flex-col items-center justify-center
+                    ${dragOver 
+                      ? 'border-purple-400 bg-purple-500/20' 
+                      : 'border-white/20 hover:border-purple-400/60 hover:bg-purple-500/10'
+                    }
+                  `}
                 >
-                  <X size={16} className="text-white" />
-                </button>
-                {isAnalyzing && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                    <div className="flex items-center gap-2 text-white">
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span className="text-sm">Analyzing style...</span>
-                    </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+                    className="hidden"
+                  />
+                  <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center mb-3">
+                    <Upload size={22} className="text-purple-400" />
                   </div>
-                )}
-              </div>
+                  <p className="text-white font-medium text-sm">Upload style image</p>
+                  <p className="text-white/50 text-xs mt-1">Click or drop image</p>
+                </div>
+              ) : (
+                <div className="relative rounded-xl overflow-hidden border border-white/10 aspect-[4/3]">
+                  <img
+                    src={styleImageUrl}
+                    alt="Style reference"
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    onClick={handleRemoveStyle}
+                    className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 rounded-lg transition-colors"
+                  >
+                    <X size={16} className="text-white" />
+                  </button>
+                  <div className="absolute bottom-2 left-2 px-2 py-1 rounded-md bg-purple-500/80 text-white text-xs">
+                    Style Source
+                  </div>
+                  {isAnalyzing && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <div className="flex items-center gap-2 text-white">
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span className="text-sm">Analyzing...</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
 
-              {/* Style Description */}
+          {/* What AI extracts from style image */}
+          <div className="bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-purple-500/10 rounded-xl p-4 border border-purple-500/20 mb-4">
+            <div className="flex items-start gap-3">
+              <Lightning size={20} className="text-purple-400 flex-shrink-0 mt-0.5" weight="fill" />
               <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
-                  Style Description (optional)
-                </label>
-                <textarea
-                  value={styleDescription}
-                  onChange={(e) => setStyleDescription(e.target.value)}
-                  placeholder="Describe the style you want to apply, or let AI analyze it automatically..."
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none"
-                  rows={3}
-                />
+                <p className="text-white font-medium text-sm mb-2">What AI will extract from your style image:</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="flex items-center gap-2 text-white/70 text-xs">
+                    <Palette size={14} className="text-pink-400" />
+                    <span>Color palette</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-white/70 text-xs">
+                    <Eye size={14} className="text-blue-400" />
+                    <span>Lighting mood</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-white/70 text-xs">
+                    <Sparkle size={14} className="text-yellow-400" />
+                    <span>Textures</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-white/70 text-xs">
+                    <Palette size={14} className="text-green-400" />
+                    <span>Art style</span>
+                  </div>
+                </div>
               </div>
+            </div>
+          </div>
 
-              {/* How it works */}
-              <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                <ImageIcon size={20} className="text-purple-400 flex-shrink-0" />
-                <p className="text-xs text-white/60">
-                  AI will analyze the colors, textures, lighting, and artistic techniques from your reference image and apply them to your photo.
-                </p>
-              </div>
+          {/* Tips for best results */}
+          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+            <p className="text-white/80 text-sm font-medium mb-2">💡 Tips for best results:</p>
+            <ul className="text-white/60 text-xs space-y-1">
+              <li>• Use images with distinct visual styles (paintings, filters, cinematic shots)</li>
+              <li>• Artwork, movie stills, and stylized photos work great</li>
+              <li>• The AI copies the <span className="text-purple-400">look and feel</span>, not the content</li>
+            </ul>
+          </div>
+
+          {/* Optional description */}
+          {styleImageUrl && (
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-white/80 mb-2">
+                Style notes (optional)
+              </label>
+              <input
+                type="text"
+                value={styleDescription}
+                onChange={(e) => setStyleDescription(e.target.value)}
+                placeholder="e.g., 'Focus on the warm golden tones' or 'Match the dreamy soft focus'"
+                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-sm"
+              />
             </div>
           )}
         </div>
@@ -202,8 +270,8 @@ const CustomStyleUploader: React.FC<CustomStyleUploaderProps> = ({
         <div className="p-5 border-t border-white/10 bg-black/20">
           <button
             onClick={handleApply}
-            disabled={!styleImageUrl || isLoading || disabled || isAnalyzing}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-xl transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+            disabled={!styleImageUrl || !originalImageUrl || isLoading || disabled || isAnalyzing}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-xl transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-purple-500/25"
           >
             {isLoading ? (
               <>
@@ -212,11 +280,17 @@ const CustomStyleUploader: React.FC<CustomStyleUploaderProps> = ({
               </>
             ) : (
               <>
-                <span>Apply Custom Style</span>
+                <Sparkle size={18} weight="fill" />
+                <span>Transform My Photo</span>
                 <ArrowRight size={18} weight="bold" />
               </>
             )}
           </button>
+          {!originalImageUrl && (
+            <p className="text-center text-yellow-400/80 text-xs mt-2">
+              ⚠️ Please upload a photo first before using custom styles
+            </p>
+          )}
         </div>
       </div>
     </div>

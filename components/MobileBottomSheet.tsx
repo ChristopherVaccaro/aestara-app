@@ -4,7 +4,6 @@ import FilterSelector from './FilterSelector';
 import CategorySelector from './CategorySelector';
 import StyleHistory, { HistoryItem } from './StyleHistory';
 import { Filter } from '../types';
-import { getStyleExampleThumbSources } from '../utils/styleExamples';
 
 interface FilterCategory {
   name: string;

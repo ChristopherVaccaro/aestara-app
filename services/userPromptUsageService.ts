@@ -1,9 +1,13 @@
 /**
  * User Prompt Usage Service
  * Tracks how many times each user has used each filter/prompt
+ * 
+ * Uses buffered analytics to prevent DB exhaustion
  */
 
 import { supabase } from '../utils/supabaseClient';
+import { queueAnalyticsEvent } from '../utils/analyticsBuffer';
+import { logDbCall, isDebugMode } from '../utils/supabaseDebug';
 
 export interface PromptUsageStats {
   filter_id: string;
@@ -15,6 +19,8 @@ export interface PromptUsageStats {
 
 /**
  * Record or increment usage count for a filter
+ * Uses buffered writes to prevent DB exhaustion
+ * 
  * @param userId - The authenticated user's ID
  * @param filterId - The filter ID (e.g., 'anime', 'vintage')
  * @param filterName - Human-readable filter name
@@ -24,67 +30,16 @@ export async function recordPromptUsage(
   filterId: string,
   filterName: string
 ): Promise<void> {
-  try {
-    console.log('📊 Recording prompt usage:', { userId, filterId, filterName });
-
-    // Try to get existing record
-    const { data: existing, error: fetchError } = await supabase
-      .from('user_prompt_usage')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('filter_id', filterId)
-      .maybeSingle(); // Use maybeSingle instead of single to avoid error on no results
-
-    if (fetchError) {
-      console.error('❌ Error fetching prompt usage:', fetchError);
-      return;
-    }
-
-    const now = new Date().toISOString();
-
-    if (existing) {
-      // Increment existing record
-      console.log(`✅ Found existing record, incrementing from ${existing.usage_count} to ${existing.usage_count + 1}`);
-      
-      const { error: updateError } = await supabase
-        .from('user_prompt_usage')
-        .update({
-          usage_count: existing.usage_count + 1,
-          last_used_at: now,
-        })
-        .eq('user_id', userId)
-        .eq('filter_id', filterId);
-
-      if (updateError) {
-        console.error('❌ Error updating prompt usage:', updateError);
-      } else {
-        console.log('✅ Successfully updated prompt usage');
-      }
-    } else {
-      // Create new record
-      console.log('✅ Creating new usage record');
-      
-      const { error: insertError } = await supabase
-        .from('user_prompt_usage')
-        .insert({
-          user_id: userId,
-          filter_id: filterId,
-          filter_name: filterName,
-          usage_count: 1,
-          first_used_at: now,
-          last_used_at: now,
-        });
-
-      if (insertError) {
-        console.error('❌ Error inserting prompt usage:', insertError);
-        console.error('Error details:', insertError.message, insertError.details);
-      } else {
-        console.log('✅ Successfully created prompt usage record');
-      }
-    }
-  } catch (error) {
-    console.error('❌ Error recording prompt usage:', error);
+  if (isDebugMode()) {
+    console.log('📊 Queueing prompt usage:', { userId, filterId, filterName });
   }
+
+  // Queue the event for batched writing instead of immediate DB call
+  queueAnalyticsEvent('prompt_usage', 'user_prompt_usage', {
+    user_id: userId,
+    filter_id: filterId,
+    filter_name: filterName,
+  });
 }
 
 /**
@@ -96,6 +51,8 @@ export async function getUserPromptUsage(
   userId: string
 ): Promise<PromptUsageStats[]> {
   try {
+    logDbCall('user_prompt_usage', 'select');
+    
     const { data, error } = await supabase
       .from('user_prompt_usage')
       .select('filter_id, filter_name, usage_count, first_used_at, last_used_at')
@@ -121,6 +78,8 @@ export async function getUserPromptUsage(
  */
 export async function getTotalPromptUsage(userId: string): Promise<number> {
   try {
+    logDbCall('user_prompt_usage', 'select');
+    
     const { data, error } = await supabase
       .from('user_prompt_usage')
       .select('usage_count')
