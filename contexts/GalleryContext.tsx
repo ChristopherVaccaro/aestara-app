@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { GalleryItem } from '../types';
 import { supabase } from '../utils/supabaseClient';
-import { logDbCall, isDebugMode } from '../utils/supabaseDebug';
+import { logDbCall, isDebugMode, logHistory, isHistoryDebugMode } from '../utils/supabaseDebug';
 import { uploadImage, deleteImage, deleteImages, isStorageUrl } from '../services/storageService';
 
 interface GalleryContextType {
@@ -54,31 +54,32 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Load gallery items from Supabase for a user
   // forceReload: bypass cache and reload from DB (used after login)
   const loadUserGallery = useCallback(async (userId: string, forceReload: boolean = false) => {
+    logHistory('select', {
+      step: 'START',
+      userId: userId.substring(0, 8) + '...',
+      forceReload,
+      cachedUserId: loadedUserRef.current?.substring(0, 8) || null,
+    });
+
     // Check if we need to clear state for a different user
     if (loadedUserRef.current && loadedUserRef.current !== userId) {
-      if (isDebugMode()) {
-        console.log('🔄 [Gallery] User changed, clearing old items');
-      }
+      logHistory('select', { step: 'USER_CHANGED', clearing: true });
       setItems([]);
       loadedUserRef.current = null;
     }
 
     // Don't reload if already loaded for this user (unless forced)
     if (!forceReload && loadedUserRef.current === userId) {
-      if (isDebugMode()) {
-        console.log('⏭️ [Gallery] Already loaded for user, skipping');
-      }
+      logHistory('select', { step: 'SKIPPED_CACHED' });
       return;
-    }
-
-    if (isDebugMode()) {
-      console.log(`📥 [Gallery] Loading gallery for user: ${userId.substring(0, 8)}...`);
     }
 
     setIsLoading(true);
     try {
       logDbCall('gallery', 'select');
       
+      logHistory('select', { step: 'QUERYING_DB', table: 'gallery', userId });
+
       const { data, error } = await supabase
         .from('gallery')
         .select('*')
@@ -86,28 +87,49 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('❌ [Gallery] Error loading from Supabase:', error);
+        logHistory('error', {
+          step: 'SELECT_FAILED',
+          error: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        });
         return;
       }
+
+      logHistory('select', {
+        step: 'DB_RESPONSE',
+        rowCount: data?.length || 0,
+        firstRowId: data?.[0]?.id || null,
+      });
 
       const galleryItems = (data || []).map(dbRowToGalleryItem);
       setItems(galleryItems);
       loadedUserRef.current = userId;
       
-      if (isDebugMode()) {
-        console.log(`✅ [Gallery] Loaded ${galleryItems.length} items`);
-        // Debug: show first item's URLs to verify they're storage URLs
-        if (galleryItems.length > 0) {
-          const first = galleryItems[0];
-          console.log(`🔍 [Gallery] First item URLs:`, {
-            original: first.originalImage.substring(0, 80) + '...',
-            result: first.resultImage.substring(0, 80) + '...',
-            isStorageUrl: isStorageUrl(first.resultImage),
-          });
-        }
+      // Log first item details for debugging URL storage
+      if (galleryItems.length > 0) {
+        const first = galleryItems[0];
+        logHistory('select', {
+          step: 'FIRST_ITEM_DETAILS',
+          id: first.id,
+          originalImage: first.originalImage.substring(0, 100),
+          resultImage: first.resultImage.substring(0, 100),
+          isStorageUrlOriginal: isStorageUrl(first.originalImage),
+          isStorageUrlResult: isStorageUrl(first.resultImage),
+          filterName: first.filterName,
+        });
       }
+
+      logHistory('select', {
+        step: 'COMPLETE',
+        itemCount: galleryItems.length,
+      });
     } catch (error) {
-      console.error('❌ [Gallery] Error in loadUserGallery:', error);
+      logHistory('error', {
+        step: 'EXCEPTION',
+        error: error instanceof Error ? error.message : String(error),
+      });
     } finally {
       setIsLoading(false);
     }
@@ -115,75 +137,118 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Add a new gallery item - uploads images to Storage first
   const addItem = useCallback(async (itemData: Omit<GalleryItem, 'id' | 'createdAt'>): Promise<GalleryItem | null> => {
-    try {
-      if (isDebugMode()) {
-        console.log('📤 [Gallery] Adding item, input URLs:', {
-          original: itemData.originalImage.substring(0, 50) + '...',
-          result: itemData.resultImage.substring(0, 50) + '...',
-        });
-      }
+    // CRITICAL: Log user ID at generation time
+    logHistory('insert', {
+      step: 'START',
+      userId: itemData.userId,
+      filterName: itemData.filterName,
+      originalImageType: itemData.originalImage.substring(0, 30),
+      resultImageType: itemData.resultImage.substring(0, 30),
+    });
 
+    try {
       // Upload images to Supabase Storage
       let originalImageUrl = itemData.originalImage;
       let resultImageUrl = itemData.resultImage;
+      let originalObjectPath: string | null = null;
+      let resultObjectPath: string | null = null;
 
       // Only upload if it's a data URL or blob URL (not already a storage URL)
       if (!isStorageUrl(itemData.originalImage)) {
+        logHistory('upload', { step: 'UPLOADING_ORIGINAL', userId: itemData.userId });
         const uploadedOriginal = await uploadImage(itemData.userId, itemData.originalImage, 'original');
         if (uploadedOriginal) {
           originalImageUrl = uploadedOriginal;
+          // Extract object path from URL for logging
+          try {
+            const url = new URL(uploadedOriginal);
+            originalObjectPath = url.pathname.split('/gallery-images/')[1] || null;
+          } catch { /* ignore */ }
+          logHistory('upload', { step: 'ORIGINAL_SUCCESS', objectPath: originalObjectPath });
         } else {
-          console.error('❌ [Gallery] Failed to upload original image - will store non-storage URL');
+          logHistory('error', { step: 'ORIGINAL_UPLOAD_FAILED', userId: itemData.userId });
         }
       }
 
       if (!isStorageUrl(itemData.resultImage)) {
+        logHistory('upload', { step: 'UPLOADING_RESULT', userId: itemData.userId });
         const uploadedResult = await uploadImage(itemData.userId, itemData.resultImage, 'result');
         if (uploadedResult) {
           resultImageUrl = uploadedResult;
+          // Extract object path from URL for logging
+          try {
+            const url = new URL(uploadedResult);
+            resultObjectPath = url.pathname.split('/gallery-images/')[1] || null;
+          } catch { /* ignore */ }
+          logHistory('upload', { step: 'RESULT_SUCCESS', objectPath: resultObjectPath });
         } else {
-          console.error('❌ [Gallery] Failed to upload result image - will store non-storage URL');
+          logHistory('error', { step: 'RESULT_UPLOAD_FAILED', userId: itemData.userId });
         }
       }
 
-      if (isDebugMode()) {
-        console.log('📥 [Gallery] Final URLs to store:', {
-          original: originalImageUrl.substring(0, 80) + '...',
-          result: resultImageUrl.substring(0, 80) + '...',
-          originalIsStorage: isStorageUrl(originalImageUrl),
-          resultIsStorage: isStorageUrl(resultImageUrl),
-        });
-      }
+      // Build insert payload
+      const insertPayload = {
+        user_id: itemData.userId,
+        original_image: originalImageUrl,
+        result_image: resultImageUrl,
+        style_name: itemData.filterName,
+        style_data: { filterId: itemData.filterId },
+        is_favorite: itemData.isFavorite,
+      };
+
+      logHistory('insert', {
+        step: 'DB_INSERT_PAYLOAD',
+        payload: {
+          user_id: insertPayload.user_id,
+          original_image: insertPayload.original_image.substring(0, 80) + '...',
+          result_image: insertPayload.result_image.substring(0, 80) + '...',
+          style_name: insertPayload.style_name,
+          is_storage_url_original: isStorageUrl(insertPayload.original_image),
+          is_storage_url_result: isStorageUrl(insertPayload.result_image),
+        },
+      });
 
       logDbCall('gallery', 'insert');
       
       const { data, error } = await supabase
         .from('gallery')
-        .insert({
-          user_id: itemData.userId,
-          original_image: originalImageUrl,
-          result_image: resultImageUrl,
-          style_name: itemData.filterName,
-          style_data: { filterId: itemData.filterId },
-          is_favorite: itemData.isFavorite,
-        })
+        .insert(insertPayload)
         .select()
         .single();
 
       if (error) {
-        console.error('Error adding gallery item:', error);
+        logHistory('error', {
+          step: 'DB_INSERT_FAILED',
+          error: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        });
         return null;
       }
+
+      logHistory('insert', {
+        step: 'DB_INSERT_SUCCESS',
+        rowId: data.id,
+        createdAt: data.created_at,
+      });
 
       const newItem = dbRowToGalleryItem(data);
       setItems(prev => [newItem, ...prev]);
       
-      if (isDebugMode()) {
-        console.log('✅ Added gallery item:', newItem.filterName);
-      }
+      logHistory('insert', {
+        step: 'COMPLETE',
+        itemId: newItem.id,
+        filterName: newItem.filterName,
+      });
+
       return newItem;
     } catch (error) {
-      console.error('Error in addItem:', error);
+      logHistory('error', {
+        step: 'EXCEPTION',
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       return null;
     }
   }, []);

@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '../utils/supabaseClient';
-import { logDbCall, isDebugMode } from '../utils/supabaseDebug';
+import { logDbCall, isDebugMode, logHistory } from '../utils/supabaseDebug';
 
 const BUCKET_NAME = 'gallery-images';
 
@@ -20,6 +20,13 @@ export async function uploadImage(
   imageData: string,
   type: 'original' | 'result'
 ): Promise<string | null> {
+  logHistory('upload', {
+    step: 'STORAGE_UPLOAD_START',
+    userId: userId.substring(0, 8) + '...',
+    type,
+    imageDataPrefix: imageData.substring(0, 40),
+  });
+
   try {
     // Convert base64 data URL to blob
     let blob: Blob;
@@ -29,7 +36,7 @@ export async function uploadImage(
       // Parse data URL
       const matches = imageData.match(/^data:([^;]+);base64,(.+)$/);
       if (!matches) {
-        console.error('Invalid data URL format');
+        logHistory('error', { step: 'INVALID_DATA_URL', imageDataPrefix: imageData.substring(0, 50) });
         return null;
       }
       mimeType = matches[1];
@@ -40,13 +47,16 @@ export async function uploadImage(
         bytes[i] = binaryString.charCodeAt(i);
       }
       blob = new Blob([bytes], { type: mimeType });
+      logHistory('upload', { step: 'BLOB_CREATED_FROM_DATA_URL', size: blob.size, mimeType });
     } else if (imageData.startsWith('blob:')) {
       // Fetch blob URL
       const response = await fetch(imageData);
       blob = await response.blob();
       mimeType = blob.type || 'image/png';
+      logHistory('upload', { step: 'BLOB_FETCHED_FROM_URL', size: blob.size, mimeType });
     } else {
       // Already a URL, return as-is
+      logHistory('upload', { step: 'ALREADY_URL_RETURNING_AS_IS', url: imageData.substring(0, 80) });
       return imageData;
     }
 
@@ -54,30 +64,32 @@ export async function uploadImage(
     const timestamp = Date.now();
     const randomId = Math.random().toString(36).substring(2, 8);
     const extension = mimeType.split('/')[1] || 'png';
-    const fileName = `${userId}/${type}_${timestamp}_${randomId}.${extension}`;
+    const objectPath = `${userId}/${type}_${timestamp}_${randomId}.${extension}`;
 
-    if (isDebugMode()) {
-      console.log(`📤 Uploading ${type} image to Storage:`, fileName);
-    }
+    logHistory('upload', {
+      step: 'UPLOADING_TO_STORAGE',
+      bucket: BUCKET_NAME,
+      objectPath,
+      blobSize: blob.size,
+    });
 
     logDbCall('storage', 'upload');
 
     const { data, error } = await supabase.storage
       .from(BUCKET_NAME)
-      .upload(fileName, blob, {
+      .upload(objectPath, blob, {
         contentType: mimeType,
         cacheControl: '31536000', // 1 year cache
         upsert: false,
       });
 
     if (error) {
-      console.error('❌ [Storage] Error uploading:', error.message);
-      // Log specific policy errors
-      if (error.message?.includes('policy') || error.message?.includes('403') || error.message?.includes('Unauthorized')) {
-        console.error('⚠️ [Storage] This looks like a bucket policy issue. Ensure:');
-        console.error('  1. Bucket "gallery-images" exists and is PUBLIC');
-        console.error('  2. Storage policies allow INSERT for authenticated users');
-      }
+      logHistory('error', {
+        step: 'STORAGE_UPLOAD_FAILED',
+        error: error.message,
+        objectPath,
+        isPolicyError: error.message?.includes('policy') || error.message?.includes('403'),
+      });
       return null;
     }
 
@@ -86,13 +98,18 @@ export async function uploadImage(
       .from(BUCKET_NAME)
       .getPublicUrl(data.path);
 
-    if (isDebugMode()) {
-      console.log(`✅ Uploaded ${type} image:`, urlData.publicUrl);
-    }
+    logHistory('upload', {
+      step: 'STORAGE_UPLOAD_SUCCESS',
+      objectPath: data.path,
+      publicUrl: urlData.publicUrl.substring(0, 100) + '...',
+    });
 
     return urlData.publicUrl;
   } catch (error) {
-    console.error('Error in uploadImage:', error);
+    logHistory('error', {
+      step: 'STORAGE_UPLOAD_EXCEPTION',
+      error: error instanceof Error ? error.message : String(error),
+    });
     return null;
   }
 }

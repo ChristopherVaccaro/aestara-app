@@ -3,9 +3,13 @@
  * Provides observability for Supabase operations to detect performance issues
  */
 
-// Debug mode flag - set via env variable
+// Debug mode flags - set via env variables
 const DEBUG_SUPABASE = typeof import.meta !== 'undefined' 
   ? (import.meta as any).env?.VITE_DEBUG_SUPABASE === 'true'
+  : false;
+
+const DEBUG_HISTORY = typeof import.meta !== 'undefined' 
+  ? (import.meta as any).env?.VITE_DEBUG_HISTORY === 'true'
   : false;
 
 // Circuit breaker configuration
@@ -186,4 +190,36 @@ export function getDebugStats(): {
  */
 export function isDebugMode(): boolean {
   return DEBUG_SUPABASE;
+}
+
+/**
+ * Check if history debug mode is enabled
+ */
+export function isHistoryDebugMode(): boolean {
+  return DEBUG_HISTORY || DEBUG_SUPABASE;
+}
+
+/**
+ * Log history/gallery operations with detailed context
+ */
+export function logHistory(
+  operation: 'upload' | 'insert' | 'select' | 'render' | 'error',
+  context: Record<string, unknown>
+): void {
+  if (!isHistoryDebugMode()) return;
+  
+  const prefix = {
+    upload: '📤 [History:Upload]',
+    insert: '💾 [History:Insert]',
+    select: '📥 [History:Select]',
+    render: '🖼️ [History:Render]',
+    error: '❌ [History:ERROR]',
+  }[operation];
+  
+  console.log(prefix, context);
+  
+  // For errors, also log to console.error for visibility
+  if (operation === 'error') {
+    console.error(prefix, context);
+  }
 }
