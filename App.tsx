@@ -1044,7 +1044,7 @@ const App: React.FC = () => {
 
   // Gallery modal
   const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
-  const { addItem: addToGallery, loadUserGallery } = useGallery();
+  const { addItem: addToGallery, loadUserGallery, resetGalleryState } = useGallery();
 
   // Custom style modal
   const [isCustomStyleOpen, setIsCustomStyleOpen] = useState<boolean>(false);
@@ -1052,12 +1052,24 @@ const App: React.FC = () => {
   // Generation guard to prevent concurrent requests (critical for connection pool)
   const isGeneratingRef = useRef<boolean>(false);
 
-  // Load gallery when user logs in
+  // Track previous user to detect logout
+  const prevUserIdRef = useRef<string | null>(null);
+
+  // Load gallery when user logs in, reset on logout
   useEffect(() => {
-    if (user?.id) {
-      loadUserGallery(user.id);
+    const currentUserId = user?.id ?? null;
+    
+    // User logged out
+    if (prevUserIdRef.current && !currentUserId) {
+      resetGalleryState();
     }
-  }, [user?.id, loadUserGallery]);
+    // User logged in (new or different user)
+    else if (currentUserId && currentUserId !== prevUserIdRef.current) {
+      loadUserGallery(currentUserId, true); // Force reload from DB
+    }
+    
+    prevUserIdRef.current = currentUserId;
+  }, [user?.id, loadUserGallery, resetGalleryState]);
 
   // Category selection
   const [activeCategory, setActiveCategory] = useState<string>(FILTER_CATEGORIES[0]?.name || '');
