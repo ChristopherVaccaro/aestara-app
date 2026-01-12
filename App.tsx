@@ -1324,10 +1324,13 @@ const App: React.FC = () => {
       // Save to gallery for logged-in users
       // Convert blob URLs to data URLs for persistence (blob URLs expire with session)
       if (user?.id && originalImageUrl) {
+        console.log('🎯 [App] Starting gallery save for user:', user.id.substring(0, 8) + '...');
+        
         let persistentOriginalUrl = originalImageUrl;
 
         // Convert blob URL to data URL for persistence
         if (originalImageUrl.startsWith('blob:')) {
+          console.log('🔄 [App] Converting blob URL to data URL...');
           try {
             const response = await fetch(originalImageUrl);
             const blob = await response.blob();
@@ -1336,18 +1339,42 @@ const App: React.FC = () => {
               reader.onloadend = () => resolve(reader.result as string);
               reader.readAsDataURL(blob);
             });
+            console.log('✅ [App] Blob converted, length:', persistentOriginalUrl.length);
           } catch (err) {
-            console.warn('Failed to convert original image for gallery:', err);
+            console.error('❌ [App] Failed to convert original image for gallery:', err);
           }
         }
 
-        addToGallery({
-          userId: user.id,
-          originalImage: persistentOriginalUrl,
-          resultImage: newImageUrl,
+        console.log('📤 [App] Calling addToGallery with:', {
+          userId: user.id.substring(0, 8) + '...',
+          originalImageType: persistentOriginalUrl.substring(0, 30),
+          resultImageType: newImageUrl.substring(0, 30),
           filterName: filter.name,
-          filterId: filter.id,
-          isFavorite: false,
+        });
+
+        // CRITICAL: Await the gallery add and log result
+        try {
+          const galleryItem = await addToGallery({
+            userId: user.id,
+            originalImage: persistentOriginalUrl,
+            resultImage: newImageUrl,
+            filterName: filter.name,
+            filterId: filter.id,
+            isFavorite: false,
+          });
+          
+          if (galleryItem) {
+            console.log('✅ [App] Gallery item saved successfully:', galleryItem.id);
+          } else {
+            console.error('❌ [App] addToGallery returned null - check logs above for errors');
+          }
+        } catch (galleryError) {
+          console.error('❌ [App] addToGallery threw exception:', galleryError);
+        }
+      } else {
+        console.log('⏭️ [App] Skipping gallery save:', { 
+          hasUser: !!user?.id, 
+          hasOriginalUrl: !!originalImageUrl 
         });
       }
     } catch (err) {
@@ -1882,7 +1909,14 @@ IMPORTANT:
         </div>
       )}
 
-      <Header onLogoClick={handleReset} hideMenu={isEditorOpen} onOpenGallery={() => setIsGalleryOpen(true)} onOpenHelp={() => setShowHelp(true)} />
+      <Header onLogoClick={handleReset} hideMenu={isEditorOpen} onOpenGallery={() => {
+        // Reload gallery from DB when opening to ensure fresh data
+        if (user?.id) {
+          console.log('📂 [App] Opening gallery, reloading from DB...');
+          loadUserGallery(user.id, true);
+        }
+        setIsGalleryOpen(true);
+      }} onOpenHelp={() => setShowHelp(true)} />
       <main className="w-full max-w-6xl mx-auto flex-1 flex items-start justify-center px-4 sm:px-6 overflow-y-auto pt-4 md:pt-8">
         {renderContent()}
       </main>
