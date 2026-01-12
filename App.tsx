@@ -12,7 +12,6 @@ import LoadingProgress from './components/LoadingProgress';
 import BlurredImageLoading from './components/BlurredImageLoading';
 import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy';
-import FeedbackForm from './components/FeedbackForm';
 import DevModeToggle from './components/DevModeToggle';
 import MobileBottomSheet from './components/MobileBottomSheet';
 import MobileFloatingButton from './components/MobileFloatingButton';
@@ -30,11 +29,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Filter } from './types';
 import { applyImageFilter } from './services/geminiService';
 import { ImageProcessor } from './utils/imageProcessor';
-import { GenerationFeedback } from './components/GenerationFeedback';
 import { useToast, ToastContainer } from './components/Toast';
-import {
-  getActivePrompt,
-} from './services/voteTrackingService';
 import {
   getPrompt,
   refreshPromptCache,
@@ -43,7 +38,6 @@ import {
 } from './services/promptService';
 import { recordPromptUsage } from './services/userPromptUsageService';
 import { useAuth } from './contexts/AuthContext';
-import { getStyleExampleThumbSources } from './utils/styleExamples';
 
 interface FilterCategory {
   name: string;
@@ -1025,7 +1019,6 @@ const App: React.FC = () => {
   // Modal states
   const [showTerms, setShowTerms] = useState<boolean>(false);
   const [showPrivacy, setShowPrivacy] = useState<boolean>(false);
-  const [showFeedback, setShowFeedback] = useState<boolean>(false);
   const [showContact, setShowContact] = useState<boolean>(false);
   const [showHelp, setShowHelp] = useState<boolean>(false);
   // Track if a modal/drawer overlay is open to adjust z-index of Category panel
@@ -1055,6 +1048,9 @@ const App: React.FC = () => {
 
   // Custom style modal
   const [isCustomStyleOpen, setIsCustomStyleOpen] = useState<boolean>(false);
+
+  // Generation guard to prevent concurrent requests (critical for connection pool)
+  const isGeneratingRef = useRef<boolean>(false);
 
   // Load gallery when user logs in
   useEffect(() => {
@@ -1110,8 +1106,6 @@ const App: React.FC = () => {
     }
   }, [selectedFilter]);
 
-  // Vote tracking
-  const [currentGenerationId, setCurrentGenerationId] = useState<string | null>(null);
   const [currentPromptUsed, setCurrentPromptUsed] = useState<string | null>(null);
 
   // Initialize prompts from database on mount
@@ -1230,7 +1224,10 @@ const App: React.FC = () => {
   };
 
   const handleApplyFilter = async (filter: Filter) => {
-    if (!imageFile) return;
+    // Guard against concurrent generation requests (prevents connection pool exhaustion)
+    if (!imageFile || isGeneratingRef.current) return;
+    
+    isGeneratingRef.current = true;
     setIsLoading(true);
     setIsTransitioning(false);
     setError(null);
@@ -1312,9 +1309,6 @@ const App: React.FC = () => {
       setHistory(updatedHistory);
       setCurrentHistoryIndex(updatedHistory.length - 1);
 
-      // Set generation ID for voting (unique per generation)
-      setCurrentGenerationId(`${filter.id}_${Date.now()}`);
-
       // Save to gallery for logged-in users
       // Convert blob URLs to data URLs for persistence (blob URLs expire with session)
       if (user?.id && originalImageUrl) {
@@ -1353,6 +1347,7 @@ const App: React.FC = () => {
       setGeneratedImageUrl(null);
     } finally {
       setIsLoading(false);
+      isGeneratingRef.current = false; // Release generation guard
     }
   };
 
@@ -1373,7 +1368,6 @@ const App: React.FC = () => {
     setIsLoading(false);
     setHistory([]);
     setCurrentHistoryIndex(-1);
-    setCurrentGenerationId(null);
   };
 
   const handleSelectFilter = (filter: Filter) => {
@@ -1386,11 +1380,15 @@ const App: React.FC = () => {
   };
 
   const handleApplyCustomStyle = async (styleImageUrl: string, styleDescription: string) => {
-    if (!imageFile || !originalImageUrl) {
-      addToast('Please upload an image first', 'error');
+    // Guard against concurrent generation requests
+    if (!imageFile || !originalImageUrl || isGeneratingRef.current) {
+      if (!imageFile || !originalImageUrl) {
+        addToast('Please upload an image first', 'error');
+      }
       return;
     }
 
+    isGeneratingRef.current = true;
     setIsLoading(true);
     setIsCustomStyleOpen(false);
 
@@ -1466,6 +1464,7 @@ IMPORTANT:
       addToast(errorMessage, 'error');
     } finally {
       setIsLoading(false);
+      isGeneratingRef.current = false; // Release generation guard
     }
   };
 
@@ -1497,12 +1496,6 @@ IMPORTANT:
     );
   }
 
-  // Handle vote feedback - just log without triggering prompt refinement
-  const handleVoteRecorded = async (isPositive: boolean) => {
-    if (!activeFilter || isDevMode) return;
-    // Vote is recorded in GenerationFeedback component - no prompt refinement
-    console.log(`Vote recorded for ${activeFilter.name}: ${isPositive ? '👍' : '👎'}`);
-  };
 
   // Handle file input trigger for mobile
   const handleTriggerFileInput = () => {
@@ -1777,7 +1770,13 @@ IMPORTANT:
             onRemoveImage={handleReset}
             hasImage={!!originalImageUrl}
             disabled={!originalImageUrl || isLoading}
-            onOpenCustomStyle={() => setIsCustomStyleOpen(true)}
+            onOpenCustomStyle={() => {
+              if (!originalImageUrl) {
+                addToast('Please upload a photo first before using custom styles', 'info');
+                return;
+              }
+              setIsCustomStyleOpen(true);
+            }}
           />
         </div>
 
@@ -1900,7 +1899,6 @@ IMPORTANT:
       {/* Legal and Feedback Modals */}
       {showTerms && <TermsOfService onClose={() => setShowTerms(false)} />}
       {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
-      {showFeedback && <FeedbackForm onClose={() => setShowFeedback(false)} />}
 
       {/* Contact and Help Modals */}
       <ContactModal isOpen={showContact} onClose={() => setShowContact(false)} />
@@ -1922,6 +1920,7 @@ IMPORTANT:
         onApplyCustomStyle={handleApplyCustomStyle}
         isLoading={isLoading}
         disabled={!originalImageUrl}
+        originalImageUrl={originalImageUrl}
       />
 
       {/* Dev Mode Toggle (only in development) */}

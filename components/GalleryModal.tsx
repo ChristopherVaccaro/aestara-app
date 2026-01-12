@@ -287,6 +287,17 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, userId }) 
                     </button>
                   )}
                   
+                  {/* Sort by dropdown */}
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortOption)}
+                    className="px-2 sm:px-3 py-1.5 bg-slate-700 text-slate-300 text-xs sm:text-sm rounded-lg border-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="newest">Newest</option>
+                    <option value="oldest">Oldest</option>
+                    <option value="favorites">Favorites{favoritesCount > 0 ? ` (${favoritesCount})` : ''}</option>
+                  </select>
+                  
                   {/* Time filter - hidden on mobile */}
                   <select
                     value={timePeriod}

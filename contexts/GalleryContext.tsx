@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { GalleryItem } from '../types';
 import { supabase } from '../utils/supabaseClient';
+import { logDbCall, isDebugMode } from '../utils/supabaseDebug';
 
 interface GalleryContextType {
   items: GalleryItem[];
@@ -57,6 +58,8 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setIsLoading(true);
     try {
+      logDbCall('gallery', 'select');
+      
       const { data, error } = await supabase
         .from('gallery')
         .select('*')
@@ -71,7 +74,10 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const galleryItems = (data || []).map(dbRowToGalleryItem);
       setItems(galleryItems);
       loadedUserRef.current = userId;
-      console.log(`✅ Loaded ${galleryItems.length} gallery items for user`);
+      
+      if (isDebugMode()) {
+        console.log(`✅ Loaded ${galleryItems.length} gallery items for user`);
+      }
     } catch (error) {
       console.error('Error in loadUserGallery:', error);
     } finally {
@@ -82,6 +88,8 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Add a new gallery item
   const addItem = useCallback(async (itemData: Omit<GalleryItem, 'id' | 'createdAt'>): Promise<GalleryItem | null> => {
     try {
+      logDbCall('gallery', 'insert');
+      
       const { data, error } = await supabase
         .from('gallery')
         .insert({
@@ -102,7 +110,10 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       const newItem = dbRowToGalleryItem(data);
       setItems(prev => [newItem, ...prev]);
-      console.log('✅ Added gallery item:', newItem.filterName);
+      
+      if (isDebugMode()) {
+        console.log('✅ Added gallery item:', newItem.filterName);
+      }
       return newItem;
     } catch (error) {
       console.error('Error in addItem:', error);
@@ -113,6 +124,8 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Remove an item by ID
   const removeItem = useCallback(async (id: string) => {
     try {
+      logDbCall('gallery', 'delete');
+      
       const { error } = await supabase
         .from('gallery')
         .delete()
@@ -134,6 +147,8 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (ids.length === 0) return;
 
     try {
+      logDbCall('gallery', 'delete');
+      
       const { error } = await supabase
         .from('gallery')
         .delete()
@@ -162,6 +177,8 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     ));
 
     try {
+      logDbCall('gallery', 'update');
+      
       const { error } = await supabase
         .from('gallery')
         .update({ is_favorite: newFavoriteStatus })
@@ -186,6 +203,8 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Clear all items for a specific user
   const clearUserGallery = useCallback(async (userId: string) => {
     try {
+      logDbCall('gallery', 'delete');
+      
       const { error } = await supabase
         .from('gallery')
         .delete()

@@ -1,32 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { isAdmin, getStyleAnalytics, getOverallStats, StyleAnalytics } from '../services/adminService';
-import { Warning, TrendUp, TrendDown, ArrowClockwise, ChartBar, UsersThree, Lightning, ArrowsDownUp, ArrowUp, ArrowDown } from '@phosphor-icons/react';
+import { isAdmin, getStyleStats, getOverallStats, StyleInfo } from '../services/adminService';
+import { Warning, ArrowClockwise, ChartBar, Lightning, ArrowsDownUp, ArrowUp, ArrowDown } from '@phosphor-icons/react';
 import ParticleBackground from './ParticleBackground';
 import { AuthButton } from './AuthButton';
 
-type SortField = 'name' | 'votes' | 'approval' | 'net_score' | 'generations' | 'status';
+type SortField = 'name' | 'generations' | 'version';
 type SortDirection = 'asc' | 'desc';
 
 export const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
-  const [analytics, setAnalytics] = useState<StyleAnalytics[]>([]);
+  const [styles, setStyles] = useState<StyleInfo[]>([]);
   const [overallStats, setOverallStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [devMode, setDevMode] = useState(false);
-  const [sortField, setSortField] = useState<SortField>('status');
+  const [sortField, setSortField] = useState<SortField>('generations');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  
+  // Guard to prevent duplicate data loads
+  const hasLoadedRef = useRef(false);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [analyticsData, statsData] = await Promise.all([
-        getStyleAnalytics(),
+      const [stylesData, statsData] = await Promise.all([
+        getStyleStats(),
         getOverallStats(),
       ]);
-      setAnalytics(analyticsData);
+      setStyles(stylesData);
       setOverallStats(statsData);
     } catch (err) {
       setError('Failed to load analytics data');
@@ -34,7 +37,10 @@ export const AdminDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Stable references for dependency
+  const userEmail = user?.email;
 
   useEffect(() => {
     // Check for dev mode bypass (for testing without auth)
@@ -42,11 +48,15 @@ export const AdminDashboard: React.FC = () => {
     const isDev = params.get('dev') === 'true';
     setDevMode(isDev);
     
+    // Only load once per session
+    if (hasLoadedRef.current) return;
+    
     // Load data if user is admin OR in dev mode
-    if ((user && isAdmin(user.email)) || isDev) {
+    if ((userEmail && isAdmin(userEmail)) || isDev) {
+      hasLoadedRef.current = true;
       loadData();
     }
-  }, [user]);
+  }, [userEmail, loadData]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -57,30 +67,18 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const sortedAnalytics = [...analytics].sort((a, b) => {
+  const sortedStyles = [...styles].sort((a, b) => {
     let comparison = 0;
     
     switch (sortField) {
       case 'name':
         comparison = a.filter_name.localeCompare(b.filter_name);
         break;
-      case 'votes':
-        comparison = a.total_votes - b.total_votes;
-        break;
-      case 'approval':
-        comparison = a.approval_rate - b.approval_rate;
-        break;
-      case 'net_score':
-        comparison = a.net_feedback - b.net_feedback;
-        break;
       case 'generations':
         comparison = a.generation_count - b.generation_count;
         break;
-      case 'status':
-        // Needs attention first, then by approval rate
-        if (a.needs_attention && !b.needs_attention) comparison = -1;
-        else if (!a.needs_attention && b.needs_attention) comparison = 1;
-        else comparison = a.approval_rate - b.approval_rate;
+      case 'version':
+        comparison = a.prompt_version - b.prompt_version;
         break;
     }
     
@@ -172,7 +170,7 @@ export const AdminDashboard: React.FC = () => {
 
         {/* Overall Stats */}
         {overallStats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <StatCard
               icon={<ChartBar className="w-6 h-6" />}
               label="Total Styles"
@@ -180,21 +178,9 @@ export const AdminDashboard: React.FC = () => {
               color="blue"
             />
             <StatCard
-              icon={<Warning className="w-6 h-6" />}
-              label="Needs Attention"
-              value={overallStats.stylesNeedingAttention}
-              color="red"
-            />
-            <StatCard
-              icon={<UsersThree className="w-6 h-6" />}
-              label="Total Votes"
-              value={overallStats.totalVotes}
-              color="green"
-            />
-            <StatCard
               icon={<Lightning className="w-6 h-6" />}
-              label="Avg Approval"
-              value={`${overallStats.avgApprovalRate.toFixed(1)}%`}
+              label="Total Generations"
+              value={overallStats.totalGenerations}
               color="purple"
             />
           </div>
@@ -209,113 +195,34 @@ export const AdminDashboard: React.FC = () => {
                   <SortableHeader field="name" currentField={sortField} direction={sortDirection} onSort={handleSort}>
                     Style
                   </SortableHeader>
-                  <SortableHeader field="votes" currentField={sortField} direction={sortDirection} onSort={handleSort}>
-                    Votes
-                  </SortableHeader>
-                  <SortableHeader field="approval" currentField={sortField} direction={sortDirection} onSort={handleSort}>
-                    Approval
-                  </SortableHeader>
-                  <SortableHeader field="net_score" currentField={sortField} direction={sortDirection} onSort={handleSort}>
-                    Net Score
-                  </SortableHeader>
                   <SortableHeader field="generations" currentField={sortField} direction={sortDirection} onSort={handleSort}>
                     Times Used
                   </SortableHeader>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Top Issues
-                  </th>
-                  <SortableHeader field="status" currentField={sortField} direction={sortDirection} onSort={handleSort}>
-                    Status
+                  <SortableHeader field="version" currentField={sortField} direction={sortDirection} onSort={handleSort}>
+                    Version
                   </SortableHeader>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Last Updated
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {sortedAnalytics.map((style) => (
+                {sortedStyles.map((style) => (
                   <tr
                     key={style.filter_id}
-                    className={`hover:bg-white/5 transition-colors ${
-                      style.needs_attention ? 'bg-red-500/10' : ''
-                    }`}
+                    className="hover:bg-white/5 transition-colors"
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div>
-                          <div className="text-sm font-medium text-white">{style.filter_name}</div>
-                          <div className="text-xs text-gray-400">v{style.prompt_version}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-white">{style.total_votes}</div>
-                      <div className="text-xs text-gray-400">
-                        <TrendUp className="w-3 h-3 inline text-green-500" /> {style.thumbs_up}{' '}
-                        <TrendDown className="w-3 h-3 inline text-red-500" /> {style.thumbs_down}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-16 bg-gray-700 rounded-full h-2 mr-2">
-                          <div
-                            className={`h-2 rounded-full ${
-                              style.approval_rate >= 60
-                                ? 'bg-green-500'
-                                : style.approval_rate >= 40
-                                ? 'bg-yellow-500'
-                                : 'bg-red-500'
-                            }`}
-                            style={{ width: `${style.approval_rate}%` }}
-                          />
-                        </div>
-                        <span className="text-sm text-white">{style.approval_rate.toFixed(1)}%</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`text-sm font-medium ${
-                          style.net_feedback > 0
-                            ? 'text-green-400'
-                            : style.net_feedback < 0
-                            ? 'text-red-400'
-                            : 'text-gray-400'
-                        }`}
-                      >
-                        {style.net_feedback > 0 ? '+' : ''}
-                        {style.net_feedback}
-                      </span>
+                      <div className="text-sm font-medium text-white">{style.filter_name}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                       {style.generation_count}
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-xs text-gray-400 max-w-xs">
-                        {style.top_issues.length > 0 ? (
-                          <ul className="space-y-1">
-                            {style.top_issues.slice(0, 3).map((issue, idx) => (
-                              <li key={idx}>
-                                • {issue.tag_name} ({issue.count})
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <span className="text-gray-500">No issues reported</span>
-                        )}
-                      </div>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                      v{style.prompt_version}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {style.needs_attention ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
-                          <Warning className="w-3 h-3 mr-1" />
-                          Needs Attention
-                        </span>
-                      ) : style.approval_rate >= 60 ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
-                          Healthy
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
-                          Monitor
-                        </span>
-                      )}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                      {new Date(style.last_updated).toLocaleDateString()}
                     </td>
                   </tr>
                 ))}

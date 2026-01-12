@@ -1,10 +1,17 @@
 /**
  * Prompt Service
  * Manages dynamic prompt fetching and caching from Supabase
+ * 
+ * Features:
+ * - In-memory caching with TTL
+ * - Circuit breaker for repeated failures
+ * - Buffered analytics writes
  */
 
 import { supabase } from '../utils/supabaseClient';
 import { Filter } from '../types';
+import { logDbCall, isCircuitOpen, recordFailure, recordSuccess, isDebugMode } from '../utils/supabaseDebug';
+import { queueAnalyticsEvent } from '../utils/analyticsBuffer';
 
 interface StylePrompt {
   id: string;
@@ -12,7 +19,6 @@ interface StylePrompt {
   filter_name: string;
   current_prompt: string;
   version: number;
-  net_feedback: number;
   total_generations: number;
 }
 
@@ -21,11 +27,34 @@ let promptCache: Map<string, StylePrompt> = new Map();
 let lastCacheUpdate = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
+// Guard to prevent concurrent cache refreshes
+let isRefreshing = false;
+
 /**
  * Fetch all prompts from Supabase and update cache
  */
 export async function refreshPromptCache(): Promise<void> {
+  // Prevent concurrent refreshes
+  if (isRefreshing) {
+    if (isDebugMode()) {
+      console.log('🔄 [Prompts] Cache refresh already in progress, skipping');
+    }
+    return;
+  }
+
+  // Check circuit breaker
+  if (isCircuitOpen('style_prompts')) {
+    if (isDebugMode()) {
+      console.log('🚫 [Prompts] Circuit breaker open, using cached data');
+    }
+    return;
+  }
+
+  isRefreshing = true;
+
   try {
+    logDbCall('style_prompts', 'select');
+    
     const { data, error } = await supabase
       .from('style_prompts')
       .select('*')
@@ -33,6 +62,7 @@ export async function refreshPromptCache(): Promise<void> {
 
     if (error) {
       console.error('Error fetching prompts from Supabase:', error);
+      recordFailure('style_prompts');
       return;
     }
 
@@ -42,10 +72,17 @@ export async function refreshPromptCache(): Promise<void> {
         promptCache.set(prompt.filter_id, prompt);
       });
       lastCacheUpdate = Date.now();
-      console.log(`✅ Loaded ${data.length} prompts from Supabase`);
+      recordSuccess('style_prompts');
+      
+      if (isDebugMode()) {
+        console.log(`✅ Loaded ${data.length} prompts from Supabase`);
+      }
     }
   } catch (err) {
     console.error('Exception refreshing prompt cache:', err);
+    recordFailure('style_prompts');
+  } finally {
+    isRefreshing = false;
   }
 }
 
@@ -124,7 +161,7 @@ export async function updatePrompt(
     // Get current version
     const { data: current, error: fetchError } = await supabase
       .from('style_prompts')
-      .select('version, net_feedback')
+      .select('version')
       .eq('filter_id', filterId)
       .maybeSingle();
 
@@ -141,7 +178,6 @@ export async function updatePrompt(
       .update({
         current_prompt: newPrompt,
         version: newVersion,
-        net_feedback: 0, // Reset feedback for new version
         last_refinement_at: new Date().toISOString(),
         refinement_reason: refinementReason,
       })
@@ -167,80 +203,19 @@ export async function updatePrompt(
 
 /**
  * Increment generation count for a filter
+ * Uses buffered writes to prevent DB exhaustion
  */
 export async function incrementGenerationCount(filterId: string): Promise<void> {
-  try {
-    const { error } = await supabase.rpc('increment_generation_count', {
-      p_filter_id: filterId,
-    });
-
-    if (error) {
-      // If function doesn't exist, fall back to manual update
-      const { data: current } = await supabase
-        .from('style_prompts')
-        .select('generation_count')
-        .eq('filter_id', filterId)
-        .maybeSingle();
-
-      if (current) {
-        await supabase
-          .from('style_prompts')
-          .update({ generation_count: (current.generation_count || 0) + 1 })
-          .eq('filter_id', filterId);
-      }
-    }
-  } catch (err) {
-    console.error('Error incrementing generation count:', err);
+  if (isDebugMode()) {
+    console.log('📊 Queueing generation count increment:', filterId);
   }
+
+  // Queue the event for batched writing instead of immediate DB call
+  queueAnalyticsEvent('generation_count', 'style_prompts', {
+    filter_id: filterId,
+  });
 }
 
-/**
- * Update net feedback for a filter
- */
-export async function updateNetFeedback(
-  filterId: string,
-  delta: number // +1 for thumbs up, -1 for thumbs down
-): Promise<void> {
-  try {
-    const { data: current } = await supabase
-      .from('style_prompts')
-      .select('net_feedback')
-      .eq('filter_id', filterId)
-      .maybeSingle();
-
-    if (current) {
-      await supabase
-        .from('style_prompts')
-        .update({ net_feedback: current.net_feedback + delta })
-        .eq('filter_id', filterId);
-    }
-  } catch (err) {
-    console.error('Error updating net feedback:', err);
-  }
-}
-
-/**
- * Get prompts that need refinement (net_feedback <= -5)
- */
-export async function getPromptsNeedingRefinement(): Promise<StylePrompt[]> {
-  try {
-    const { data, error } = await supabase
-      .from('style_prompts')
-      .select('*')
-      .lte('net_feedback', -5)
-      .order('net_feedback', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching prompts needing refinement:', error);
-      return [];
-    }
-
-    return data || [];
-  } catch (err) {
-    console.error('Exception getting prompts needing refinement:', err);
-    return [];
-  }
-}
 
 /**
  * Seed initial prompt into database
@@ -254,7 +229,6 @@ export async function seedPrompt(filter: Filter): Promise<void> {
         filter_name: filter.name,
         current_prompt: filter.prompt,
         version: 1,
-        net_feedback: 0,
         total_generations: 0,
       }, {
         onConflict: 'filter_id',
@@ -279,5 +253,6 @@ export async function seedAllPrompts(filters: Filter[]): Promise<void> {
   await refreshPromptCache();
 }
 
-// Initialize cache on module load
-refreshPromptCache();
+// NOTE: Cache initialization moved to lazy-load pattern
+// Call refreshPromptCache() explicitly from App.tsx on mount instead of module load
+// This prevents DB calls during initial module bundling/hot-reload
