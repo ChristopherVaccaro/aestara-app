@@ -153,10 +153,33 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, userId }) 
   };
 
   const handleDelete = (id: string) => {
+    // Calculate next item to show before deletion
+    const currentIndex = items.findIndex(i => i.id === id);
+    let nextId: string | null = null;
+    
+    if (items.length > 1) {
+      // If deleting the last item, go to previous (new last)
+      // Otherwise go to next (which will slide into current index)
+      if (currentIndex === items.length - 1) {
+        nextId = items[currentIndex - 1].id;
+      } else {
+        nextId = items[currentIndex + 1].id;
+      }
+    }
+
     removeItem(id);
     setShowDeleteConfirm(null);
+    
+    // Update selection immediately
     if (selectedItem?.id === id) {
-      setSelectedItemId(null);
+      if (nextId) {
+        setSelectedItemId(nextId);
+      } else {
+        // No items left
+        setSelectedItemId(null);
+        // Optional: close modal if gallery is empty
+        // onClose(); 
+      }
     }
   };
 
@@ -246,84 +269,86 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, userId }) 
         className="relative bg-slate-900 rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden border border-white/10"
         tabIndex={-1}
       >
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-              <h2 className="text-lg sm:text-xl font-bold text-white whitespace-nowrap">My Gallery</h2>
-              <span className="text-xs sm:text-sm text-slate-400 truncate">
-                {items.length} {items.length === 1 ? 'image' : 'images'}
+        {/* Header - Mobile: stacked layout, Desktop: single row */}
+        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 py-4 sm:py-5">
+          {/* Title row - always visible with close button */}
+          <div className="flex items-center justify-between mb-4 sm:mb-2">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">My Gallery</h2>
+              <span className="text-sm text-slate-400 bg-white/10 px-2 py-0.5 rounded-full">
+                {items.length}
               </span>
             </div>
             
-            <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
-              {isSelectMode ? (
-                <>
-                  <span className="text-xs sm:text-sm text-slate-400 hidden sm:inline">
-                    {selectedIds.size} selected
-                  </span>
+            <button
+              onClick={onClose}
+              className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
+          
+          {/* Filters row - separate on mobile, inline on desktop */}
+          <div className="flex flex-wrap items-center gap-3 overflow-x-auto pb-1 sm:pb-0 scrollbar-hide">
+            {isSelectMode ? (
+              <>
+                <span className="text-sm text-slate-400 whitespace-nowrap">
+                  {selectedIds.size} selected
+                </span>
+                <button
+                  onClick={() => setShowBulkDeleteConfirm(true)}
+                  disabled={selectedIds.size === 0}
+                  className="px-3 py-2 bg-red-500/20 text-red-400 text-sm font-medium rounded-xl hover:bg-red-500/30 active:bg-red-500/40 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={exitSelectMode}
+                  className="px-3 py-2 bg-slate-700 text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-600 active:bg-slate-500 transition-colors whitespace-nowrap"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                {items.length > 0 && (
                   <button
-                    onClick={() => setShowBulkDeleteConfirm(true)}
-                    disabled={selectedIds.size === 0}
-                    className="px-2 sm:px-3 py-1.5 bg-red-500/20 text-red-400 text-xs sm:text-sm font-medium rounded-lg hover:bg-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    onClick={() => setIsSelectMode(true)}
+                    className="px-3 py-2 bg-slate-700 text-slate-300 text-sm font-medium rounded-xl hover:bg-slate-600 active:bg-slate-500 transition-colors whitespace-nowrap"
                   >
-                    Delete
+                    Select
                   </button>
-                  <button
-                    onClick={exitSelectMode}
-                    className="px-2 sm:px-3 py-1.5 bg-slate-700 text-slate-300 text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-600 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <>
-                  {items.length > 0 && (
-                    <button
-                      onClick={() => setIsSelectMode(true)}
-                      className="px-2 sm:px-3 py-1.5 bg-slate-700 text-slate-300 text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-600 transition-colors"
-                    >
-                      Select
-                    </button>
-                  )}
-                  
-                  {/* Sort by dropdown */}
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as SortOption)}
-                    className="px-2 sm:px-3 py-1.5 bg-slate-700 text-slate-300 text-xs sm:text-sm rounded-lg border-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="newest">Newest</option>
-                    <option value="oldest">Oldest</option>
-                    <option value="favorites">Favorites{favoritesCount > 0 ? ` (${favoritesCount})` : ''}</option>
-                  </select>
-                  
-                  {/* Time filter - hidden on mobile */}
-                  <select
-                    value={timePeriod}
-                    onChange={(e) => setTimePeriod(e.target.value as TimePeriod)}
-                    className="hidden sm:block px-2 sm:px-3 py-1.5 bg-slate-700 text-slate-300 text-xs sm:text-sm rounded-lg border-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="all">All Time</option>
-                    <option value="today">Today</option>
-                    <option value="week">This Week</option>
-                    <option value="month">This Month</option>
-                  </select>
-                </>
-              )}
-              
-              <button
-                onClick={onClose}
-                className="p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
+                )}
+                
+                {/* Sort by dropdown */}
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="px-3 py-2 bg-slate-700 text-slate-300 text-sm rounded-xl border-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="newest">Newest</option>
+                  <option value="oldest">Oldest</option>
+                  <option value="favorites">Favorites{favoritesCount > 0 ? ` (${favoritesCount})` : ''}</option>
+                </select>
+                
+                {/* Time filter */}
+                <select
+                  value={timePeriod}
+                  onChange={(e) => setTimePeriod(e.target.value as TimePeriod)}
+                  className="px-3 py-2 bg-slate-700 text-slate-300 text-sm rounded-xl border-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">All Time</option>
+                  <option value="today">Today</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                </select>
+              </>
+            )}
           </div>
         </div>
 
         {/* Gallery Grid */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+        <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-140px)] pb-32">
           {isLoading ? (
             <GallerySkeleton />
           ) : items.length === 0 ? (
@@ -453,63 +478,67 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, userId }) 
               </div>
             </div>
             
-            {/* Actions bar */}
-            <div className="flex items-center justify-between p-4 border-t border-white/10 bg-slate-800">
+            {/* Actions bar - improved mobile spacing */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 border-t border-white/10 bg-slate-800">
+              {/* Date/time info */}
               <div className="flex items-center gap-2 text-sm text-slate-400">
-                <Calendar size={14} />
-                <span>{formatDate(selectedItem.createdAt)}</span>
+                <Calendar size={16} weight="bold" />
+                <span className="font-medium">{formatDate(selectedItem.createdAt)}</span>
               </div>
               
-              <div className="flex items-center gap-2">
+              {/* Action buttons */}
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => toggleFavorite(selectedItem.id)}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${
                     selectedItem.isFavorite 
-                      ? 'bg-red-500/20 text-red-400' 
-                      : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                      ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' 
+                      : 'bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-white'
                   }`}
+                  title={selectedItem.isFavorite ? "Remove from favorites" : "Add to favorites"}
                 >
-                  <Heart size={18} weight={selectedItem.isFavorite ? 'fill' : 'regular'} />
+                  <Heart size={20} weight={selectedItem.isFavorite ? 'fill' : 'bold'} />
                 </button>
                 
                 <button
                   onClick={() => handleShare(selectedItem)}
-                  className="p-2 bg-slate-700 text-slate-400 rounded-lg hover:bg-slate-600 transition-colors"
+                  className="w-10 h-10 flex items-center justify-center bg-slate-700 text-slate-400 rounded-full hover:bg-slate-600 hover:text-white transition-all"
                   title="Share"
                 >
-                  <ShareNetwork size={18} />
+                  <ShareNetwork size={20} weight="bold" />
                 </button>
                 
                 <button
                   onClick={() => handleDownload(selectedItem)}
-                  className="p-2 bg-slate-700 text-slate-400 rounded-lg hover:bg-slate-600 transition-colors"
+                  className="w-10 h-10 flex items-center justify-center bg-slate-700 text-slate-400 rounded-full hover:bg-slate-600 hover:text-white transition-all"
                   title="Download"
                 >
-                  <DownloadSimple size={18} />
+                  <DownloadSimple size={20} weight="bold" />
                 </button>
                 
                 {showDeleteConfirm === selectedItem.id ? (
-                  <div className="flex items-center gap-2 ml-2">
-                    <span className="text-sm text-slate-400">Delete?</span>
+                  <div className="flex items-center gap-2 ml-2 bg-slate-900/50 p-1 rounded-full border border-white/10">
+                    <span className="text-xs text-slate-400 pl-3 font-medium">Delete?</span>
                     <button
                       onClick={() => handleDelete(selectedItem.id)}
-                      className="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600"
+                      className="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full hover:bg-red-600 transition-colors"
                     >
-                      Yes
+                      YES
                     </button>
                     <button
                       onClick={() => setShowDeleteConfirm(null)}
-                      className="px-3 py-1 bg-slate-600 text-white text-sm rounded-lg hover:bg-slate-500"
+                      className="w-7 h-7 flex items-center justify-center bg-slate-700 text-slate-300 rounded-full hover:bg-slate-600"
                     >
-                      No
+                      <X size={14} weight="bold" />
                     </button>
                   </div>
                 ) : (
                   <button
                     onClick={() => setShowDeleteConfirm(selectedItem.id)}
-                    className="p-2 bg-slate-700 text-slate-400 rounded-lg hover:bg-red-500/20 hover:text-red-400 transition-colors"
+                    className="w-10 h-10 flex items-center justify-center bg-slate-700 text-slate-400 rounded-full hover:bg-red-500/20 hover:text-red-400 transition-all"
+                    title="Delete"
                   >
-                    <Trash size={18} />
+                    <Trash size={20} weight="bold" />
                   </button>
                 )}
               </div>

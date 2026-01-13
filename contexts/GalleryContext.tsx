@@ -82,9 +82,10 @@ export const GalleryProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       const { data, error } = await supabase
         .from('gallery')
-        .select('*')
+        .select('id, user_id, original_image, result_image, style_name, style_data, is_favorite, created_at')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(12); // Reduced from 50 to 12 to prevent timeouts
 
       if (error) {
         logHistory('error', {
