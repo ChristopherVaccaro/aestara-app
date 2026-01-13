@@ -30,6 +30,7 @@ import { Filter } from './types';
 import { applyImageFilter } from './services/geminiService';
 import { ImageProcessor } from './utils/imageProcessor';
 import { useToast, ToastContainer } from './components/Toast';
+import { DownloadSimple, ShareNetwork } from '@phosphor-icons/react';
 import {
   getPrompt,
   refreshPromptCache,
@@ -1044,13 +1045,16 @@ const App: React.FC = () => {
 
   // Gallery modal
   const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
-  const { addItem: addToGallery, loadUserGallery, resetGalleryState } = useGallery();
+  const { addItem: addToGallery, loadUserGallery, resetGalleryState, toggleFavorite, getItemById } = useGallery();
 
   // Custom style modal
   const [isCustomStyleOpen, setIsCustomStyleOpen] = useState<boolean>(false);
 
   // Generation guard to prevent concurrent requests (critical for connection pool)
   const isGeneratingRef = useRef<boolean>(false);
+  
+  // Unique ID for each generation (used to track progress bar state)
+  const [generationId, setGenerationId] = useState<string>('');
 
   // Track previous user to detect logout
   const prevUserIdRef = useRef<string | null>(null);
@@ -1240,6 +1244,7 @@ const App: React.FC = () => {
     if (!imageFile || isGeneratingRef.current) return;
     
     isGeneratingRef.current = true;
+    setGenerationId(`gen-${Date.now()}`); // New unique ID for progress tracking
     setIsLoading(true);
     setIsTransitioning(false);
     setError(null);
@@ -1326,29 +1331,12 @@ const App: React.FC = () => {
       if (user?.id && originalImageUrl) {
         console.log('🎯 [App] Starting gallery save for user:', user.id.substring(0, 8) + '...');
         
-        let persistentOriginalUrl = originalImageUrl;
-
-        // Convert blob URL to data URL for persistence
-        if (originalImageUrl.startsWith('blob:')) {
-          console.log('🔄 [App] Converting blob URL to data URL...');
-          try {
-            const response = await fetch(originalImageUrl);
-            const blob = await response.blob();
-            persistentOriginalUrl = await new Promise<string>((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.readAsDataURL(blob);
-            });
-            console.log('✅ [App] Blob converted, length:', persistentOriginalUrl.length);
-          } catch (err) {
-            console.error('❌ [App] Failed to convert original image for gallery:', err);
-          }
-        }
-
+        // storageService.uploadImage handles Blob URLs directly, so we pass originalImageUrl as-is.
+        // It will normalize it to a Blob and upload it properly.
         console.log('📤 [App] Calling addToGallery with:', {
           userId: user.id.substring(0, 8) + '...',
-          originalImageType: persistentOriginalUrl.substring(0, 30),
-          resultImageType: newImageUrl.substring(0, 30),
+          originalImageIsBlob: originalImageUrl.startsWith('blob:'),
+          resultImageIsDataUrl: newImageUrl.startsWith('data:'),
           filterName: filter.name,
         });
 
@@ -1356,7 +1344,7 @@ const App: React.FC = () => {
         try {
           const galleryItem = await addToGallery({
             userId: user.id,
-            originalImage: persistentOriginalUrl,
+            originalImage: originalImageUrl,
             resultImage: newImageUrl,
             filterName: filter.name,
             filterId: filter.id,
@@ -1365,6 +1353,15 @@ const App: React.FC = () => {
           
           if (galleryItem) {
             console.log('✅ [App] Gallery item saved successfully:', galleryItem.id);
+            // Update history item with the returned gallery ID
+            setHistory(prev => {
+              const newHistory = [...prev];
+              const lastItem = newHistory[newHistory.length - 1];
+              if (lastItem && lastItem.timestamp === newHistoryItem.timestamp) {
+                lastItem.galleryId = galleryItem.id;
+              }
+              return newHistory;
+            });
           } else {
             console.error('❌ [App] addToGallery returned null - check logs above for errors');
           }
@@ -1428,6 +1425,7 @@ const App: React.FC = () => {
     }
 
     isGeneratingRef.current = true;
+    setGenerationId(`gen-${Date.now()}`); // New unique ID for progress tracking
     setIsLoading(true);
     setIsCustomStyleOpen(false);
 
@@ -1788,9 +1786,18 @@ IMPORTANT:
     }
   };
 
+  const handleToggleFavorite = async () => {
+    if (!history[currentHistoryIndex]?.galleryId) return;
+    await toggleFavorite(history[currentHistoryIndex].galleryId!);
+  };
+
   const renderContent = () => {
     // Fixed height for consistent sizing like Glamatron
     const CONTAINER_HEIGHT = 'h-[400px] sm:h-[500px] md:h-[65vh] lg:h-[70vh] md:max-h-[750px]';
+
+    const currentHistoryItem = history[currentHistoryIndex];
+    const currentGalleryId = currentHistoryItem?.galleryId;
+    const isCurrentFavorite = currentGalleryId ? getItemById(currentGalleryId)?.isFavorite : false;
 
     return (
       <>
@@ -1831,6 +1838,7 @@ IMPORTANT:
                     originalImageUrl={originalImageUrl}
                     message={isTransitioning ? 'Finalizing...' : (activeFilter ? `Applying ${activeFilter.name}...` : 'Processing image...')}
                     estimatedTimeMs={isTransitioning ? 300 : 10000}
+                    generationId={generationId}
                   />
                 ) : generatedImageUrl ? (
                   <ImageComparison
@@ -1844,6 +1852,8 @@ IMPORTANT:
                     onSaveAIEdit={handleSaveAIEdit}
                     previousImageUrl={currentHistoryIndex > 0 ? history[currentHistoryIndex - 1]?.imageUrl : undefined}
                     onRemoveImage={handleReset}
+                    isFavorite={isCurrentFavorite}
+                    onToggleFavorite={currentGalleryId ? handleToggleFavorite : undefined}
                   />
                 ) : (
                   <ImageDisplay
@@ -1862,21 +1872,42 @@ IMPORTANT:
                     activeFilterName={activeFilter?.name || null}
                     isDevMode={isDevMode}
                     onRemoveImage={handleReset}
+                    isFavorite={isCurrentFavorite}
+                    onToggleFavorite={currentGalleryId ? handleToggleFavorite : undefined}
                   />
                 )}
               </div>
             )}
           </div>
 
-          {/* Style History - Accordion below image - hidden during loading to prevent layout shift */}
           {history.length > 0 && !isLoading && !isTransitioning && (
-            <div className="mt-4">
-              <StyleHistory
-                history={history}
-                currentIndex={currentHistoryIndex}
-                onSelectHistory={handleSelectHistory}
-                onClearHistory={handleClearHistory}
-              />
+            <div className="mt-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex-1 w-full md:w-auto">
+                <StyleHistory
+                  history={history}
+                  currentIndex={currentHistoryIndex}
+                  onSelectHistory={handleSelectHistory}
+                  onClearHistory={handleClearHistory}
+                />
+              </div>
+              
+              {/* External Action Buttons */}
+              <div className="flex items-center gap-3 self-end md:self-auto">
+                <button
+                  onClick={handleShare}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl transition-colors border border-white/10"
+                >
+                  <ShareNetwork size={20} />
+                  <span>Share</span>
+                </button>
+                <button
+                  onClick={() => handleDownload()}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors shadow-lg shadow-blue-900/20"
+                >
+                  <DownloadSimple size={20} weight="bold" />
+                  <span>Download</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -1886,7 +1917,7 @@ IMPORTANT:
 
   return (
     <div
-      className={`h-screen flex flex-col items-center overflow-hidden py-0 px-4 md:p-6 font-sans text-gray-200 relative subtle-bg ${
+      className={`min-h-screen min-h-[100dvh] flex flex-col items-center overflow-x-hidden overscroll-none py-0 px-4 md:p-6 font-sans text-gray-200 relative subtle-bg ${
         isDragOver ? 'bg-blue-900/20' : ''
       }`}
       onDragEnter={handleDragEnter}
@@ -1910,14 +1941,15 @@ IMPORTANT:
       )}
 
       <Header onLogoClick={handleReset} hideMenu={isEditorOpen} onOpenGallery={() => {
-        // Reload gallery from DB when opening to ensure fresh data
+        // Only reload if we don't have items or user changed (handled by context)
+        // forceReload=true is expensive, avoid unless necessary
         if (user?.id) {
-          console.log('📂 [App] Opening gallery, reloading from DB...');
-          loadUserGallery(user.id, true);
+          console.log('📂 [App] Opening gallery');
+          loadUserGallery(user.id, false); 
         }
         setIsGalleryOpen(true);
       }} onOpenHelp={() => setShowHelp(true)} />
-      <main className="w-full max-w-6xl mx-auto flex-1 flex items-start justify-center px-4 sm:px-6 overflow-y-auto pt-4 md:pt-8">
+      <main className="w-full max-w-6xl mx-auto flex-1 flex items-start justify-center px-4 sm:px-6 pt-4 md:pt-8">
         {renderContent()}
       </main>
       <Footer

@@ -1,6 +1,9 @@
 /**
  * Supabase Storage Service
  * Handles image uploads to the gallery-images bucket
+ * 
+ * CRITICAL: This service ensures images are uploaded as proper binary data
+ * with correct Content-Type (image/png or image/jpeg), NOT as JSON.
  */
 
 import { supabase } from '../utils/supabaseClient';
@@ -9,9 +12,152 @@ import { logDbCall, isDebugMode, logHistory } from '../utils/supabaseDebug';
 const BUCKET_NAME = 'gallery-images';
 
 /**
+ * Normalized image result from normalizeImageToBlob
+ */
+interface NormalizedImage {
+  blob: Blob;
+  extension: string;
+  contentType: string;
+}
+
+/**
+ * Normalize any image input to a proper Blob with correct MIME type
+ * 
+ * Supported inputs:
+ * - Base64 string with data:image/* prefix (data URL)
+ * - Base64 string without prefix (raw base64)
+ * - Blob URL (blob:...)
+ * - ArrayBuffer or Uint8Array
+ * - Existing Blob
+ * - HTTP/HTTPS URL to an image
+ * 
+ * @returns Object with blob, extension, and contentType
+ */
+export async function normalizeImageToBlob(input: string | Blob | ArrayBuffer | Uint8Array): Promise<NormalizedImage> {
+  logHistory('upload', { step: 'NORMALIZE_START', inputType: typeof input });
+  
+  // Already a Blob
+  if (input instanceof Blob) {
+    const contentType = input.type || 'image/png';
+    const extension = contentType.split('/')[1] || 'png';
+    logHistory('upload', { step: 'NORMALIZE_BLOB', size: input.size, contentType });
+    return { blob: input, extension, contentType };
+  }
+  
+  // ArrayBuffer or Uint8Array
+  if (input instanceof ArrayBuffer || input instanceof Uint8Array) {
+    const uint8 = input instanceof ArrayBuffer ? new Uint8Array(input) : input;
+    // Detect image type from magic bytes
+    const contentType = detectImageType(uint8);
+    const extension = contentType.split('/')[1] || 'png';
+    // Create new ArrayBuffer to avoid SharedArrayBuffer type issues
+    const arrayBuffer = new ArrayBuffer(uint8.byteLength);
+    new Uint8Array(arrayBuffer).set(uint8);
+    const blob = new Blob([arrayBuffer], { type: contentType });
+    logHistory('upload', { step: 'NORMALIZE_BUFFER', size: blob.size, contentType });
+    return { blob, extension, contentType };
+  }
+  
+  // String inputs
+  if (typeof input === 'string') {
+    // Data URL (base64 with prefix)
+    if (input.startsWith('data:')) {
+      const matches = input.match(/^data:([^;]+);base64,(.+)$/);
+      if (!matches) {
+        throw new Error('Invalid data URL format');
+      }
+      const contentType = matches[1];
+      const base64Data = matches[2];
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: contentType });
+      const extension = contentType.split('/')[1] || 'png';
+      logHistory('upload', { step: 'NORMALIZE_DATA_URL', size: blob.size, contentType });
+      return { blob, extension, contentType };
+    }
+    
+    // Blob URL
+    if (input.startsWith('blob:')) {
+      const response = await fetch(input);
+      const blob = await response.blob();
+      const contentType = blob.type || 'image/png';
+      const extension = contentType.split('/')[1] || 'png';
+      logHistory('upload', { step: 'NORMALIZE_BLOB_URL', size: blob.size, contentType });
+      return { blob, extension, contentType };
+    }
+    
+    // HTTP/HTTPS URL
+    if (input.startsWith('http://') || input.startsWith('https://')) {
+      const response = await fetch(input);
+      const blob = await response.blob();
+      const contentType = blob.type || 'image/png';
+      const extension = contentType.split('/')[1] || 'png';
+      logHistory('upload', { step: 'NORMALIZE_HTTP_URL', size: blob.size, contentType });
+      return { blob, extension, contentType };
+    }
+    
+    // Raw base64 (no prefix) - assume PNG
+    try {
+      const binaryString = atob(input);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      // Detect actual type from magic bytes
+      const contentType = detectImageType(bytes);
+      const blob = new Blob([bytes], { type: contentType });
+      const extension = contentType.split('/')[1] || 'png';
+      logHistory('upload', { step: 'NORMALIZE_RAW_BASE64', size: blob.size, contentType });
+      return { blob, extension, contentType };
+    } catch {
+      throw new Error('Invalid base64 string');
+    }
+  }
+  
+  throw new Error('Unsupported input type for image normalization');
+}
+
+/**
+ * Detect image type from magic bytes
+ */
+function detectImageType(bytes: Uint8Array): string {
+  if (bytes.length < 4) return 'image/png';
+  
+  // PNG: 89 50 4E 47
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
+    return 'image/png';
+  }
+  
+  // JPEG: FF D8 FF
+  if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
+    return 'image/jpeg';
+  }
+  
+  // GIF: 47 49 46 38
+  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) {
+    return 'image/gif';
+  }
+  
+  // WebP: 52 49 46 46 ... 57 45 42 50
+  if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) {
+    if (bytes.length >= 12 && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) {
+      return 'image/webp';
+    }
+  }
+  
+  // Default to PNG
+  return 'image/png';
+}
+
+/**
  * Upload an image to Supabase Storage
+ * Uses normalizeImageToBlob to ensure proper binary upload with correct Content-Type
+ * 
  * @param userId - The user's ID (used for folder organization)
- * @param imageData - Base64 data URL or blob URL
+ * @param imageData - Base64 data URL, blob URL, or any supported image input
  * @param type - 'original' or 'result' to differentiate image types
  * @returns Public URL of the uploaded image, or null on failure
  */
@@ -28,42 +174,29 @@ export async function uploadImage(
   });
 
   try {
-    // Convert base64 data URL to blob
-    let blob: Blob;
-    let mimeType = 'image/png';
-    
-    if (imageData.startsWith('data:')) {
-      // Parse data URL
-      const matches = imageData.match(/^data:([^;]+);base64,(.+)$/);
-      if (!matches) {
-        logHistory('error', { step: 'INVALID_DATA_URL', imageDataPrefix: imageData.substring(0, 50) });
-        return null;
-      }
-      mimeType = matches[1];
-      const base64Data = matches[2];
-      const binaryString = atob(base64Data);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      blob = new Blob([bytes], { type: mimeType });
-      logHistory('upload', { step: 'BLOB_CREATED_FROM_DATA_URL', size: blob.size, mimeType });
-    } else if (imageData.startsWith('blob:')) {
-      // Fetch blob URL
-      const response = await fetch(imageData);
-      blob = await response.blob();
-      mimeType = blob.type || 'image/png';
-      logHistory('upload', { step: 'BLOB_FETCHED_FROM_URL', size: blob.size, mimeType });
-    } else {
-      // Already a URL, return as-is
-      logHistory('upload', { step: 'ALREADY_URL_RETURNING_AS_IS', url: imageData.substring(0, 80) });
+    // Skip upload if already a storage URL
+    if (isStorageUrl(imageData)) {
+      logHistory('upload', { step: 'ALREADY_STORAGE_URL', url: imageData.substring(0, 80) });
       return imageData;
+    }
+
+    // Use normalizeImageToBlob to convert any input to proper binary Blob
+    const { blob, extension, contentType } = await normalizeImageToBlob(imageData);
+    
+    // Validate blob is actual image data (not JSON)
+    if (blob.size < 100) {
+      logHistory('error', { 
+        step: 'BLOB_TOO_SMALL', 
+        size: blob.size, 
+        contentType,
+        hint: 'Blob size suggests invalid image data'
+      });
+      return null;
     }
 
     // Generate unique filename
     const timestamp = Date.now();
     const randomId = Math.random().toString(36).substring(2, 8);
-    const extension = mimeType.split('/')[1] || 'png';
     const objectPath = `${userId}/${type}_${timestamp}_${randomId}.${extension}`;
 
     logHistory('upload', {
@@ -71,14 +204,17 @@ export async function uploadImage(
       bucket: BUCKET_NAME,
       objectPath,
       blobSize: blob.size,
+      blobType: blob.type,
+      contentType,
     });
 
     logDbCall('storage', 'upload');
 
+    // CRITICAL: Upload with explicit contentType to ensure correct MIME type in Storage
     const { data, error } = await supabase.storage
       .from(BUCKET_NAME)
       .upload(objectPath, blob, {
-        contentType: mimeType,
+        contentType: contentType,
         cacheControl: '31536000', // 1 year cache
         upsert: false,
       });
@@ -102,6 +238,7 @@ export async function uploadImage(
       step: 'STORAGE_UPLOAD_SUCCESS',
       objectPath: data.path,
       publicUrl: urlData.publicUrl.substring(0, 100) + '...',
+      contentType,
     });
 
     return urlData.publicUrl;

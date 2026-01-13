@@ -7,6 +7,7 @@ export interface HistoryItem {
   filterName: string;
   filterId: string;
   timestamp: number;
+  galleryId?: string;
 }
 
 interface StyleHistoryProps {
@@ -15,6 +16,8 @@ interface StyleHistoryProps {
   onSelectHistory: (index: number) => void;
   onClearHistory: () => void;
   containerClassName?: string;
+  /** If true, always show expanded without accordion toggle (for mobile) */
+  alwaysExpanded?: boolean;
 }
 
 const StyleHistory: React.FC<StyleHistoryProps> = ({
@@ -23,55 +26,77 @@ const StyleHistory: React.FC<StyleHistoryProps> = ({
   onSelectHistory,
   onClearHistory,
   containerClassName,
+  alwaysExpanded = false,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(alwaysExpanded);
 
   if (history.length === 0) return null;
 
   const wrapperClasses = containerClassName ?? '';
+  const effectivelyExpanded = alwaysExpanded || isExpanded;
 
   return (
     <div className={wrapperClasses}>
       {/* Single container with border that wraps both header and content */}
       <div className={`bg-white/5 border border-white/10 rounded-lg overflow-hidden transition-all duration-300 ${
-        isExpanded ? 'pb-2' : ''
+        effectivelyExpanded ? 'pb-2' : ''
       }`}>
-        {/* Accordion Header */}
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full flex items-center justify-between px-3 py-2 hover:bg-white/5 transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-white/80">Style History</span>
-            <span className="text-xs text-white/40 bg-white/10 px-1.5 py-0.5 rounded">
-              {history.length}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            {isExpanded && history.length > 1 && (
+        {/* Accordion Header - simplified on mobile (no toggle) */}
+        {alwaysExpanded ? (
+          <div className="flex items-center justify-between px-3 py-2">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-white/80">Style History</span>
+              <span className="text-xs text-white/40 bg-white/10 px-1.5 py-0.5 rounded">
+                {history.length}
+              </span>
+            </div>
+            {history.length > 1 && (
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClearHistory();
-                }}
-                className="p-1 text-white/40 hover:text-red-400 hover:bg-white/10 rounded transition-colors"
+                onClick={onClearHistory}
+                className="p-1.5 text-white/40 hover:text-red-400 hover:bg-white/10 rounded transition-colors"
                 title="Clear history"
               >
                 <Trash size={14} />
               </button>
             )}
-            {isExpanded ? (
-              <CaretUp size={16} className="text-white/50" />
-            ) : (
-              <CaretDown size={16} className="text-white/50" />
-            )}
           </div>
-        </button>
+        ) : (
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="w-full flex items-center justify-between px-3 py-2 hover:bg-white/5 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-white/80">Style History</span>
+              <span className="text-xs text-white/40 bg-white/10 px-1.5 py-0.5 rounded">
+                {history.length}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {isExpanded && history.length > 1 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClearHistory();
+                  }}
+                  className="p-1 text-white/40 hover:text-red-400 hover:bg-white/10 rounded transition-colors"
+                  title="Clear history"
+                >
+                  <Trash size={14} />
+                </button>
+              )}
+              {isExpanded ? (
+                <CaretUp size={16} className="text-white/50" />
+              ) : (
+                <CaretDown size={16} className="text-white/50" />
+              )}
+            </div>
+          </button>
+        )}
 
         {/* Collapsible Content - inside the same bordered container */}
         <div
           className={`overflow-hidden transition-all duration-300 ease-out ${
-            isExpanded ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'
+            effectivelyExpanded ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'
           }`}
         >
           <div className="flex gap-2 overflow-x-auto pb-1 pt-1 px-3 scrollbar-thin">

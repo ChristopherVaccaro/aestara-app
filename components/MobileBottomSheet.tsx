@@ -202,17 +202,7 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
             </div>
           </div>
 
-          {/* Style History - Below Filter Selector */}
-          {history.length > 0 && (
-            <div className="px-4 py-3 border-b border-white/10">
-              <StyleHistory
-                history={history}
-                currentIndex={currentHistoryIndex}
-                onSelectHistory={onSelectHistory}
-                onClearHistory={onClearHistory}
-              />
-            </div>
-          )}
+          {/* Style History removed from mobile - only shown on desktop */}
         </div>
 
         {/* Upload New Image Button - Fixed at Bottom */}

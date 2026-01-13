@@ -1,34 +1,71 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 interface BlurredImageLoadingProps {
   originalImageUrl: string;
   message?: string;
   estimatedTimeMs?: number;
+  /** Unique ID for this generation - when it changes, progress resets */
+  generationId?: string;
 }
+
+// Global map to track start times by generation ID (persists across remounts)
+const generationStartTimes = new Map<string, number>();
 
 const BlurredImageLoading: React.FC<BlurredImageLoadingProps> = ({
   originalImageUrl,
   message = 'Generating style...',
   estimatedTimeMs = 10000,
+  generationId,
 }) => {
   const [progress, setProgress] = useState(0);
   const [blurAmount, setBlurAmount] = useState(20);
+  const currentGenIdRef = useRef<string | undefined>(generationId);
 
   useEffect(() => {
-    const startTime = Date.now();
+    // Get or create start time for this generation
+    const genKey = generationId || 'default';
+    
+    // If generation ID changed, clear old start time
+    if (currentGenIdRef.current !== generationId) {
+      generationStartTimes.delete(currentGenIdRef.current || 'default');
+      currentGenIdRef.current = generationId;
+    }
+    
+    // Get existing start time or create new one
+    let startTime = generationStartTimes.get(genKey);
+    if (!startTime) {
+      startTime = Date.now();
+      generationStartTimes.set(genKey, startTime);
+    }
+    
     const interval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const newProgress = Math.min((elapsed / estimatedTimeMs) * 100, 95);
-      setProgress(newProgress);
+      const elapsed = Date.now() - startTime!;
+      // Progress to 92% max, then slow down significantly to pause near completion
+      let newProgress: number;
+      if (elapsed < estimatedTimeMs * 0.9) {
+        // Normal progress to ~90%
+        newProgress = (elapsed / estimatedTimeMs) * 100;
+      } else {
+        // Slow crawl from 90% to 95% - takes 3x as long per percent
+        const extraElapsed = elapsed - (estimatedTimeMs * 0.9);
+        const extraProgress = (extraElapsed / (estimatedTimeMs * 0.3)) * 5;
+        newProgress = 90 + Math.min(extraProgress, 5);
+      }
+      newProgress = Math.min(newProgress, 95);
+      
+      setProgress(prev => Math.max(prev, newProgress)); // Never decrease
       
       // Gradually reduce blur as progress increases
-      // Start at 20px blur, reduce to 5px at 95% progress
       const newBlur = 20 - (newProgress / 95) * 15;
       setBlurAmount(Math.max(newBlur, 5));
     }, 50);
 
-    return () => clearInterval(interval);
-  }, [estimatedTimeMs]);
+    return () => {
+      clearInterval(interval);
+      // Clean up start time when component unmounts and generation is done
+      // (parent will change generationId for new generations)
+    };
+  }, [estimatedTimeMs, generationId]);
 
   return (
     <div className="relative w-full responsive-image-container">

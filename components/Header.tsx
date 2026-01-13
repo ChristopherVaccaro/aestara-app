@@ -21,8 +21,8 @@ const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false, showBack
 
   return (
     <>
-      <header className="w-full flex-shrink-0">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
+      <header className="w-full flex-shrink-0 relative z-50" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-2 sm:py-4">
           <div className="flex items-center justify-between">
             {/* Left side - Logo (left aligned like Glamatron) */}
             <div className="flex items-center gap-3">

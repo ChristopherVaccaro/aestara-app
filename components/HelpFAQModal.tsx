@@ -56,16 +56,16 @@ const HelpFAQModal: React.FC<HelpFAQModalProps> = ({ isOpen, onClose }) => {
       />
       
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] overflow-hidden flex flex-col">
+      <div className="relative bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] overflow-hidden flex flex-col border border-white/10">
         {/* Header */}
-        <div className="flex items-start justify-between px-6 pt-6 pb-4 flex-shrink-0">
+        <div className="flex items-start justify-between px-6 pt-6 pb-4 flex-shrink-0 border-b border-white/5">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Help & FAQ</h2>
-            <p className="text-sm text-gray-500 mt-1">Tips for the best transformations</p>
+            <h2 className="text-xl font-semibold text-white">Help & FAQ</h2>
+            <p className="text-sm text-slate-400 mt-1">Tips for the best transformations</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-1 text-slate-400 hover:text-white transition-colors"
             aria-label="Close"
           >
             <X size={24} />
@@ -73,52 +73,52 @@ const HelpFAQModal: React.FC<HelpFAQModalProps> = ({ isOpen, onClose }) => {
         </div>
         
         {/* Scrollable Content */}
-        <div className="overflow-y-auto flex-1 px-6 pb-6">
+        <div className="overflow-y-auto flex-1 px-6 pb-6 pt-4">
           {/* Quick Tips Section */}
-          <div className="bg-gray-50 rounded-xl p-5 mb-6">
-            <h3 className="font-semibold text-gray-900 mb-3">Quick Tips for Best Results</h3>
-            <ul className="space-y-2 text-gray-600 text-sm">
+          <div className="bg-slate-800/50 rounded-xl p-5 mb-6 border border-white/5">
+            <h3 className="font-semibold text-white mb-3">Quick Tips for Best Results</h3>
+            <ul className="space-y-2 text-slate-300 text-sm">
               <li className="flex items-start gap-2">
-                <span className="text-blue-500 mt-1">•</span>
+                <span className="text-blue-400 mt-1">•</span>
                 <span>Use natural lighting for clearer facial features</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-500 mt-1">•</span>
+                <span className="text-blue-400 mt-1">•</span>
                 <span>Face the camera directly for best style application</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-500 mt-1">•</span>
+                <span className="text-blue-400 mt-1">•</span>
                 <span>Remove glasses if you want to try eyewear styles</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-500 mt-1">•</span>
+                <span className="text-blue-400 mt-1">•</span>
                 <span>Tie back hair if you want to see dramatic hair transformations</span>
               </li>
             </ul>
           </div>
           
           {/* FAQ Section */}
-          <h3 className="font-semibold text-gray-900 mb-3">Frequently Asked Questions</h3>
+          <h3 className="font-semibold text-white mb-3">Frequently Asked Questions</h3>
           <div className="space-y-2">
             {faqs.map((faq, index) => (
               <div 
                 key={index}
-                className="border border-gray-200 rounded-xl overflow-hidden"
+                className="border border-white/10 rounded-xl overflow-hidden bg-slate-800/30"
               >
                 <button
                   onClick={() => toggleFAQ(index)}
-                  className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-800 transition-colors"
                 >
-                  <span className="font-medium text-gray-900 pr-4">{faq.question}</span>
+                  <span className="font-medium text-slate-200 pr-4">{faq.question}</span>
                   <CaretDown 
                     size={20} 
-                    className={`text-gray-400 flex-shrink-0 transition-transform ${
+                    className={`text-slate-400 flex-shrink-0 transition-transform ${
                       expandedIndex === index ? 'rotate-180' : ''
                     }`}
                   />
                 </button>
                 {expandedIndex === index && (
-                  <div className="px-4 pb-4 text-gray-600 text-sm">
+                  <div className="px-4 pb-4 text-slate-400 text-sm border-t border-white/5 pt-3">
                     {faq.answer}
                   </div>
                 )}
@@ -128,10 +128,10 @@ const HelpFAQModal: React.FC<HelpFAQModalProps> = ({ isOpen, onClose }) => {
         </div>
         
         {/* Footer */}
-        <div className="px-6 py-4 bg-slate-800 flex-shrink-0">
-          <p className="text-center text-white text-sm">
+        <div className="px-6 py-4 bg-slate-900 border-t border-white/10 flex-shrink-0">
+          <p className="text-center text-slate-400 text-sm">
             Still have questions? Reach out to us at{' '}
-            <a href="mailto:support@cognitav.com" className="font-medium underline">
+            <a href="mailto:support@cognitav.com" className="font-medium text-blue-400 hover:text-blue-300 underline">
               support@cognitav.com
             </a>
           </p>

@@ -168,9 +168,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
                         Times Used
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        First Used
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Last Used
                       </th>
                     </tr>
@@ -188,9 +185,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
                           <span className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 font-semibold text-sm">
                             {stat.usage_count}
                           </span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-400 text-sm">
-                          {formatDate(stat.first_used_at)}
                         </td>
                         <td className="px-4 py-3 text-gray-400 text-sm">
                           {formatDate(stat.last_used_at)}

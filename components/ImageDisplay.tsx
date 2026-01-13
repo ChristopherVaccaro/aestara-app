@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Spinner from './Spinner';
-import { MagicWand } from '@phosphor-icons/react';
+import { MagicWand, Heart } from '@phosphor-icons/react';
 import CustomPromptEditor from './CustomPromptEditor';
 import { manipulateImage } from '../services/imageManipulationService';
 
@@ -20,6 +20,8 @@ interface ImageDisplayProps {
   activeFilterName?: string | null;
   isDevMode?: boolean;
   onRemoveImage?: () => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 }
 
 const ImageDisplay: React.FC<ImageDisplayProps> = ({
@@ -38,6 +40,8 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   activeFilterName,
   isDevMode = false,
   onRemoveImage,
+  isFavorite,
+  onToggleFavorite,
 }) => {
   const imageUrlToShow = isPeeking
     ? originalImageUrl
@@ -392,6 +396,33 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
                 </div>
               )}
 
+              {/* Favorite Button - Only when image is generated */}
+              {!isLoading && generatedImageUrl && onToggleFavorite && (
+                <div className="relative group/tooltip">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleFavorite();
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onMouseUp={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onTouchEnd={(e) => e.stopPropagation()}
+                    className={`w-12 h-12 rounded-full backdrop-blur-md border border-white/20 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center ${
+                      isFavorite 
+                        ? 'bg-red-500/20 text-red-400 border-red-500/30' 
+                        : 'bg-black/30 hover:bg-black/50 text-white'
+                    }`}
+                    aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    <Heart size={20} weight={isFavorite ? 'fill' : 'bold'} className={isFavorite ? 'text-red-400' : 'text-white'} />
+                  </button>
+                  <div className="hidden lg:block pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-xs text-white opacity-0 group-hover/tooltip:opacity-100 transition-opacity">
+                    {isFavorite ? "Unfavorite" : "Favorite"}
+                  </div>
+                </div>
+              )}
+
               {/* AI Custom Edit Button - Always available after upload */}
               <div className="relative group/tooltip">
                 <button
@@ -409,23 +440,6 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
                   AI Custom Edit
                 </div>
               </div>
-
-              {/* Download Button - Show when AI enhancement has been applied */}
-              {currentDisplayImage !== originalImageUrl && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleDownloadAIEnhanced(); }}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onMouseUp={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onTouchEnd={(e) => e.stopPropagation()}
-                  className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
-                  title="Download AI Enhanced Image"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              )}
 
               {/* Manual Edit Button - Only when no generated image yet */}
               {onEdit && !generatedImageUrl && (
@@ -482,45 +496,6 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
             {/* Circular Action Buttons - Top Right - Only show when image is generated */}
             {!isLoading && generatedImageUrl && (
               <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
-                {/* Download Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDownload(currentDisplayImage);
-                  }}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onMouseUp={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onTouchEnd={(e) => e.stopPropagation()}
-                  className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
-                  title="Download Image"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </button>
-
-                {/* Share Button */}
-                {onShare && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onShare();
-                    }}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onMouseUp={(e) => e.stopPropagation()}
-                    onTouchStart={(e) => e.stopPropagation()}
-                    onTouchEnd={(e) => e.stopPropagation()}
-                    className="w-12 h-12 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/20 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
-                    title="Share Image"
-                  >
-                    {/* Android Share Icon */}
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
-                    </svg>
-                  </button>
-                )}
-
                 {/* Enlarge/Preview Button */}
                 <button
                   onClick={(e) => {

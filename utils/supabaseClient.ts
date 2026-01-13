@@ -48,8 +48,8 @@ function getSupabaseClient(): SupabaseClient {
     global: {
       headers: {
         'x-client-info': 'ai-image-stylizer',
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
+        // NOTE: Do NOT set 'Content-Type' here! It overrides storage upload contentType
+        // causing images to be uploaded as application/json instead of image/png
       },
     },
     realtime: {
