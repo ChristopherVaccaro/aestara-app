@@ -258,15 +258,15 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, userId }) 
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 glass-modal">
       <div 
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        className="absolute inset-0"
         onClick={onClose}
       />
       
       <div 
         ref={modalRef}
-        className="relative bg-slate-900 rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden border border-white/10"
+        className="relative glass-panel max-w-5xl w-full max-h-[90vh] overflow-hidden"
         tabIndex={-1}
       >
         {/* Header - Mobile: stacked layout, Desktop: single row */}
@@ -446,10 +446,10 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, userId }) 
               </>
             )}
             
-            {/* Close button */}
+            {/* Close button - centered icon in circular button */}
             <button
               onClick={() => setSelectedItemId(null)}
-              className="absolute top-4 right-4 z-10 p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+              className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 rounded-full hover:bg-black/70 transition-colors flex items-center justify-center"
             >
               <X size={20} className="text-white" />
             </button>
@@ -478,7 +478,7 @@ const GalleryModal: React.FC<GalleryModalProps> = ({ isOpen, onClose, userId }) 
               </div>
             </div>
             
-            {/* Actions bar - improved mobile spacing */}
+            {/* Actions bar */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 border-t border-white/10 bg-slate-800">
               {/* Date/time info */}
               <div className="flex items-center gap-2 text-sm text-slate-400">

@@ -13,28 +13,32 @@ interface FAQItem {
 
 const faqs: FAQItem[] = [
   {
-    question: "How does the AI transformation work?",
-    answer: "Our AI analyzes your uploaded photo and applies the selected style transformation while preserving your facial features and identity. The process takes just a few seconds."
+    question: "What is Aestara?",
+    answer: "Aestara is an AI-powered photo styling app that transforms your photos with artistic styles. Upload any photo, browse our curated style categories, and apply stunning transformations in seconds."
   },
   {
-    question: "What image quality works best?",
-    answer: "For best results, use a clear, well-lit photo where your face is clearly visible. Front-facing photos with good lighting work best. Avoid blurry or heavily filtered images."
+    question: "How do I use Aestara?",
+    answer: "Simply upload a photo, browse the style categories (like Artistic, Cinematic, Vintage, etc.), select a style you like, and tap 'Apply Style'. Your transformed image will be ready in moments."
   },
   {
-    question: "Can I combine multiple styles?",
-    answer: "Currently, you can apply one style at a time. However, you can apply additional transformations to already-generated images using the AI Custom Edit feature."
+    question: "What is AI Custom Edit?",
+    answer: "AI Custom Edit lets you describe any changes you want to make to your image using natural language. Just type what you want (e.g., 'make the background a sunset beach') and our AI will apply your custom edits."
   },
   {
-    question: "Why did my transformation fail?",
-    answer: "Transformations may fail if the image quality is too low, the face isn't clearly visible, or if the content violates our guidelines. Try using a clearer photo with better lighting."
+    question: "How do I save my styled images?",
+    answer: "After styling, use the download button to save images to your device. You can also share directly to social media, or find all your creations in the Gallery accessible from your profile."
   },
   {
-    question: "What content is not allowed?",
-    answer: "We don't allow inappropriate, offensive, or illegal content. Photos must contain real human faces and comply with our Terms of Service."
+    question: "What makes a good source photo?",
+    answer: "For best results, use clear, well-lit photos. Higher resolution images produce better transformations. Avoid heavily filtered or very dark images."
   },
   {
-    question: "How do I save my transformed images?",
-    answer: "After a transformation is complete, click the download button to save the image to your device. You can also share directly to social media."
+    question: "Can I favorite and organize my images?",
+    answer: "Yes! Tap the heart icon on any generated image to favorite it. Access your Gallery to view all your creations, filter by favorites, and sort by date."
+  },
+  {
+    question: "Where can I adjust app settings?",
+    answer: "Tap your profile icon to access Account Settings. Here you can customize preferences like the Style Button position on mobile devices."
   }
 ];
 
@@ -48,15 +52,15 @@ const HelpFAQModal: React.FC<HelpFAQModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 glass-modal">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0"
         onClick={onClose}
       />
       
       {/* Modal */}
-      <div className="relative bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] overflow-hidden flex flex-col border border-white/10">
+      <div className="relative glass-panel w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-start justify-between px-6 pt-6 pb-4 flex-shrink-0 border-b border-white/5">
           <div>
@@ -80,19 +84,19 @@ const HelpFAQModal: React.FC<HelpFAQModalProps> = ({ isOpen, onClose }) => {
             <ul className="space-y-2 text-slate-300 text-sm">
               <li className="flex items-start gap-2">
                 <span className="text-blue-400 mt-1">•</span>
-                <span>Use natural lighting for clearer facial features</span>
+                <span>Use high-quality, well-lit photos for the best transformations</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-blue-400 mt-1">•</span>
-                <span>Face the camera directly for best style application</span>
+                <span>Browse different style categories to discover new looks</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-blue-400 mt-1">•</span>
-                <span>Remove glasses if you want to try eyewear styles</span>
+                <span>Use AI Custom Edit to make specific changes with natural language</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-blue-400 mt-1">•</span>
-                <span>Tie back hair if you want to see dramatic hair transformations</span>
+                <span>Favorite your best creations to easily find them later in your Gallery</span>
               </li>
             </ul>
           </div>

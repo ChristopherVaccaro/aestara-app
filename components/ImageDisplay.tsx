@@ -396,33 +396,6 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
                 </div>
               )}
 
-              {/* Favorite Button - Only when image is generated */}
-              {!isLoading && generatedImageUrl && onToggleFavorite && (
-                <div className="relative group/tooltip">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleFavorite();
-                    }}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onMouseUp={(e) => e.stopPropagation()}
-                    onTouchStart={(e) => e.stopPropagation()}
-                    onTouchEnd={(e) => e.stopPropagation()}
-                    className={`w-12 h-12 rounded-full backdrop-blur-md border border-white/20 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center ${
-                      isFavorite 
-                        ? 'bg-red-500/20 text-red-400 border-red-500/30' 
-                        : 'bg-black/30 hover:bg-black/50 text-white'
-                    }`}
-                    aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-                  >
-                    <Heart size={20} weight={isFavorite ? 'fill' : 'bold'} className={isFavorite ? 'text-red-400' : 'text-white'} />
-                  </button>
-                  <div className="hidden lg:block pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-xs text-white opacity-0 group-hover/tooltip:opacity-100 transition-opacity">
-                    {isFavorite ? "Unfavorite" : "Favorite"}
-                  </div>
-                </div>
-              )}
-
               {/* AI Custom Edit Button - Always available after upload */}
               <div className="relative group/tooltip">
                 <button
@@ -459,6 +432,33 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
                   </button>
                   <div className="hidden lg:block pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-xs text-white opacity-0 group-hover/tooltip:opacity-100 transition-opacity">
                     Edit Image
+                  </div>
+                </div>
+              )}
+
+              {/* Favorite Button - directly below Edit, only when image is generated */}
+              {!isLoading && generatedImageUrl && onToggleFavorite && (
+                <div className="relative group/tooltip">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleFavorite();
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onMouseUp={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onTouchEnd={(e) => e.stopPropagation()}
+                    className={`w-12 h-12 rounded-full backdrop-blur-md border border-white/20 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center ${
+                      isFavorite 
+                        ? 'bg-red-500/20 text-red-400 border-red-500/30' 
+                        : 'bg-black/30 hover:bg-black/50 text-white'
+                    }`}
+                    aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    <Heart size={20} weight={isFavorite ? 'fill' : 'bold'} className={isFavorite ? 'text-red-400' : 'text-white'} />
+                  </button>
+                  <div className="hidden lg:block pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-xs text-white opacity-0 group-hover/tooltip:opacity-100 transition-opacity">
+                    {isFavorite ? "Unfavorite" : "Favorite"}
                   </div>
                 </div>
               )}
