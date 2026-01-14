@@ -177,16 +177,6 @@ const FILTER_CATEGORIES: FilterCategory[] = [
           `${NEGATIVE_PHOTO_REALISM}`
       },
       {
-        id: 'lowpoly',
-        name: 'Low Poly',
-        prompt:
-          `${ILLUSTRATION_RENDER_LOCK}` +
-          'Apply low-polygon 3D art rendering style.\n' +
-          'STYLE: Simple triangular polygonal facets with flat shading and geometric appearance.\n' +
-          'TECHNIQUE: Clear polygon edges, solid colors per face, minimal polygon count.\n' +
-          `${NEGATIVE_PHOTO_REALISM}`
-      },
-      {
         id: 'ukiyo',
         name: 'Ukiyo-e',
         prompt:
@@ -244,43 +234,6 @@ const FILTER_CATEGORIES: FilterCategory[] = [
           'Apply 1980s synthwave/retrowave illustrated aesthetic.\n' +
           'ELEMENTS: neon grid landscapes, chrome accents, sunset gradients, wireframe mountains, geometric shapes.\n' +
           'EFFECTS: subtle VHS scan lines + chromatic aberration in an illustrated way.\n' +
-          `${NEGATIVE_PHOTO_REALISM}`
-      },
-      {
-        id: 'glitchart',
-        name: 'Glitch Art',
-        prompt:
-          `${ILLUSTRATION_RENDER_LOCK}` +
-          'Apply digital glitch art aesthetic.\n' +
-          'EFFECTS: RGB channel separation, scan line distortions, displaced fragments, digital artifacts.\n' +
-          'Keep subject recognizable through glitch effects.\n' +
-          `${NEGATIVE_PHOTO_REALISM}`
-      },
-      {
-        id: 'chibi',
-        name: 'Chibi/Kawaii',
-        prompt:
-          `${ILLUSTRATION_RENDER_LOCK}` +
-          'Transform into adorable chibi/kawaii illustration while preserving identity cues.\n' +
-          'STYLE: oversized head, large sparkling eyes, simplified body, cute proportions, pastel palette.\n' +
-          `${NEGATIVE_PHOTO_REALISM}`
-      },
-      {
-        id: 'lofi',
-        name: 'Lo-Fi Aesthetic',
-        prompt:
-          `${ILLUSTRATION_RENDER_LOCK}` +
-          'Apply lo-fi illustrated aesthetic with cozy vibes.\n' +
-          'STYLE: warm muted palette, soft grain texture, dreamy softness, anime-inspired lo-fi look.\n' +
-          `${NEGATIVE_PHOTO_REALISM}`
-      },
-      {
-        id: 'biophilic',
-        name: 'Biophilic Art',
-        prompt:
-          `${ILLUSTRATION_RENDER_LOCK}` +
-          'Apply biophilic nature-integrated illustration style.\n' +
-          'ELEMENTS: flowers, moss, leaves, vines integrated in a stylized artistic way.\n' +
           `${NEGATIVE_PHOTO_REALISM}`
       },
       {
@@ -780,39 +733,12 @@ const FILTER_CATEGORIES: FilterCategory[] = [
           `${NEGATIVE_PHOTO_REALISM}`
       },
       {
-        id: 'disneypixar',
-        name: 'Disney/Pixar 3D',
-        prompt:
-          `${ILLUSTRATION_RENDER_LOCK}` +
-          'Transform into Disney/Pixar 3D animated film rendering.\n' +
-          'High-quality CGI, appealing proportions, glossy eyes, soft GI lighting.\n' +
-          `${NEGATIVE_PHOTO_REALISM}`
-      },
-      {
         id: 'spiderverse',
         name: 'Spider-Verse',
         prompt:
           `${ILLUSTRATION_RENDER_LOCK}` +
           'Transform into Spider-Verse animation style.\n' +
           'Comic halftones, bold lines, hatching, high-contrast colors, stylized chromatic effects.\n' +
-          `${NEGATIVE_PHOTO_REALISM}`
-      },
-      {
-        id: 'arcane',
-        name: 'Arcane Style',
-        prompt:
-          `${ILLUSTRATION_RENDER_LOCK}` +
-          'Transform into Arcane (Fortiche) painterly animation style.\n' +
-          'Painted texture overlays, dramatic lighting, rich palette, atmospheric depth.\n' +
-          `${NEGATIVE_PHOTO_REALISM}`
-      },
-      {
-        id: 'onepunchman',
-        name: 'One Punch Man',
-        prompt:
-          `${ILLUSTRATION_RENDER_LOCK}` +
-          'Transform into One Punch Man anime/manga art style.\n' +
-          'Clean bold lines, high-contrast shading, speed lines/impact effects.\n' +
           `${NEGATIVE_PHOTO_REALISM}`
       },
     ],
@@ -1891,18 +1817,18 @@ IMPORTANT:
                 />
               </div>
               
-              {/* External Action Buttons */}
-              <div className="flex items-center gap-3 self-end md:self-auto">
+              {/* External Action Buttons - 50/50 on mobile */}
+              <div className="flex items-center gap-3 w-full md:w-auto md:self-auto">
                 <button
                   onClick={handleShare}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl transition-colors border border-white/10"
+                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl transition-colors border border-white/10"
                 >
                   <ShareNetwork size={20} />
                   <span>Share</span>
                 </button>
                 <button
                   onClick={() => handleDownload()}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors shadow-lg shadow-blue-900/20"
+                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors shadow-lg shadow-blue-900/20"
                 >
                   <DownloadSimple size={20} weight="bold" />
                   <span>Download</span>
@@ -1948,7 +1874,16 @@ IMPORTANT:
           loadUserGallery(user.id, false); 
         }
         setIsGalleryOpen(true);
-      }} onOpenHelp={() => setShowHelp(true)} />
+      }} onOpenHelp={() => setShowHelp(true)} onSignOut={() => {
+        // Clear app state on sign out - reset to fresh state
+        console.log('🚪 [App] User signing out, clearing state');
+        setOriginalImageUrl('');
+        setGeneratedImageUrl(null);
+        setHistory([]);
+        setCurrentHistoryIndex(-1);
+        setActiveFilter(null);
+        setError(null);
+      }} />
       <main className="w-full max-w-6xl mx-auto flex-1 flex items-start justify-center px-4 sm:px-6 pt-4 md:pt-8">
         {renderContent()}
       </main>

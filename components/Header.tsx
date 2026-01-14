@@ -13,9 +13,10 @@ interface HeaderProps {
   onBackClick?: () => void;
   onOpenGallery?: () => void;
   onOpenHelp?: () => void;
+  onSignOut?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false, showBackButton = false, onBackClick, onOpenGallery, onOpenHelp }) => {
+const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false, showBackButton = false, onBackClick, onOpenGallery, onOpenHelp, onSignOut }) => {
   const { user } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
 
@@ -51,6 +52,7 @@ const Header: React.FC<HeaderProps> = ({ onLogoClick, hideMenu = false, showBack
                   onOpenProfile={() => setShowProfile(true)}
                   onOpenGallery={onOpenGallery}
                   onOpenFAQ={onOpenHelp}
+                  onSignOut={onSignOut}
                 />
               ) : (
                 <AuthButton />

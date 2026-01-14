@@ -7,13 +7,15 @@ interface ProfileDropdownProps {
   onOpenGallery?: () => void;
   onOpenFAQ?: () => void;
   onOpenHistory?: () => void;
+  onSignOut?: () => void;
 }
 
 const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ 
   onOpenProfile, 
   onOpenGallery,
   onOpenFAQ,
-  onOpenHistory 
+  onOpenHistory,
+  onSignOut 
 }) => {
   const { user, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -172,6 +174,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
             <button
               onClick={async () => {
                 setIsOpen(false);
+                onSignOut?.();
                 await signOut();
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-red-400 hover:bg-red-500/10 transition-colors"

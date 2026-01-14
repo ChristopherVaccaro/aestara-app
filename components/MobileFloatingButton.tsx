@@ -1,12 +1,21 @@
 import React from 'react';
+import { useUserSettings } from '../contexts/UserSettingsContext';
 
 interface MobileFloatingButtonProps {
   onClick: () => void;
 }
 
 const MobileFloatingButton: React.FC<MobileFloatingButtonProps> = ({ onClick }) => {
+  const { fabPosition } = useUserSettings();
+  
+  // Position classes based on user preference
+  // Raised ~25% higher: changed from bottom-6 to bottom-[20%]
+  const positionClasses = fabPosition === 'left' 
+    ? 'left-6' 
+    : 'right-6';
+
   return (
-    <div className="fixed bottom-6 right-6 z-40 lg:hidden">
+    <div className={`fixed bottom-[20%] ${positionClasses} z-40 lg:hidden`}>
       {/* Pulse animation ring - behind button */}
       <span className="absolute inset-0 w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 animate-subtle-pulse" />
       

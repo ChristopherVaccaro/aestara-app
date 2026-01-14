@@ -600,3 +600,20 @@ button, a, [role="button"] {
 .animate-slide-left {
   animation: slide-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* Pulse animation for favorite button */
+@keyframes pulse-once {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-pulse-once {
+  animation: pulse-once 0.3s ease-out;
+}

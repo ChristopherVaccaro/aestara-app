@@ -12,30 +12,34 @@ interface StyleAnalysisResult {
 /**
  * Analyzes a style reference image and generates a prompt to apply that style
  * to another image. This creates a detailed prompt based on visual analysis.
+ * 
+ * The style reference can be any artistic image (anime character, cartoon,
+ * painting, etc.) and the AI will extract its artistic characteristics.
  */
 export async function analyzeStyleImage(styleImageBase64: string): Promise<StyleAnalysisResult> {
   try {
-    // For now, we'll create a generic custom style prompt
-    // In the future, this could call a dedicated API endpoint for style analysis
-    
-    // Build the final prompt with identity preservation instructions
-    const finalPrompt = `Apply the exact visual style from the reference image to this photo while preserving facial features and identity.
+    // Build the final prompt with style extraction and identity preservation
+    const finalPrompt = `ARTISTIC STYLE EXTRACTION AND APPLICATION:
 
-STYLE TRANSFER INSTRUCTIONS:
-- Match the color palette, saturation, and color grading exactly
-- Replicate the lighting style, shadows, and highlights
-- Apply the same texture and detail level
-- Use the same artistic technique and medium appearance
-- Match the mood and atmosphere
+Analyze the style reference image to identify its unique artistic characteristics:
+- Art style (anime, cartoon, oil painting, watercolor, digital art, sketch, etc.)
+- Line work (bold outlines, soft edges, hatching, clean vectors, etc.)
+- Color approach (vibrant, muted, pastel, limited palette, etc.)
+- Shading technique (cel-shading, soft gradients, flat colors, etc.)
+- Level of stylization (realistic, exaggerated, simplified, etc.)
+
+Apply ALL these extracted artistic characteristics to transform the target image.
 
 CRITICAL IDENTITY PRESERVATION:
-- Preserve exact facial structure, face shape, eye shape, nose shape, mouth shape
-- Keep all facial proportions and body pose identical
-- Only change the artistic rendering style, colors, textures, and lighting
-- The person must remain 100% recognizable`;
+- The subject must remain recognizable - same person, different art style
+- Preserve facial structure, features, and proportions
+- Keep pose and composition intact
+- Transform only the artistic rendering, not the identity
+
+Goal: Extract the "artistic DNA" from the style reference and apply it to create a stylized version of the target that looks like it belongs in the same artistic universe.`;
 
     return {
-      styleDescription: 'Custom style from uploaded reference image',
+      styleDescription: 'Custom style extracted from uploaded reference image',
       prompt: finalPrompt,
       success: true,
     };
@@ -53,6 +57,9 @@ CRITICAL IDENTITY PRESERVATION:
 /**
  * Applies a custom style to an image using the style reference and target image.
  * Uses the existing apply-image-filter API endpoint.
+ * 
+ * This extracts the artistic style characteristics from the style reference image
+ * (e.g., anime, Simpsons, watercolor, etc.) and applies them to the target image.
  */
 export async function applyCustomStyleWithReference(
   targetImageFile: File,
@@ -60,24 +67,35 @@ export async function applyCustomStyleWithReference(
   userDescription?: string
 ): Promise<{ imageUrl: string; success: boolean; error?: string }> {
   try {
-    // Build the prompt for custom style transfer
-    const stylePrompt = `Apply the exact visual style from this reference to the target image.
+    // Build the prompt for custom style transfer - focused on extracting artistic style
+    const stylePrompt = `STYLE EXTRACTION AND TRANSFER:
+Analyze the STYLE REFERENCE IMAGE to identify its unique artistic characteristics, then apply those exact characteristics to transform the TARGET IMAGE.
 
-${userDescription ? `USER STYLE DESCRIPTION: ${userDescription}\n\n` : ''}STYLE TRANSFER INSTRUCTIONS:
-- Analyze the reference image's artistic style, colors, lighting, and textures
-- Apply these exact visual characteristics to the target image
-- Match the color palette, saturation levels, and color grading
-- Replicate the lighting direction, quality, and mood
-- Use the same artistic technique (painting style, brush strokes, etc.)
-- Maintain the atmospheric quality and overall aesthetic
+${userDescription ? `USER STYLE HINT: ${userDescription}\n\n` : ''}STEP 1 - EXTRACT STYLE FROM REFERENCE:
+Identify and extract these artistic elements from the style reference:
+- Art style/medium (anime, cartoon, oil painting, watercolor, digital art, etc.)
+- Line work style (bold outlines, soft edges, no outlines, hatching, etc.)
+- Color palette and saturation (vibrant, muted, pastel, limited palette, etc.)
+- Shading technique (cel-shading, gradient, cross-hatching, flat colors, etc.)
+- Texture and detail level (smooth, textured, simplified, highly detailed)
+- Proportions and stylization (exaggerated features, realistic, chibi, etc.)
+- Lighting style (dramatic, soft, flat, rim lighting, etc.)
+
+STEP 2 - APPLY EXTRACTED STYLE TO TARGET:
+Transform the target image using ALL the extracted style characteristics:
+- Render in the SAME art style/medium as the reference
+- Use the SAME line work technique
+- Apply the SAME color palette and saturation levels
+- Use the SAME shading and lighting approach
+- Match the SAME level of stylization and detail
 
 CRITICAL IDENTITY PRESERVATION:
-- Preserve exact facial structure, face shape, all facial features
-- Keep body pose, composition, and proportions identical
-- Only change the artistic rendering style
-- The person must remain 100% recognizable
+- The subject's face must remain recognizable - same person, different art style
+- Preserve facial structure, eye shape, nose, mouth proportions
+- Keep the pose, composition, and body proportions
+- Only transform the ARTISTIC RENDERING, not the identity
 
-Apply the style as a visual filter while keeping all structural elements identical.`;
+The goal is: If the style reference is Simpsons-style, make the target look like a Simpsons character. If anime-style, make it anime. Extract and apply the artistic DNA of the reference.`;
 
     // Convert target image to base64
     const targetBase64 = await new Promise<string>((resolve, reject) => {

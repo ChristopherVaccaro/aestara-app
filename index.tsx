@@ -7,6 +7,7 @@ import TermsPage from './pages/TermsPage';
 import ContactPage from './pages/ContactPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { GalleryProvider } from './contexts/GalleryContext';
+import { UserSettingsProvider } from './contexts/UserSettingsContext';
 import { initializeMobileApp } from './utils/capacitorUtils';
 
 // Initialize Capacitor for mobile platforms
@@ -24,14 +25,16 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <GalleryProvider>
-          <Routes>
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/*" element={<App />} />
-          </Routes>
-        </GalleryProvider>
+        <UserSettingsProvider>
+          <GalleryProvider>
+            <Routes>
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/*" element={<App />} />
+            </Routes>
+          </GalleryProvider>
+        </UserSettingsProvider>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>

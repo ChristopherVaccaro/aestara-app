@@ -1,4 +1,6 @@
 // Image processing utilities for Android compatibility
+import heic2any from 'heic2any';
+
 export interface ProcessedImage {
   file: File;
   dataUrl: string;
@@ -50,12 +52,14 @@ export class ImageProcessor {
 
     if (actualMimeType === 'image/heic' || actualMimeType === 'image/heif' || actualMimeType === 'image/avif') {
       try {
+        console.log('Converting HEIC/HEIF image to JPEG...');
         const converted = await this.convertToJpeg(file);
         processedFile = converted.file;
         finalMimeType = converted.mimeType;
       } catch (conversionError) {
+        console.error('HEIC conversion failed:', conversionError);
         // Provide helpful instructions for HEIC/HEIF conversion
-        throw new Error('HEIC/HEIF format detected. Please convert to JPEG first:\n\n• On iPhone: Go to Settings > Camera > Formats > Most Compatible\n• On Android: Use Google Photos to export as JPEG\n• Or use an online converter like heictojpg.com');
+        throw new Error('Unable to convert HEIC/HEIF image. Please convert to JPEG using your device\'s photo app or an online converter like heictojpg.com');
       }
     }
 
@@ -166,33 +170,47 @@ export class ImageProcessor {
   }
 
   /**
-   * Convert HEIC/HEIF/AVIF to JPEG using canvas
+   * Convert HEIC/HEIF/AVIF to JPEG using heic2any library
    */
   private static async convertToJpeg(file: File): Promise<{ file: File; mimeType: string }> {
     try {
-      // Try to load the image directly (some browsers support HEIC natively)
-      const canvas = await this.loadImageToCanvas(file);
-      const convertedFile = await this.canvasToFile(canvas, 'image/jpeg', 0.9, file.name);
+      // Use heic2any library for proper HEIC/HEIF conversion
+      const convertedBlob = await heic2any({
+        blob: file,
+        toType: 'image/jpeg',
+        quality: 0.9
+      });
+      
+      // heic2any can return a single blob or array of blobs
+      const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+      
+      // Create a new File from the converted blob
+      const convertedFile = new File(
+        [blob], 
+        file.name.replace(/\.(heic|heif|avif)$/i, '.jpg'), 
+        { type: 'image/jpeg', lastModified: file.lastModified }
+      );
+      
+      console.log('Successfully converted HEIC/HEIF to JPEG');
       
       return {
         file: convertedFile,
         mimeType: 'image/jpeg'
       };
     } catch (error) {
-      // If conversion fails, try to pass through as JPEG anyway
-      // Some HEIC files might work if we just change the MIME type
+      console.error('HEIC conversion error:', error);
+      
+      // Try native browser support as fallback
       try {
-        const newFile = new File([file], file.name.replace(/\.(heic|heif|avif)$/i, '.jpg'), {
-          type: 'image/jpeg',
-          lastModified: file.lastModified
-        });
+        const canvas = await this.loadImageToCanvas(file);
+        const convertedFile = await this.canvasToFile(canvas, 'image/jpeg', 0.9, file.name);
         
         return {
-          file: newFile,
+          file: convertedFile,
           mimeType: 'image/jpeg'
         };
       } catch {
-        throw new Error('This image format is not supported by your browser. Please convert your HEIC/HEIF image to JPEG or PNG using your device\'s photo app before uploading.');
+        throw new Error('Unable to convert HEIC/HEIF image. Please convert to JPEG using your device\'s photo app or an online converter.');
       }
     }
   }

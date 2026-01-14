@@ -3,6 +3,7 @@ import Spinner from './Spinner';
 import { MagicWand, Heart } from '@phosphor-icons/react';
 import CustomPromptEditor from './CustomPromptEditor';
 import { manipulateImage } from '../services/imageManipulationService';
+import { useUserSettings } from '../contexts/UserSettingsContext';
 
 interface ImageDisplayProps {
   originalImageUrl: string;
@@ -43,6 +44,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   isFavorite,
   onToggleFavorite,
 }) => {
+  const { buttonOrientation } = useUserSettings();
   const imageUrlToShow = isPeeking
     ? originalImageUrl
     : generatedImageUrl || originalImageUrl;
@@ -56,6 +58,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentDisplayImage, setCurrentDisplayImage] = useState<string>(originalImageUrl);
   const [manipulationHistory, setManipulationHistory] = useState<string[]>([]);
+  const [isPulsing, setIsPulsing] = useState(false);
   const [showAIComparison, setShowAIComparison] = useState(false);
   const [aiComparePosition, setAIComparePosition] = useState(25); // Match ImageComparison initial position
   const [isAIDragging, setIsAIDragging] = useState(false);
@@ -372,8 +375,8 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
               alt={isPeeking ? 'Original' : 'Stylized'}
               className="w-full h-full object-contain transition-all duration-300 rounded-lg"
             />
-            {/* Top-right action buttons (stacked) */}
-            <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
+            {/* Action buttons (stacked) - Position based on user setting */}
+            <div className={`absolute top-3 ${buttonOrientation === 'left' ? 'left-3' : 'right-3'} flex flex-col gap-2 z-20`}>
               {/* Remove Image Button */}
               {onRemoveImage && (
                 <div className="relative group/tooltip">
@@ -390,35 +393,8 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
                       <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                     </svg>
                   </button>
-                  <div className="hidden lg:block pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-xs text-white opacity-0 group-hover/tooltip:opacity-100 transition-opacity">
+                  <div className={`hidden lg:block pointer-events-none absolute ${buttonOrientation === 'left' ? 'left-14' : 'right-14'} top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-xs text-white opacity-0 group-hover/tooltip:opacity-100 transition-opacity`}>
                     Remove image
-                  </div>
-                </div>
-              )}
-
-              {/* Favorite Button - Only when image is generated */}
-              {!isLoading && generatedImageUrl && onToggleFavorite && (
-                <div className="relative group/tooltip">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleFavorite();
-                    }}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onMouseUp={(e) => e.stopPropagation()}
-                    onTouchStart={(e) => e.stopPropagation()}
-                    onTouchEnd={(e) => e.stopPropagation()}
-                    className={`w-12 h-12 rounded-full backdrop-blur-md border border-white/20 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center ${
-                      isFavorite 
-                        ? 'bg-red-500/20 text-red-400 border-red-500/30' 
-                        : 'bg-black/30 hover:bg-black/50 text-white'
-                    }`}
-                    aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-                  >
-                    <Heart size={20} weight={isFavorite ? 'fill' : 'bold'} className={isFavorite ? 'text-red-400' : 'text-white'} />
-                  </button>
-                  <div className="hidden lg:block pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-xs text-white opacity-0 group-hover/tooltip:opacity-100 transition-opacity">
-                    {isFavorite ? "Unfavorite" : "Favorite"}
                   </div>
                 </div>
               )}
@@ -436,7 +412,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
                 >
                   <MagicWand className="h-5 w-5" weight="bold" />
                 </button>
-                <div className="hidden lg:block pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-xs text-white opacity-0 group-hover/tooltip:opacity-100 transition-opacity">
+                <div className={`hidden lg:block pointer-events-none absolute ${buttonOrientation === 'left' ? 'left-14' : 'right-14'} top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-xs text-white opacity-0 group-hover/tooltip:opacity-100 transition-opacity`}>
                   AI Custom Edit
                 </div>
               </div>
@@ -457,8 +433,38 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
                       <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                     </svg>
                   </button>
-                  <div className="hidden lg:block pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-xs text-white opacity-0 group-hover/tooltip:opacity-100 transition-opacity">
+                  <div className={`hidden lg:block pointer-events-none absolute ${buttonOrientation === 'left' ? 'left-14' : 'right-14'} top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-xs text-white opacity-0 group-hover/tooltip:opacity-100 transition-opacity`}>
                     Edit Image
+                  </div>
+                </div>
+              )}
+
+              {/* Favorite Button - directly below Edit, only when image is generated */}
+              {!isLoading && generatedImageUrl && onToggleFavorite && (
+                <div className="relative group/tooltip">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Trigger pulse animation via state
+                      setIsPulsing(true);
+                      setTimeout(() => setIsPulsing(false), 300);
+                      onToggleFavorite();
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onMouseUp={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onTouchEnd={(e) => e.stopPropagation()}
+                    className={`w-12 h-12 rounded-full backdrop-blur-md border border-white/20 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center ${
+                      isFavorite 
+                        ? 'bg-red-500/20 text-red-400 border-red-500/30' 
+                        : 'bg-black/30 hover:bg-black/50 text-white'
+                    } ${isPulsing ? 'animate-pulse-once' : ''}`}
+                    aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    <Heart size={20} weight={isFavorite ? 'fill' : 'bold'} className={isFavorite ? 'text-red-400' : 'text-white'} />
+                  </button>
+                  <div className={`hidden lg:block pointer-events-none absolute ${buttonOrientation === 'left' ? 'left-14' : 'right-14'} top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/90 px-3 py-1.5 text-xs text-white opacity-0 group-hover/tooltip:opacity-100 transition-opacity`}>
+                    {isFavorite ? "Unfavorite" : "Favorite"}
                   </div>
                 </div>
               )}

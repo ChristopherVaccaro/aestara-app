@@ -14,17 +14,17 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 glass-modal">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/80 backdrop-blur-md"
+        className="absolute inset-0"
         onClick={onClose}
       />
       
-      {/* Modal - Same transparent style as TermsOfService */}
-      <div className="relative w-full max-w-md max-h-[90vh] flex flex-col bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-600 shadow-2xl overflow-hidden">
+      {/* Modal */}
+      <div className="relative w-full max-w-md max-h-[90vh] flex flex-col glass-panel overflow-hidden">
         {/* Header */}
-        <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-600">
+        <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-white/10">
           <h2 className="text-2xl font-bold text-white">Contact Us</h2>
           <button
             onClick={onClose}
@@ -60,8 +60,8 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
           </p>
         </div>
         
-        {/* Fixed Close Button at Bottom - Same as TermsOfService */}
-        <div className="flex-shrink-0 p-6 border-t border-gray-600 bg-gray-900/95">
+        {/* Fixed Close Button at Bottom */}
+        <div className="flex-shrink-0 p-6 border-t border-white/10 bg-slate-900/95">
           <button
             onClick={onClose}
             className="w-full px-6 py-3 glass-button-active text-blue-100 font-semibold rounded-lg hover:bg-blue-500/40 transition-all duration-300"
