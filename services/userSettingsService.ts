@@ -7,13 +7,16 @@
 import { supabase } from '../utils/supabaseClient';
 
 export type FabPosition = 'left' | 'right';
+export type ButtonOrientation = 'left' | 'right';
 
 export interface UserSettings {
   fabPositionMobile: FabPosition;
+  buttonOrientation: ButtonOrientation;
 }
 
 const DEFAULT_SETTINGS: UserSettings = {
   fabPositionMobile: 'right',
+  buttonOrientation: 'right',
 };
 
 const LOCAL_STORAGE_KEY = 'aestara_user_settings';

@@ -40,7 +40,7 @@ const Footer: React.FC<FooterProps> = ({ onOpenContact, onOpenTerms, onOpenPriva
       
       {/* Mobile: stacked layout - copyright above, links below */}
       <div className="sm:hidden flex flex-col items-center gap-2 px-4">
-        <p className="text-sm text-slate-500">
+        <p className="text-xs text-slate-500">
           © {currentYear} Aestara by Cognitav. All rights reserved.
         </p>
         <nav className="flex items-center gap-4">

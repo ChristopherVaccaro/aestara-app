@@ -180,6 +180,7 @@ const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
               categories={categories}
               activeCategory={activeCategory}
               onCategoryChange={onCategoryChange}
+              selectedFilterId={activeFilterId}
             />
           </div>
 

@@ -191,17 +191,26 @@ async function processPromptUsageEvent(event: AnalyticsEvent): Promise<void> {
 async function incrementGenerationCountBatch(filterId: string, count: number): Promise<void> {
   logDbCall('style_prompts', 'update');
 
-  const { data: current } = await supabase
+  const { data: current, error: selectError } = await supabase
     .from('style_prompts')
-    .select('generation_count')
+    .select('total_generations')
     .eq('filter_id', filterId)
     .maybeSingle();
 
+  if (selectError) {
+    console.error('📊 [Analytics] Error fetching generation count:', selectError);
+    return;
+  }
+
   if (current) {
-    await supabase
+    const { error: updateError } = await supabase
       .from('style_prompts')
-      .update({ generation_count: (current.generation_count || 0) + count })
+      .update({ total_generations: (current.total_generations || 0) + count })
       .eq('filter_id', filterId);
+    
+    if (updateError) {
+      console.error('📊 [Analytics] Error updating generation count:', updateError);
+    }
   }
 }
 

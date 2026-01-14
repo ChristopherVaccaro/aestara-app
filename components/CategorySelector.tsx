@@ -1,19 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Filter } from '../types';
 
 interface FilterCategory {
   name: string;
+  filters?: Filter[];
 }
 
 interface CategorySelectorProps {
   categories: FilterCategory[];
   activeCategory: string;
   onCategoryChange: (category: string) => void;
+  selectedFilterId?: string | null;
 }
 
 const CategorySelector: React.FC<CategorySelectorProps> = ({
   categories,
   activeCategory,
   onCategoryChange,
+  selectedFilterId,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [overlayOpen, setOverlayOpen] = useState(false);
@@ -128,21 +132,30 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
       {/* Mobile & Tablet: Horizontal Scroll Tabs */}
       <div className="lg:hidden">
         <div className="flex overflow-x-auto gap-2 pb-2 px-4" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
-          {categories.map((category) => (
-            <button
-              key={category.name}
-              onClick={() => {
-                onCategoryChange(category.name);
-              }}
-              className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
-                activeCategory === category.name
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                  : 'bg-white/10 text-gray-300 hover:bg-white/15 hover:text-white'
-              }`}
-            >
-              {category.name}
-            </button>
-          ))}
+          {categories.map((category) => {
+            // Check if this category contains the selected filter
+            const hasSelectedFilter = selectedFilterId && category.filters?.some(f => f.id === selectedFilterId);
+            return (
+              <div key={category.name} className="relative flex-shrink-0">
+                {/* Notification dot when a style from this category is selected */}
+                {hasSelectedFilter && activeCategory !== category.name && (
+                  <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-blue-500 rounded-full z-10" />
+                )}
+                <button
+                  onClick={() => {
+                    onCategoryChange(category.name);
+                  }}
+                  className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
+                    activeCategory === category.name
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                      : 'bg-white/10 text-gray-300 hover:bg-white/15 hover:text-white'
+                  }`}
+                >
+                  {category.name}
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

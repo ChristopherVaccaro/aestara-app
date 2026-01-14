@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MagicWand, Heart } from '@phosphor-icons/react';
 import CustomPromptEditor from './CustomPromptEditor';
 import { manipulateImage } from '../services/imageManipulationService';
+import { useUserSettings } from '../contexts/UserSettingsContext';
 
 interface ImageComparisonProps {
   originalImageUrl: string;
@@ -49,6 +50,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
   isFavorite,
   onToggleFavorite,
 }) => {
+  const { buttonOrientation } = useUserSettings();
   const [sliderPosition, setSliderPosition] = useState(25);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -64,6 +66,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
   const [aiEditError, setAIEditError] = useState<string | null>(null);
   const [beforeAIEditImage, setBeforeAIEditImage] = useState<string | null>(null);
   const [hasAcceptedAIEdit, setHasAcceptedAIEdit] = useState(false); // Track if user has kept an AI edit
+  const [isPulsing, setIsPulsing] = useState(false);
 
   // Update display image when generated image changes
   useEffect(() => {
@@ -82,7 +85,10 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
   };
 
   const handlePointerDown = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
+    // Only preventDefault for mouse events - touch events are passive by default
+    if (!('touches' in e)) {
+      e.preventDefault();
+    }
     const clientX = 'touches' in e ? e.touches[0]?.clientX : e.clientX;
     if (clientX !== undefined) {
       setSliderPosition(getPositionFromEvent(clientX));
@@ -477,8 +483,8 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
               </div>
             )}
 
-            {/* Circular Action Buttons - Top Right */}
-            <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
+            {/* Circular Action Buttons - Position based on user setting */}
+            <div className={`absolute top-3 ${buttonOrientation === 'left' ? 'left-3' : 'right-3'} flex flex-col gap-2 z-20`}>
               {/* Remove Image Button */}
               {onRemoveImage && (
                 <div className="relative group">
@@ -498,7 +504,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
                       <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                     </svg>
                   </button>
-                  <div className="pointer-events-none absolute right-[calc(100%+0.5rem)] top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/85 px-3 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className={`pointer-events-none absolute ${buttonOrientation === 'left' ? 'left-[calc(100%+0.5rem)]' : 'right-[calc(100%+0.5rem)]'} top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/85 px-3 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity`}>
                     Remove image
                   </div>
                 </div>
@@ -520,7 +526,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
                 >
                   <MagicWand className="h-5 w-5" weight="bold" />
                 </button>
-                <div className="pointer-events-none absolute right-[calc(100%+0.5rem)] top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/85 px-3 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className={`pointer-events-none absolute ${buttonOrientation === 'left' ? 'left-[calc(100%+0.5rem)]' : 'right-[calc(100%+0.5rem)]'} top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/85 px-3 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity`}>
                   AI Custom Edit
                 </div>
               </div>
@@ -544,7 +550,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
                       <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                     </svg>
                   </button>
-                  <div className="pointer-events-none absolute right-[calc(100%+0.5rem)] top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/85 px-3 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className={`pointer-events-none absolute ${buttonOrientation === 'left' ? 'left-[calc(100%+0.5rem)]' : 'right-[calc(100%+0.5rem)]'} top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/85 px-3 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity`}>
                     Edit Image
                   </div>
                 </div>
@@ -556,6 +562,9 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      // Trigger pulse animation via state
+                      setIsPulsing(true);
+                      setTimeout(() => setIsPulsing(false), 300);
                       onToggleFavorite();
                     }}
                     onMouseDown={(e) => e.stopPropagation()}
@@ -566,12 +575,12 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
                       isFavorite 
                         ? 'bg-red-500/20 text-red-400 border-red-500/30' 
                         : 'bg-black/30 hover:bg-black/50 text-white'
-                    }`}
+                    } ${isPulsing ? 'animate-pulse-once' : ''}`}
                     aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
                   >
                     <Heart size={20} weight={isFavorite ? 'fill' : 'bold'} className={isFavorite ? 'text-red-400' : 'text-white'} />
                   </button>
-                  <div className="pointer-events-none absolute right-[calc(100%+0.5rem)] top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/85 px-3 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className={`pointer-events-none absolute ${buttonOrientation === 'left' ? 'left-[calc(100%+0.5rem)]' : 'right-[calc(100%+0.5rem)]'} top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/85 px-3 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity`}>
                     {isFavorite ? "Unfavorite" : "Favorite"}
                   </div>
                 </div>
@@ -595,7 +604,7 @@ const ImageComparison: React.FC<ImageComparisonProps> = ({
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
                   </svg>
                 </button>
-                <div className="pointer-events-none absolute right-[calc(100%+0.5rem)] top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/85 px-3 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className={`pointer-events-none absolute ${buttonOrientation === 'left' ? 'left-[calc(100%+0.5rem)]' : 'right-[calc(100%+0.5rem)]'} top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/85 px-3 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity`}>
                   Enlarge Image
                 </div>
               </div>

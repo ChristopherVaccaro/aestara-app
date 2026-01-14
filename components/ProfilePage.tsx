@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { X, TrendUp, Calendar, Hash, DeviceMobile } from '@phosphor-icons/react';
+import { X, TrendUp, Calendar, Hash, DeviceMobile, Stack } from '@phosphor-icons/react';
 import { useAuth } from '../contexts/AuthContext';
 import { useUserSettings } from '../contexts/UserSettingsContext';
 import UserAvatar from './UserAvatar';
@@ -13,7 +13,7 @@ import {
   getTotalPromptUsage,
   PromptUsageStats,
 } from '../services/userPromptUsageService';
-import { FabPosition } from '../services/userSettingsService';
+import { FabPosition, ButtonOrientation } from '../services/userSettingsService';
 
 interface ProfilePageProps {
   onClose: () => void;
@@ -21,7 +21,7 @@ interface ProfilePageProps {
 
 const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
   const { user } = useAuth();
-  const { fabPosition, setFabPosition } = useUserSettings();
+  const { fabPosition, setFabPosition, buttonOrientation, setButtonOrientation } = useUserSettings();
   const [usageStats, setUsageStats] = useState<PromptUsageStats[]>([]);
   const [totalUsage, setTotalUsage] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -108,30 +108,30 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
             </div>
           </div>
 
-          {/* Stats Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Hash className="w-5 h-5 text-blue-400" />
+          {/* Stats Summary - Compact single-line layout */}
+          <div className="flex flex-col gap-2 mb-8">
+            <div className="flex items-center justify-between bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-lg px-4 py-2.5">
+              <div className="flex items-center gap-2">
+                <Hash className="w-4 h-4 text-blue-400" />
                 <p className="text-gray-400 text-sm">Total Generations</p>
               </div>
-              <p className="text-3xl font-bold text-white">{totalUsage}</p>
+              <p className="text-lg font-bold text-white">{totalUsage}</p>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendUp className="w-5 h-5 text-purple-400" />
+            <div className="flex items-center justify-between bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg px-4 py-2.5">
+              <div className="flex items-center gap-2">
+                <TrendUp className="w-4 h-4 text-purple-400" />
                 <p className="text-gray-400 text-sm">Styles Used</p>
               </div>
-              <p className="text-3xl font-bold text-white">{usageStats.length}</p>
+              <p className="text-lg font-bold text-white">{usageStats.length}</p>
             </div>
 
-            <div className="bg-gradient-to-br from-pink-500/20 to-orange-500/20 border border-pink-500/30 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Calendar className="w-5 h-5 text-pink-400" />
+            <div className="flex items-center justify-between bg-gradient-to-r from-pink-500/10 to-orange-500/10 border border-pink-500/20 rounded-lg px-4 py-2.5">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-pink-400" />
                 <p className="text-gray-400 text-sm">Most Used</p>
               </div>
-              <p className="text-lg font-bold text-white truncate">
+              <p className="text-lg font-bold text-white truncate max-w-[150px]">
                 {usageStats[0]?.filter_name || 'N/A'}
               </p>
             </div>
@@ -142,7 +142,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
             <div className="p-4 border-b border-white/10">
               <h3 className="text-lg font-semibold text-white">Settings</h3>
             </div>
-            <div className="p-4">
+            <div className="p-4 space-y-4">
               {/* FAB Position Setting - Mobile Only */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -170,6 +170,41 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
                     className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                       fabPosition === 'right'
                         ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Right
+                  </button>
+                </div>
+              </div>
+
+              {/* Button Orientation Setting */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
+                    <Stack className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">Image Button Position</p>
+                    <p className="text-gray-400 text-sm">Action buttons on images</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 bg-black/40 border border-white/10 rounded-full p-1">
+                  <button
+                    onClick={() => setButtonOrientation('left')}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                      buttonOrientation === 'left'
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Left
+                  </button>
+                  <button
+                    onClick={() => setButtonOrientation('right')}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                      buttonOrientation === 'right'
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
                         : 'text-gray-400 hover:text-white'
                     }`}
                   >

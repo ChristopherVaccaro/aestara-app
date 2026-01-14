@@ -8,6 +8,7 @@ import { useAuth } from './AuthContext';
 import {
   UserSettings,
   FabPosition,
+  ButtonOrientation,
   getLocalSettings,
   saveLocalSettings,
   getUserSettings,
@@ -19,11 +20,14 @@ interface UserSettingsContextType {
   settings: UserSettings;
   fabPosition: FabPosition;
   setFabPosition: (position: FabPosition) => Promise<void>;
+  buttonOrientation: ButtonOrientation;
+  setButtonOrientation: (orientation: ButtonOrientation) => Promise<void>;
   isLoading: boolean;
 }
 
 const defaultSettings: UserSettings = {
   fabPositionMobile: 'right',
+  buttonOrientation: 'right',
 };
 
 const UserSettingsContext = createContext<UserSettingsContextType | undefined>(undefined);
@@ -82,10 +86,25 @@ export const UserSettingsProvider: React.FC<UserSettingsProviderProps> = ({ chil
     }
   }, [settings, user?.id]);
 
+  const setButtonOrientation = useCallback(async (orientation: ButtonOrientation) => {
+    const newSettings = { ...settings, buttonOrientation: orientation };
+    setSettings(newSettings);
+
+    // Save to localStorage immediately for instant feedback
+    saveLocalSettings({ buttonOrientation: orientation });
+
+    // If user is logged in, also save to Supabase
+    if (user?.id) {
+      await saveUserSettings(user.id, { buttonOrientation: orientation });
+    }
+  }, [settings, user?.id]);
+
   const value = {
     settings,
     fabPosition: settings.fabPositionMobile,
     setFabPosition,
+    buttonOrientation: settings.buttonOrientation || 'right',
+    setButtonOrientation,
     isLoading,
   };
 

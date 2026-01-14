@@ -56,12 +56,15 @@ const LoadingProgress: React.FC<LoadingProgressProps> = ({
         <p className="text-sm text-gray-400 animate-fade-in min-h-[20px]">{tips[currentTip]}</p>
       </div>
 
-      {/* Progress Bar - Fixed Width */}
+      {/* Progress Bar - Fixed Width with gradient reveal */}
       <div className="w-80">
-        <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-500 transition-all duration-300 ease-out animate-gradient"
-            style={{ width: `${progress}%` }}
+        <div className="h-3 bg-gray-800/80 rounded-full overflow-hidden border border-white/10 relative">
+          {/* Full gradient that spans the entire bar width, clipped by progress */}
+          <div 
+            className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 transition-all duration-200 ease-out"
+            style={{ 
+              clipPath: `inset(0 ${100 - progress}% 0 0)`,
+            }}
           />
         </div>
         <div className="flex justify-between mt-2 text-xs text-gray-400">
